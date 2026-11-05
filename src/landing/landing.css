@@ -1,0 +1,414 @@
+/*
+  Розкладка = «піксельна сітка референсу»: композиція має висоту 639 одиниць, --u — розмір однієї одиниці в px.
+  Тому будь-яку позицію/розмір можна писати числом з референсу: calc(var(--u) * 148.5).
+
+  Адаптація під екран ПК: --u береться з висоти вікна (або з ширини, якщо вікно вужче за референс), а сцена
+  розтягується на ВСЮ ширину: шапка, текст і арт тримаються своїх країв, ліва й права частини плити розсуваються,
+  проміжок заповнює плитка (fill.webp), панель і колонки рівномірно розтягуються.
+  На референсній пропорції (981:639) усе збігається з референсом піксель у піксель.
+
+  Параметри тексту (--x --y --fs --ls --lh) підібрані скриптом scripts/fit-text.mjs за піксельною різницею.
+*/
+.v-landing {
+  --bg: #0c182a;
+}
+
+.v-landing {
+  font-family: 'Roboto', Arial, sans-serif;
+  color: #f2ede3;
+  -webkit-font-smoothing: antialiased;
+}
+
+.v-landing .page {
+  --u: min(calc(100vw / 981), calc(100vh / 639));
+  min-height: 100vh;
+  display: grid;
+  align-items: center;
+  overflow: hidden;
+}
+
+@supports (height: 100svh) {
+  .v-landing .page {
+    --u: min(calc(100vw / 981), calc(100svh / 639));
+    min-height: 100svh;
+  }
+}
+
+.v-landing .stage {
+  position: relative;
+  isolation: isolate;
+  width: 100%;
+  height: calc(var(--u) * 639);
+  background: var(--bg);
+}
+
+/* ---------- арт: ліва частина | заповнювач | права частина ---------- */
+/* SEAM = 335 і 981 - 335 = 646 мають збігатися зі SEAM у scripts/build-plate.mjs */
+.v-landing .art {
+  --f: clamp(0px, calc(100vw - var(--u) * 981), calc(var(--u) * 60)); /* ширина «розчинення» країв частин */
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+
+.v-landing .art-fill {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(var(--u) * 335 - var(--f));
+  right: calc(var(--u) * 646 - var(--f));
+  background: url('./art/fill.webp') repeat-x 0 0 / calc(var(--u) * 128) 100%;
+}
+
+.v-landing .art-left,
+.v-landing .art-right {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  overflow: hidden;
+}
+
+.v-landing .art-left {
+  left: 0;
+  width: calc(var(--u) * 335);
+  -webkit-mask-image: linear-gradient(to right, #000 calc(100% - var(--f)), transparent);
+  mask-image: linear-gradient(to right, #000 calc(100% - var(--f)), transparent);
+}
+
+.v-landing .art-right {
+  right: 0;
+  width: calc(var(--u) * 646 + 1px); /* +1px — щоб на референсній пропорції не лишалось шва */
+  -webkit-mask-image: linear-gradient(to left, #000 calc(100% - var(--f)), transparent);
+  mask-image: linear-gradient(to left, #000 calc(100% - var(--f)), transparent);
+}
+
+.v-landing .art img {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  width: calc(var(--u) * 981);
+  max-width: none;
+  user-select: none;
+}
+
+.v-landing .art-left img { left: 0; }
+.v-landing .art-right img { right: 0; }
+
+/* вікно вище за референс (напр. 5:4): краї композиції плавно сходять на фон сторінки */
+/* строго «вищі» за референс (з запасом 0.5 %), щоб на самій пропорції референсу краї не затухали */
+@media (max-aspect-ratio: 976 / 639) {
+  .v-landing .art {
+    -webkit-mask-image: linear-gradient(to bottom, transparent, #000 calc(var(--u) * 28), #000 calc(100% - var(--u) * 28), transparent);
+    mask-image: linear-gradient(to bottom, transparent, #000 calc(var(--u) * 28), #000 calc(100% - var(--u) * 28), transparent);
+  }
+}
+
+/* ---------- текстові блоки ----------
+   Параметри — числа в «пікселях референсу», їх підбирає scripts/fit-text.mjs.
+   --x/--y: позиція відносно батька; --fs кегль; --ls трекінг; --lh інтерліньяж; --wdth/--wght ширина й вага шрифту. */
+.v-landing .brand-name,
+.v-landing .wordmark,
+.v-landing .hero h1,
+.v-landing .lead,
+.v-landing .btn,
+.v-landing .panel {
+  --x: 0;
+  --y: 0;
+  --fs: 16;
+  --ls: 0;
+  --lh: 20;
+  --wdth: 100;
+  --wght: 400;
+  font-size: calc(var(--u) * var(--fs));
+  letter-spacing: calc(var(--u) * var(--ls));
+  line-height: calc(var(--u) * var(--lh));
+  font-stretch: calc(var(--wdth) * 1%);
+  font-weight: var(--wght);
+  white-space: nowrap;
+}
+
+.v-landing .brand-name,
+.v-landing .wordmark,
+.v-landing .hero h1,
+.v-landing .lead {
+  position: absolute;
+  margin: 0;
+  left: calc(var(--u) * var(--x));
+  top: calc(var(--u) * var(--y));
+}
+
+.v-landing .hero h1 span,
+.v-landing .lead span {
+  display: block;
+}
+
+/* ---------- шапка ---------- */
+.v-landing .topbar {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.v-landing .topbar > * { pointer-events: auto; }
+
+.v-landing .brand {
+  position: absolute;
+  left: calc(var(--u) * 30);
+  top: calc(var(--u) * 16);
+  width: calc(var(--u) * 100);
+  height: calc(var(--u) * 34);
+  color: #e3ddd6;
+  text-decoration: none;
+}
+
+.v-landing .brand-moon {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: calc(var(--u) * 32);
+  height: calc(var(--u) * 34);
+}
+
+.v-landing .brand-name {
+  --x: 35.9;
+  --y: 8;
+  --fs: 16.2;
+  --ls: 0.55;
+  --lh: 18;
+  --wght: 400;
+  font-family: 'Heebo', 'Roboto', sans-serif;
+}
+
+/* назва по центру вікна (у референсі x = 442.3 при центрі 490.5) */
+.v-landing .wordmark {
+  --x: 442.3;
+  --y: 20;
+  --fs: 24.1;
+  --ls: 0.5;
+  --lh: 28;
+  left: calc(50% + var(--u) * (var(--x) - 490.5));
+  font-family: 'Lora', Georgia, serif;
+  color: #b7a999;
+}
+
+/* кнопка мови тримається правого краю вікна (у референсі відступ 39.6) */
+.v-landing .feature img {
+  display: block;
+}
+
+/* ---------- hero ---------- */
+.v-landing .hero {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.v-landing .hero > * { pointer-events: auto; }
+
+.v-landing .hero h1 {
+  --x: 53;
+  --y: 87;
+  --fs: 38;
+  --lh: 41.7;
+  font-family: 'Gelasio', Georgia, serif;
+  color: #bbad9a;
+}
+
+.v-landing .lead {
+  --x: 55.5;
+  --y: 182.3;
+  --fs: 16.04;
+  --lh: 21.75;
+  --wght: 450;
+  font-family: 'Heebo', 'Roboto', sans-serif;
+  color: #f5f9fc;
+}
+
+.v-landing .btn {
+  --fs: 18.4;
+  --ls: 0.15;
+  --lh: 18;
+  --wght: 400;
+  --dx: -0.3;
+  --dy: 0;
+  position: absolute;
+  top: calc(var(--u) * 307);
+  height: calc(var(--u) * 35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  text-decoration: none;
+  font-family: 'Roboto Condensed', 'Roboto', sans-serif;
+  transition: filter 0.2s;
+}
+
+.v-landing .btn span {
+  display: block;
+  transform: translate(calc(var(--u) * var(--dx)), calc(var(--u) * var(--dy)));
+}
+
+.v-landing .btn:hover { filter: brightness(1.12); }
+
+.v-landing .btn-primary {
+  top: calc(var(--u) * 306.5);
+  left: calc(var(--u) * 55);
+  width: calc(var(--u) * 152.5);
+  height: calc(var(--u) * 36.5);
+  color: #14110e;
+  background: #d3b382;
+  box-shadow:
+    0 0 0 calc(var(--u) * 1) #000,
+    inset 0 calc(var(--u) * 1) 0 #d6c3a1;
+}
+
+.v-landing .btn-ghost {
+  top: calc(var(--u) * 306);
+  left: calc(var(--u) * 219);
+  width: calc(var(--u) * 158);
+  height: calc(var(--u) * 37);
+  --wght: 600;
+  color: #bcae92;
+  box-shadow:
+    0 0 0 calc(var(--u) * 1) #000,
+    inset 0 0 0 calc(var(--u) * 2) #8e8e86,
+    inset 0 0 0 calc(var(--u) * 3) #000;
+}
+
+/* ---------- панель можливостей ----------
+   Рамка й тло панелі — в плиті. Панель займає x = 40 ... (ширина - 40); колонки — рівні четвертини,
+   --d — виміряний зсув іконки й підпису від центру колонки в референсі. */
+.v-landing .panel {
+  --fs: 28.4;
+  --ls: -0.35;
+  --lh: 30;
+  --wght: 600;
+  --ly: 92;
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  font-family: 'Roboto Condensed', 'Roboto', sans-serif;
+}
+
+.v-landing .divider {
+  position: absolute;
+  top: calc(var(--u) * 464);
+  height: calc(var(--u) * 130);
+  width: max(1px, calc(var(--u) * 1));
+  left: calc(var(--u) * 40 + (100% - var(--u) * 80) * var(--k) / 4 - var(--u) * 1);
+  left: round(calc(var(--u) * 40 + (100% - var(--u) * 80) * var(--k) / 4 - var(--u) * 1), 1px);
+  background: linear-gradient(
+    180deg,
+    transparent,
+    rgba(165, 178, 196, 0.28) 38%,
+    rgba(165, 178, 196, 0.28) 62%,
+    transparent
+  );
+}
+
+.v-landing .feature {
+  --k: 0;
+  --d: 0;
+  --dx: 0;
+  position: absolute;
+  left: calc(var(--u) * 40 + (100% - var(--u) * 80) * (var(--k) + 0.5) / 4 + var(--u) * (var(--d) - 100));
+  top: calc(var(--u) * 460);
+  width: calc(var(--u) * 200);
+  height: calc(var(--u) * 130);
+  pointer-events: auto;
+  color: #b4a693;
+  text-decoration: none;
+  transition: filter 0.25s;
+}
+
+.v-landing .feature:hover { filter: brightness(1.2); }
+
+.v-landing .feature img {
+  position: absolute;
+  left: calc(var(--u) * 60);
+  top: calc(var(--u) * 3);
+  width: calc(var(--u) * 80);
+  height: calc(var(--u) * 81);
+}
+
+.v-landing .feature span {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(var(--u) * var(--ly));
+  text-align: center;
+  transform: translateX(calc(var(--u) * var(--dx)));
+}
+
+/* ---------- мобільна / вузька розкладка ----------
+   Референс — десктопна композиція. Для вузьких і «портретних» вікон лишається та сама графіка, але текст іде колонкою:
+   --u стає 1px, тож підібрані кегль і трекінг працюють у звичайних пікселях. Умова дублюється в Landing.jsx. */
+@media (max-width: 720px), (max-aspect-ratio: 1 / 1) {
+  .v-landing .page {
+    --u: 1px;
+    display: block;
+    min-height: 100svh;
+    overflow: visible;
+  }
+
+  .v-landing .stage {
+    width: 100%;
+    height: auto;
+    min-height: 1060px;
+    display: flex;
+    flex-direction: column;
+    padding: 16px 16px 20px;
+    overflow: hidden;
+  }
+
+  /* беремо лише верхні 439 з 639 px плити — нижче в ній намальована десктопна панель, на мобільному її замінює справжня;
+     арка з місяцем лишається цілою: арт ширший за екран і лежить над панеллю */
+  .v-landing .landing-art {
+    position: absolute;
+    z-index: -1;
+    left: -90%;
+    bottom: 325px;
+    width: 190%;
+    height: auto;
+    aspect-ratio: 981 / 439;
+    object-fit: cover;
+    object-position: right top;
+    -webkit-mask-image: linear-gradient(to bottom, transparent, #000 14%, #000 88%, transparent);
+    mask-image: linear-gradient(to bottom, transparent, #000 14%, #000 88%, transparent);
+  }
+
+  .v-landing .topbar, .v-landing .hero, .v-landing .panel { position: relative; inset: auto; }
+  .v-landing .topbar { height: 40px; flex: none; }
+
+  .v-landing .brand { left: 0; top: 0; width: auto; height: 28px; display: flex; align-items: center; gap: 8px; }
+  .v-landing .brand-moon { position: static; width: 26px; height: 28px; }
+  .v-landing .brand-name { position: static; }
+  .v-landing .wordmark { left: 50%; top: 4px; transform: translateX(-50%); }
+
+  .v-landing .hero { margin-top: 36px; display: block; }
+  .v-landing .hero h1, .v-landing .lead { position: static; }
+  .v-landing .lead { margin-top: 14px; max-width: 340px; white-space: normal; }
+  .v-landing .lead span { display: inline; white-space: normal; }
+  .v-landing .lead span::after { content: ' '; }
+
+  .v-landing .btn { position: relative; display: inline-flex; top: auto; left: auto; width: 150px; height: 44px; margin: 22px 12px 0 0; }
+  .v-landing .btn-primary, .v-landing .btn-ghost { top: auto; left: auto; width: 150px; height: 44px; }
+
+  .v-landing .panel {
+    --fs: 24;
+    margin-top: auto;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    border: 1.5px solid #8b7757;
+    border-radius: 28px;
+    background: #081428;
+    overflow: hidden;
+  }
+
+  .v-landing .divider { display: none; }
+
+  .v-landing .feature { position: relative; left: auto; top: auto; width: auto; height: auto; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 18px 8px; }
+  .v-landing .feature img { position: static; width: 72px; height: 73px; }
+  .v-landing .feature span { position: static; transform: none; }
+}

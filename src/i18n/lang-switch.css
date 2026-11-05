@@ -1,0 +1,27 @@
+.lang-switch {
+  position: fixed;
+  top: 12px;
+  right: 14px;
+  z-index: 40;
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 999px;
+  background: rgba(8, 18, 32, 0.72);
+  border: 1px solid rgba(228, 190, 128, 0.45);
+  backdrop-filter: blur(6px);
+}
+.lang-switch button {
+  min-width: 34px;
+  padding: 5px 9px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #b9a07a;
+  font: 600 12px/1 'Source Sans 3', 'Segoe UI', sans-serif;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+}
+.lang-switch button:hover { color: #f1dda6; }
+.lang-switch button[aria-pressed='true'] { background: linear-gradient(180deg, #f0cf94, #d3a768); color: #1a1208; }
+.lang-switch button:focus-visible { outline: 2px solid #e4be80; outline-offset: 2px; }

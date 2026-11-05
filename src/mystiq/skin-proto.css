@@ -1,0 +1,268 @@
+/* =====================================================================
+   Skin 5 — «прототип»: стиль з mystiq_prototype.html.
+   Темний синьо-бірюзовий фон із зорями, плоскі картки з золотою рамкою й
+   значком ✧ у куті, Georgia для заголовків, золоті кнопки з прямими кутами.
+   Підключається останнім і перекриває попередні скіни.
+   Текст трохи більший за прототипний (≈14–15 px замість 11–12 px) для читабельності.
+   ===================================================================== */
+:root {
+  --bg: #061321;
+  --text: #eee7d8;
+  --muted: #a6b6c2;
+  --gold: #d7b574;
+  --gold-hi: #f0d6a0;
+  --gold-lo: #a88a52;
+  --line: rgba(199, 164, 100, 0.34);
+  --line-soft: rgba(215, 181, 116, 0.16);
+  --panel: linear-gradient(145deg, rgba(17, 42, 61, 0.9), rgba(7, 23, 37, 0.95));
+  --grad: linear-gradient(120deg, #e0c28a, #b99150);
+  --display: Georgia, 'Times New Roman', serif;
+}
+
+body {
+  font-size: 15px;
+  line-height: 1.65;
+  background: var(--bg);
+}
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.55;
+  z-index: -2;
+  background:
+    radial-gradient(1px 1px at 10% 16%, #fff 98%, transparent),
+    radial-gradient(1px 1px at 30% 65%, #d9bd80 98%, transparent),
+    radial-gradient(1px 1px at 73% 20%, #fff 98%, transparent),
+    radial-gradient(1px 1px at 88% 72%, #d9bd80 98%, transparent),
+    radial-gradient(1px 1px at 60% 88%, #fff 98%, transparent),
+    radial-gradient(1px 1px at 44% 32%, #fff 98%, transparent),
+    radial-gradient(1.5px 1.5px at 20% 40%, #fff 98%, transparent),
+    radial-gradient(1.5px 1.5px at 82% 46%, #d9bd80 98%, transparent),
+    radial-gradient(ellipse at 75% 10%, rgba(26, 73, 97, 0.28), transparent 45%),
+    linear-gradient(135deg, #061321 0%, #0a1d2d 55%, #071523 100%);
+}
+body::after {
+  content: '✧  ·       ✦        ·       ☾       ·        ✧';
+  position: fixed;
+  right: 2vw;
+  bottom: 0;
+  color: rgba(215, 181, 116, 0.12);
+  font-size: clamp(40px, 8vw, 120px);
+  letter-spacing: 0.3em;
+  pointer-events: none;
+  z-index: -1;
+  white-space: nowrap;
+}
+h1, h2, h3, h4 { font-family: var(--display); font-weight: 400; color: #f0e5cd; letter-spacing: 0.01em; }
+.gold { color: var(--gold); }
+
+/* ---------- каркас ---------- */
+.mq-app {
+  height: auto;
+  min-height: 100vh;
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 0;
+  gap: 0;
+  border-radius: 0;
+  overflow: visible;
+  border: 1px solid rgba(128, 158, 178, 0.25);
+  border-top: 0;
+  border-bottom: 0;
+  background: none;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  grid-template-columns: 236px minmax(0, 1fr);
+}
+.mq-rail {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  padding: 24px 14px;
+  gap: 18px;
+  border-radius: 0;
+  border: 0;
+  border-right: 1px solid rgba(215, 181, 116, 0.22);
+  background: rgba(4, 16, 28, 0.82);
+  backdrop-filter: none;
+}
+.mq-logo { font-family: var(--display); font-size: 17px; letter-spacing: 0.22em; color: #f0e5cd; padding: 0 10px 8px; gap: 10px; text-transform: uppercase; }
+.mq-logo-mark { width: 26px; height: 26px; background: none; border: 1px solid var(--gold); box-shadow: none; position: relative; }
+.mq-logo-mark::after { content: '☾'; position: absolute; inset: 0; display: grid; place-items: center; color: var(--gold); font-size: 14px; }
+.p-navlabel { font-size: 10.5px; letter-spacing: 0.18em; text-transform: uppercase; color: #7c90a0; padding: 0 12px; margin: 0 0 -8px; }
+.mq-nav { gap: 4px; }
+.mq-nav a { padding: 9px 12px; border-radius: 10px; border: 1px solid transparent; font-size: 13.5px; color: #a9bac6; gap: 11px; }
+.mq-nav a svg { color: var(--gold); }
+.mq-nav a:hover { background: linear-gradient(90deg, rgba(42, 77, 100, 0.62), rgba(17, 39, 57, 0.48)); color: #fff; }
+.mq-nav a.is-active { background: linear-gradient(90deg, rgba(42, 77, 100, 0.62), rgba(17, 39, 57, 0.48)); border-color: rgba(215, 181, 116, 0.25); box-shadow: none; color: #fff; }
+.mq-nav a.is-active svg { color: var(--gold-hi); }
+.mq-nav--sub { border-top: 1px solid rgba(215, 181, 116, 0.16); padding-top: 12px; margin-top: auto; }
+.mq-nav--sub a { font-size: 13px; padding: 7px 12px; color: #8ea1af; }
+.mq-rail-moon { display: none; }
+
+.mq-top { padding: 22px clamp(16px, 3vw, 42px) 0; }
+.mq-search, .mq-bell, .mq-hello span:empty { display: none; }
+.mq-top-left { gap: 0; }
+.mq-top-title { font-size: 11.5px; color: var(--muted); letter-spacing: 0.08em; }
+.mq-hello strong { font-size: 13px; color: #e8dfcf; font-weight: 400; }
+.mq-hello span { font-size: 11px; color: #7f93a1; }
+.mq-avatar { background: linear-gradient(145deg, #34546a, #101f2b); border: 1px solid var(--gold); color: var(--gold-hi); font-family: var(--display); width: 34px; height: 34px; }
+.mq-main { padding: 22px clamp(16px, 3vw, 42px) 44px; overflow: visible; }
+
+/* ---------- заголовок сторінки ---------- */
+.mq-head { min-height: 0; margin: 0 0 22px; padding: 0; border: 0; border-radius: 0; background: none; backdrop-filter: none; overflow: visible; }
+.mq-head::after { display: none; }
+.mq-head h1 { font-size: clamp(28px, 3vw, 40px); font-weight: 400; letter-spacing: 0.02em; margin-bottom: 8px; color: #f6edd8; }
+.mq-head p { font-size: 14.5px; color: var(--muted); max-width: 68ch; line-height: 1.7; }
+
+/* ---------- картки ---------- */
+.mq-plaque, .mq-arch, .mq-orb, .mq-entry, .mq-entry:first-child, .mq-event, .mq-cycle, .mq-product, .mq-notes li, .mq-plan, .p-card {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--panel);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.14);
+  backdrop-filter: none;
+}
+.mq-plaque, .mq-arch, .p-card { padding: 20px; }
+.mq-plaque::before, .mq-arch::before { display: none; }
+.mq-plaque::after, .mq-arch::after, .p-card::after {
+  content: '✧';
+  position: absolute;
+  left: auto;
+  bottom: auto;
+  right: 14px;
+  top: 8px;
+  width: auto;
+  height: auto;
+  background: none;
+  transform: none;
+  box-shadow: none;
+  font-size: 18px;
+  color: rgba(215, 181, 116, 0.18);
+  pointer-events: none;
+}
+.mq-plaque h2, .mq-arch h2, .p-card h2 { font-size: 20px; margin-bottom: 8px; color: #f0e5cd; }
+.mq-grid { gap: 14px; }
+
+/* ---------- кнопки, поля, чипи ---------- */
+.mq-btn, .p-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 1px solid var(--gold);
+  border-radius: 7px;
+  background: linear-gradient(135deg, rgba(215, 181, 116, 0.18), rgba(215, 181, 116, 0.04));
+  color: var(--gold-hi);
+  padding: 9px 16px;
+  font: inherit;
+  font-size: 13.5px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: 0.2s;
+}
+.mq-btn:hover:not(:disabled), .p-btn:hover { background: rgba(215, 181, 116, 0.22); border-color: var(--gold-hi); box-shadow: none; transform: translateY(-1px); }
+.mq-btn--lit, .p-btn--primary { background: linear-gradient(120deg, #e0c28a, #b99150); color: #17202a; border-color: #e3c68e; font-weight: 600; box-shadow: none; }
+.mq-btn--lit:hover:not(:disabled), .p-btn--primary:hover { background: linear-gradient(120deg, #ecd096, #c49c58); color: #17202a; box-shadow: none; }
+.mq-btn--text { background: none; border: 0; padding: 6px 2px; color: var(--gold); text-decoration: underline; text-decoration-color: rgba(215, 181, 116, 0.4); text-underline-offset: 4px; transform: none; }
+.mq-btn--text:hover:not(:disabled) { background: none; transform: none; }
+
+.mq-input, .mq-textarea, .mq-select { background: rgba(3, 15, 26, 0.65); border: 1px solid rgba(142, 169, 185, 0.24); border-radius: 7px; padding: 11px; font-size: 14.5px; }
+.mq-input:focus, .mq-textarea:focus, .mq-select:focus { border-color: var(--gold); box-shadow: none; }
+.mq-field label, .mq-label { font-size: 12.5px; color: #b5c3cc; font-weight: 400; }
+
+.mq-chip, .p-tag { display: inline-block; padding: 4px 10px; border: 1px solid rgba(215, 181, 116, 0.28); border-radius: 20px; color: #cdb98f; font-size: 11.5px; background: none; letter-spacing: 0.04em; }
+.mq-chip.is-on { background: var(--grad); color: #17202a; border-color: transparent; }
+.mq-chip.tone-glow { background: rgba(215, 181, 116, 0.08); color: #d8c598; border-color: rgba(215, 181, 116, 0.35); }
+
+.mq-eyebrow { color: var(--gold); font-size: 11.5px; letter-spacing: 0.12em; }
+.mq-seg { border-radius: 8px; border-color: var(--line); }
+.mq-seg button.is-on { background: rgba(215, 181, 116, 0.18); color: var(--gold-hi); }
+
+/* ---------- сторінки проєкту, що лишились у старій розмітці ---------- */
+.mq-spread-pick button { border-radius: 12px; }
+.mq-spread-pick button strong { font-family: var(--display); font-weight: 400; font-size: 19px; }
+.mq-spread-pick button.is-on { background: linear-gradient(90deg, rgba(42, 77, 100, 0.62), rgba(17, 39, 57, 0.48)); border-color: var(--gold); box-shadow: none; }
+.mq-table { border-radius: 12px; background: rgba(3, 15, 26, 0.35); border-color: var(--line-soft); }
+.mq-msg.ai { background: #10283b; border-color: rgba(215, 181, 116, 0.17); font-size: 14.5px; line-height: 1.7; border-radius: 12px; }
+.mq-msg.me { background: rgba(215, 181, 116, 0.1); border: 1px solid rgba(215, 181, 116, 0.3); color: var(--text); border-radius: 12px; font-weight: 400; }
+.mq-product-art { height: 150px; display: grid; place-items: center; margin: 14px 14px 0; border: 1px solid rgba(215, 181, 116, 0.45); border-radius: 8px; background: radial-gradient(ellipse, rgba(215, 181, 116, 0.15), transparent 65%); font-size: 52px; color: var(--gold); }
+.mq-product-foot strong, .mq-stat-big { font-family: var(--display); color: var(--gold-hi); }
+.mq-compat { text-align: center; margin-top: 14px; }
+.mq-compat-glyphs { font-size: 44px; color: var(--gold); margin-bottom: 6px; }
+.mq-plan.is-featured { border-color: rgba(240, 214, 160, 0.75); box-shadow: 0 0 30px rgba(215, 181, 116, 0.1); transform: none; }
+
+/* ---------- Dashboard / Landing (p-*) ---------- */
+.p-hero { display: grid; grid-template-columns: 1.25fr 0.75fr; gap: 15px; margin-bottom: 15px; }
+.p-hero-art { min-height: 250px; display: flex; align-items: center; justify-content: space-between; gap: 16px; background: radial-gradient(circle at 75% 45%, rgba(215, 181, 116, 0.12), transparent 28%), linear-gradient(120deg, rgba(11, 34, 51, 0.96), rgba(12, 31, 47, 0.8)); padding: 26px; }
+.p-hero-copy { max-width: 440px; position: relative; z-index: 1; }
+.p-hero-copy h1 { font-size: clamp(28px, 3vw, 40px); margin: 12px 0 10px; color: #f6edd8; }
+.p-sub { font-size: 14.5px; line-height: 1.7; color: var(--muted); max-width: 52ch; margin: 0 0 18px; }
+.p-text { font-size: 13.5px; line-height: 1.7; color: var(--muted); margin: 0; }
+.p-moon { flex: 0 0 150px; height: 150px; border: 1px solid rgba(215, 181, 116, 0.5); border-radius: 50%; display: grid; place-items: center; color: var(--gold); font-size: 84px; box-shadow: 0 0 50px rgba(215, 181, 116, 0.08), inset 0 0 25px rgba(215, 181, 116, 0.06); }
+.p-moon--xl { flex-basis: 200px; height: 200px; font-size: 112px; }
+.p-landing { min-height: 340px; }
+.p-landing h1 { font-size: clamp(34px, 4.6vw, 56px); }
+.p-grid { display: grid; gap: 14px; margin-bottom: 15px; }
+.p-grid-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.p-grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.p-metric { font-family: var(--display); font-size: 24px; color: var(--gold-hi); margin: 8px 0 4px; }
+.p-link { text-decoration: none; color: inherit; transition: 0.2s; }
+.p-link:hover { border-color: var(--gold); transform: translateY(-2px); }
+.p-link h3, .p-card h3 { font-family: var(--ui); font-size: 14px; font-weight: 500; color: #e9d9b7; margin: 0 0 8px; }
+.p-insight { display: flex; gap: 16px; align-items: center; margin-top: 12px; }
+.p-insight h3 { font-family: var(--display); font-size: 20px; font-weight: 400; margin-bottom: 6px; }
+.p-list { display: grid; gap: 4px; margin-top: 8px; }
+.p-row { display: flex; align-items: center; gap: 12px; padding: 11px 0; border-bottom: 1px solid rgba(215, 181, 116, 0.12); }
+.p-row:last-child { border-bottom: 0; }
+.p-row > :nth-child(3) { margin-left: auto; }
+.p-iconbox { width: 36px; height: 36px; flex: 0 0 36px; display: grid; place-items: center; border: 1px solid rgba(215, 181, 116, 0.3); border-radius: 9px; color: var(--gold); background: rgba(215, 181, 116, 0.05); }
+.p-row-title { font-size: 13.5px; color: #e9e2d5; }
+.p-row-sub { font-size: 12px; color: var(--muted); }
+.p-actions { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 16px; }
+.p-cta { margin-top: 15px; text-align: center; }
+.p-cta .p-text { margin: 0 auto 15px; }
+
+/* публічний каркас у тому ж стилі */
+.mq-public { max-width: 1600px; margin: 0 auto; padding: 18px clamp(16px, 3vw, 42px) 0; }
+.mq-pub-top { border-radius: 12px; }
+.mq-pub-nav a { border-radius: 8px; font-size: 13.5px; }
+.mq-auth h1 { font-size: 30px; }
+.mq-or::before, .mq-or::after { background: var(--line-soft); }
+
+@media (max-width: 1050px) {
+  .p-hero { grid-template-columns: 1fr; }
+  .p-grid-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .p-moon { flex-basis: 115px; height: 115px; font-size: 62px; }
+}
+@media (max-width: 860px) {
+  .mq-app { display: block; border: 0; }
+  .mq-rail { position: relative; height: auto; flex-direction: row; padding: 10px 12px; overflow-x: auto; border-right: 0; border-bottom: 1px solid var(--line); }
+  .p-navlabel, .mq-nav--sub { display: none; }
+  .mq-nav a { white-space: nowrap; }
+}
+@media (max-width: 720px) {
+  .p-grid-2 { grid-template-columns: 1fr; }
+  .p-hero-art { min-height: 200px; }
+  .p-moon, .p-moon--xl { flex-basis: 88px; height: 88px; font-size: 48px; }
+}
+@media (max-width: 420px) {
+  .p-grid-4 { grid-template-columns: 1fr; }
+}
+
+.p-hero-copy { max-width: 560px; }
+.p-hero-copy h1 { line-height: 1.18; }
+.p-landing .p-hero-copy { max-width: 620px; }
+.p-hero-copy h1 .gold { display: inline; }
+
+/* ---- API: завантаження, помилки, вихід ---- */
+.mq-loading{padding:48px;text-align:center;color:var(--gold);font-family:var(--display)}
+.mq-error{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px;padding:10px 14px;border:1px solid #c9706a;background:rgba(150,50,45,.25);color:#f3cfcb;font-size:14px}
+.mq-error button{background:none;border:0;color:inherit;font-size:20px;cursor:pointer;line-height:1}
+.mq-form-error{margin:0 0 12px;color:#f0a39d;font-size:14px}
+.mq-logout{margin:14px 0 4px}

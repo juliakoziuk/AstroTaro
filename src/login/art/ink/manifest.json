@@ -1,0 +1,230 @@
+{
+  "sb-crest": {
+    "zone": [
+      80,
+      34,
+      120,
+      88
+    ],
+    "colors": [
+      "#b2a294",
+      "#807c70",
+      "#adaa98",
+      "#d6d2bc",
+      "#fffae0"
+    ],
+    "set": "E"
+  },
+  "sb-home": {
+    "zone": [
+      70,
+      240,
+      44,
+      38
+    ],
+    "colors": [
+      "#100d698",
+      "#e1bc87",
+      "#f2cb91"
+    ],
+    "set": "A"
+  },
+  "sb-chat": {
+    "zone": [
+      70,
+      318,
+      44,
+      38
+    ],
+    "colors": [
+      "#a5a09e",
+      "#a09993",
+      "#b3aca7"
+    ],
+    "set": "B"
+  },
+  "sb-analytics": {
+    "zone": [
+      70,
+      386,
+      44,
+      38
+    ],
+    "colors": [
+      "#efeaea",
+      "#b2aeae",
+      "#b4afae"
+    ],
+    "set": "A"
+  },
+  "sb-access": {
+    "zone": [
+      70,
+      454,
+      44,
+      42
+    ],
+    "colors": [
+      "#d8d6d8",
+      "#c9c9cc",
+      "#a9a8aa"
+    ],
+    "set": "A"
+  },
+  "sb-settings": {
+    "zone": [
+      70,
+      522,
+      44,
+      42
+    ],
+    "colors": [
+      "#d4d5da",
+      "#c3c8cf",
+      "#abafb6"
+    ],
+    "set": "A"
+  },
+  "sb-help": {
+    "zone": [
+      70,
+      590,
+      44,
+      42
+    ],
+    "colors": [
+      "#b0bbc6",
+      "#a3afba",
+      "#9ba6b1"
+    ],
+    "set": "A"
+  },
+  "sb-divider": {
+    "zone": [
+      84,
+      824,
+      126,
+      26
+    ],
+    "colors": [
+      "#d2b19c",
+      "#a89180",
+      "#9f897a"
+    ],
+    "set": "A"
+  },
+  "sb-sun": {
+    "zone": [
+      74,
+      864,
+      36,
+      34
+    ],
+    "colors": [
+      "#e8c089",
+      "#f1c78e",
+      "#e2bb86"
+    ],
+    "set": "A"
+  },
+  "sb-moon": {
+    "zone": [
+      168,
+      864,
+      32,
+      32
+    ],
+    "colors": [
+      "#dcb587",
+      "#e4bc8c",
+      "#e0b989"
+    ],
+    "set": "A"
+  },
+  "card-crest": {
+    "zone": [
+      768,
+      18,
+      318,
+      170
+    ],
+    "colors": [
+      "#9a9691",
+      "#8c7c70",
+      "#beb1a3",
+      "#d5c8b9",
+      "#f4ead9"
+    ],
+    "set": "E"
+  },
+  "card-divider": {
+    "zone": [
+      694,
+      238,
+      462,
+      36
+    ],
+    "colors": [
+      "#f7e1ce",
+      "#c5bdb6",
+      "#b2aea8"
+    ],
+    "set": "A"
+  },
+  "card-email": {
+    "zone": [
+      676,
+      436,
+      44,
+      34
+    ],
+    "colors": [
+      "#cac2ba",
+      "#dcd5cd",
+      "#c6c1bb"
+    ],
+    "set": "A"
+  },
+  "card-lock": {
+    "zone": [
+      678,
+      516,
+      40,
+      42
+    ],
+    "colors": [
+      "#dbb684",
+      "#dec5a1",
+      "#ddc4a1"
+    ],
+    "set": "A"
+  },
+  "card-eye": {
+    "zone": [
+      1132,
+      522,
+      46,
+      34
+    ],
+    "colors": [
+      "#aebfce",
+      "#99aab7",
+      "#8999a6"
+    ],
+    "set": "A"
+  },
+  "card-signstar": {
+    "zone": [
+      858,
+      662,
+      32,
+      44
+    ],
+    "colors": [
+      "#252a2e",
+      "#181b1e",
+      "#1d2023"
+    ],
+    "set": "A"
+  }
+}

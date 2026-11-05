@@ -1,0 +1,7 @@
+function Status({ isOnline }) {
+  return (
+    <p>
+      Статус: {if (isOnline) { 'онлайн' } else { 'офлайн' }}
+    </p>
+  )
+}

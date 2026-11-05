@@ -1,0 +1,21 @@
+# База даних AstroTarot (лише для локальної розробки; доступна тільки з цього комп'ютера)
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: astrotarot-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: AstroTarot
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - astrotarot-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d AstroTarot"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+volumes:
+  astrotarot-pgdata:

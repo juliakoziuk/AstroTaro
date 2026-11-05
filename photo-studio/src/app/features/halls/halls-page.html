@@ -1,0 +1,24 @@
+<h1>Наші зали</h1>
+
+@if (halls(); as list) {
+  <div class="grid">
+    @for (hall of list; track hall.id) {
+      <article class="card">
+        <h2>{{ hall.name }}</h2>
+        <p>{{ hall.description }}</p>
+        <ul>
+          <li>{{ hall.area }} м²</li>
+          <li>до {{ hall.capacity }} людей</li>
+        </ul>
+        <div class="footer">
+          <strong>{{ hall.pricePerHour | currency: 'UAH' : 'symbol-narrow' : '1.0-0' }} / год</strong>
+          <a [routerLink]="['/booking', hall.id]" class="btn">Забронювати</a>
+        </div>
+      </article>
+    } @empty {
+      <p>Залів поки немає.</p>
+    }
+  </div>
+} @else {
+  <p>Завантаження…</p>
+}

@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>MYSTIQ — B · Північне сяйво</title>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;500&family=Manrope:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<style>
+:root{--bg:#0b0820;--txt:#ece9ff;--mut:#9a95c4;--a:#8b5cf6;--b:#2dd4bf;--c:#f472b6;--glass:rgba(255,255,255,.06);--gb:rgba(255,255,255,.12);--disp:'Unbounded',sans-serif;--ui:'Manrope',system-ui,sans-serif}
+*{box-sizing:border-box;margin:0}
+body{background:var(--bg);color:var(--txt);font:400 15px/1.6 var(--ui);min-height:100vh;overflow-x:hidden}
+.aurora{position:fixed;inset:0;z-index:0;pointer-events:none;filter:blur(70px);opacity:.8}
+.aurora i{position:absolute;border-radius:50%}
+.aurora i:nth-child(1){width:520px;height:520px;background:var(--a);top:-160px;left:-100px;opacity:.55}
+.aurora i:nth-child(2){width:460px;height:460px;background:var(--b);top:30%;right:-140px;opacity:.28}
+.aurora i:nth-child(3){width:420px;height:420px;background:var(--c);bottom:-160px;left:25%;opacity:.28}
+.app{position:relative;z-index:1;display:grid;grid-template-columns:84px 1fr;max-width:1240px;margin:0 auto;min-height:100vh}
+.side{display:flex;flex-direction:column;align-items:center;gap:14px;padding:28px 0}
+.mark{width:44px;height:44px;border-radius:14px;background:linear-gradient(135deg,var(--a),var(--c));display:grid;place-items:center;font:500 16px var(--disp);margin-bottom:18px}
+.ic{width:46px;height:46px;border-radius:14px;display:grid;place-items:center;color:var(--mut);border:1px solid transparent;cursor:pointer;transition:.2s}
+.ic:hover{background:var(--glass)}
+.ic.on{background:var(--glass);border-color:var(--gb);color:#fff;box-shadow:0 0 24px rgba(139,92,246,.45)}
+.ic svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+main{padding:30px 28px 60px}
+.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:28px}
+.top h1{font:300 clamp(26px,3.4vw,40px)/1.15 var(--disp)}
+.top h1 b{font-weight:500;background:linear-gradient(90deg,var(--a),var(--c));-webkit-background-clip:text;color:transparent}
+.pill{padding:8px 16px;border-radius:99px;background:var(--glass);border:1px solid var(--gb);font-size:13px;color:var(--mut);backdrop-filter:blur(12px)}
+.bento{display:grid;grid-template-columns:repeat(6,1fr);gap:16px}
+.g{background:var(--glass);border:1px solid var(--gb);border-radius:26px;padding:22px;backdrop-filter:blur(18px);position:relative;overflow:hidden}
+.s2{grid-column:span 2}.s3{grid-column:span 3}.s4{grid-column:span 4}
+.lbl{font-size:12px;color:var(--mut);display:flex;align-items:center;gap:8px;margin-bottom:14px}
+.lbl::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--b);box-shadow:0 0 10px var(--b)}
+.g h3{font:400 20px/1.25 var(--disp);margin-bottom:8px}
+.g p{color:var(--mut);font-size:14px}
+.tarot-g{display:flex;gap:22px;align-items:center;background:linear-gradient(135deg,rgba(139,92,246,.28),rgba(244,114,182,.14))}
+.tc{flex:none;width:118px;height:178px;border-radius:16px;background:linear-gradient(160deg,#1a1245,#3b1d7a);border:1px solid rgba(255,255,255,.25);display:grid;place-items:center;box-shadow:0 20px 50px rgba(139,92,246,.5);transform:rotate(-4deg)}
+.tc svg{width:64px;height:64px}
+.moon-o{width:92px;height:92px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#fff,#c9c4ff 55%,#6d5ccf);box-shadow:0 0 50px rgba(201,196,255,.55),inset -22px -6px 0 rgba(11,8,32,.6);margin:6px 0 14px}
+.big{font:300 40px/1 var(--disp)}
+.tags{display:flex;gap:7px;flex-wrap:wrap;margin-top:14px}
+.tag{padding:4px 12px;border-radius:99px;font-size:12px;background:rgba(45,212,191,.14);color:#7ff0df}
+.tag:nth-child(2){background:rgba(244,114,182,.15);color:#f9a8d4}.tag:nth-child(3){background:rgba(139,92,246,.2);color:#c4b5fd}
+.mood{display:flex;align-items:flex-end;gap:7px;height:96px}
+.mood i{flex:1;border-radius:8px;background:linear-gradient(180deg,var(--a),rgba(139,92,246,.15))}
+.chat .m{padding:11px 15px;border-radius:18px;font-size:13.5px;max-width:88%;margin-bottom:9px}
+.m.ai{background:rgba(255,255,255,.08);border-bottom-left-radius:5px}
+.m.me{margin-left:auto;background:linear-gradient(135deg,var(--a),#6d4de0);border-bottom-right-radius:5px}
+.input{display:flex;align-items:center;justify-content:space-between;margin-top:12px;padding:10px 10px 10px 16px;border-radius:99px;border:1px solid var(--gb);color:var(--mut);font-size:13px}
+.input span{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--a),var(--c));display:grid;place-items:center;color:#fff}
+.cta{margin-top:16px;display:inline-block;padding:11px 22px;border-radius:99px;background:#fff;color:#1a1245;font-weight:600;font-size:13px;border:0;cursor:pointer;box-shadow:0 8px 30px rgba(255,255,255,.2)}
+@media(max-width:860px){.app{grid-template-columns:1fr}.side{flex-direction:row;justify-content:center;padding:14px;order:2;position:sticky;bottom:0;background:rgba(11,8,32,.8);backdrop-filter:blur(16px)}.mark{display:none}.s2,.s3,.s4{grid-column:span 6}main{padding:20px 16px}}
+</style>
+</head>
+<body>
+<div class="aurora"><i></i><i></i><i></i></div>
+<div class="app">
+  <aside class="side">
+    <div class="mark">M</div>
+    <div class="ic on" title="Сьогодні"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/></svg></div>
+    <div class="ic" title="Таро"><svg viewBox="0 0 24 24"><rect x="6" y="3" width="12" height="18" rx="2"/><path d="M12 8l1.5 3 3 .5-2.2 2.2.6 3.3-2.9-1.6-2.9 1.6.6-3.3L7.5 11.500l3-.5z"/></svg></div>
+    <div class="ic" title="Сни"><svg viewBox="0 0 24 24"><path d="M20 14A8 8 0 019.500 4 8 8 0 1020 14z"/></svg></div>
+    <div class="ic" title="Астрологія"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg></div>
+    <div class="ic" title="Щоденник"><svg viewBox="0 0 24 24"><path d="M5 4h12a2 2 0 012 2v14H7a2 2 0 01-2-2z"/><path d="M9 9h6M9 13h6"/></svg></div>
+    <div class="ic" title="Супутник"><svg viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/></svg></div>
+  </aside>
+  <main>
+    <div class="top">
+      <h1>Привіт, Юліє ✦<br/><b>як твій внутрішній світ?</b></h1>
+      <div class="pill">30 жовт · Місяць у Скорпіоні</div>
+    </div>
+    <div class="bento">
+      <div class="g s4 tarot-g">
+        <div class="tc"><svg viewBox="0 0 100 100" fill="none" stroke="#fff" stroke-width="2"><circle cx="50" cy="50" r="40" stroke-opacity=".4"/><path d="M50 12l7 26 26 7-26 7-7 26-7-26-26-7 26-7z" fill="#c4b5fd" fill-opacity=".5"/></svg></div>
+        <div><div class="lbl">Карта дня</div><h3>XVII · Зірка</h3><p>Час надії та м'якого оновлення. Запитай себе, що допомагає тобі відновлюватись.</p><button class="cta">Відкрити розклад</button></div>
+      </div>
+      <div class="g s2"><div class="lbl">Місяць</div><div class="moon-o"></div><div class="big">87%</div><p>Спадаючий · Скорпіон</p></div>
+      <div class="g s3"><div class="lbl">Останній сон</div><h3>Скляна підлога</h3><p>Під ногами повільні риби. Не страшно — цікаво.</p><div class="tags"><span class="tag">вода</span><span class="tag">дім</span><span class="tag">глибина</span></div></div>
+      <div class="g s3"><div class="lbl">Настрій за 7 днів</div><div class="mood"><i style="height:35%"></i><i style="height:60%"></i><i style="height:42%"></i><i style="height:78%"></i><i style="height:55%"></i><i style="height:92%"></i><i style="height:70%"></i></div><p style="margin-top:12px">Тренд — до спокою ↗</p></div>
+      <div class="g s6" style="grid-column:span 6"><div class="lbl">Супутник</div><div class="chat"><div class="m ai">Ти згадувала воду втретє за тиждень. Що вона для тебе означає?</div><div class="m me">Мабуть, про страх відпустити контроль.</div></div><div class="input">Напиши, що на серці…<span>↑</span></div></div>
+    </div>
+  </main>
+</div>
+</body>
+</html>

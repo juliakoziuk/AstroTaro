@@ -1,0 +1,215 @@
+/*
+  Екран «Draw your cards» за референсом design/draw-reference.webp. Фон-сцена (арки, кришталі, місяць) — готова картинка
+  (scripts/build-draw-scene.mjs), а бічна панель, вкладки, рамки карт і кнопки — справжня верстка з векторними іконками.
+*/
+.v-app .drawpage {
+  --gold: #e4be80;
+  --gold-hi: #f1dda6;
+  --ink: #f3efe7;
+  --muted: #a9b2bf;
+  --line: rgba(228, 190, 128, 0.5);
+  --glass: rgba(7, 18, 32, 0.74);
+  --side: clamp(168px, 10.7vw, 232px);
+  /* фон — cover на все вікно: k = px на одиницю сцени (1774x887), x0 — зсув по краях при обрізанні. Колонка інтерфейсу
+     мусить лежати в темній зоні між двома малюнками (x 400…1360 сцени), інакше карти «вилазять» на малюнок */
+  --k: max(calc(100vw / 1774), calc(100vh / 887));
+  --x0: calc((100vw - var(--k) * 1774) / 2);
+  --colw: min(calc(var(--k) * 960), 1120px);
+  --colx: calc(var(--x0) + var(--k) * 400 - var(--side) + (var(--k) * 960 - var(--colw)) / 2);
+  min-height: 100vh;
+  box-sizing: border-box;
+  padding-left: var(--side);
+  color: var(--ink);
+  font: 16px/1.5 'Source Sans 3', 'Segoe UI', sans-serif;
+  background-color: #08121f;
+}
+.v-app .drawpage::before { content: ''; position: fixed; inset: 0; z-index: 0; background: var(--scene) center top / cover no-repeat; pointer-events: none; }
+.v-app .drawpage > .draw { position: relative; z-index: 1; }
+.v-app .drawpage svg { flex: none; }
+
+/* ---------- бічна панель ---------- */
+.v-app .drawpage .side {
+  position: fixed; inset: 0 auto 0 0; z-index: 2; width: var(--side); box-sizing: border-box;
+  display: flex; flex-direction: column; align-items: center; padding: 16px 12px 22px;
+  background: linear-gradient(180deg, #07121f, #050e1a); border-right: 1px solid rgba(228, 190, 128, 0.32);
+}
+.v-app .drawpage .logo img { display: block; width: 112px; height: auto; }
+.v-app .drawpage .side nav { display: grid; gap: 8px; width: 100%; margin-top: 20px; }
+.v-app .drawpage .side nav a {
+  display: flex; align-items: center; gap: 12px; padding: 11px 14px; border-radius: 999px; border: 1px solid transparent;
+  color: #cfc8b8; font-size: 15px; text-decoration: none; transition: background 0.15s, color 0.15s;
+}
+.v-app .drawpage .side nav a svg { font-size: 22px; color: var(--gold); }
+.v-app .drawpage .side nav a:hover { background: rgba(228, 190, 128, 0.1); color: #fff; }
+.v-app .drawpage .side nav a.on {
+  color: #fff; font-weight: 600; border-color: rgba(228, 190, 128, 0.75);
+  background: linear-gradient(180deg, rgba(228, 190, 128, 0.3), rgba(228, 190, 128, 0.1));
+  box-shadow: 0 0 16px rgba(228, 190, 128, 0.25);
+}
+.v-app .drawpage .side-theme { margin-top: auto; width: 116px; height: 38px; font-size: 18px; }
+
+/* ---------- колонка ---------- */
+.v-app .drawpage .draw { --ml: max(16px, var(--colx)); width: min(var(--colw), calc(var(--x0) + var(--k) * 1360 - var(--side) - var(--ml)), calc(100% - var(--ml) - 16px)); margin: 0 0 0 var(--ml); padding: 16px 0 18px; box-sizing: border-box; }
+.v-app .drawpage .draw header { margin-bottom: 14px; }
+.v-app .drawpage .back { color: var(--gold); text-decoration: none; font-size: 15px; }
+.v-app .drawpage .back:hover { text-decoration: underline; }
+.v-app .drawpage h1 {
+  margin: 4px 0 4px; font: 700 clamp(32px, 3vw, 46px)/1.08 'Crimson Text', Georgia, serif; color: var(--gold-hi);
+  text-shadow: 0 0 28px rgba(228, 190, 128, 0.35);
+}
+.v-app .drawpage .sub { margin: 0; display: flex; align-items: center; gap: 14px; color: var(--muted); }
+.v-app .drawpage .rule { flex: 0 1 280px; height: 1px; background: linear-gradient(90deg, rgba(228, 190, 128, 0.7), transparent); position: relative; }
+.v-app .drawpage .rule::after { content: ''; position: absolute; right: 24%; top: -3px; width: 7px; height: 7px; background: var(--gold); clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%); }
+.v-app .drawpage .hint { margin: 10px 0 10px; color: var(--muted); font-size: 15px; }
+
+/* ---------- вкладки ---------- */
+.v-app .drawpage .tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.v-app .drawpage .tabs button {
+  display: flex; align-items: center; justify-content: center; gap: 10px; padding: 11px 16px; border-radius: 999px; cursor: pointer;
+  font: 600 16px/1.2 'Source Sans 3', 'Segoe UI', sans-serif; color: #d9d2c0; background: var(--glass); border: 1px solid rgba(228, 190, 128, 0.4);
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.v-app .drawpage .tabs button svg { font-size: 21px; color: var(--gold); }
+.v-app .drawpage .tabs button:hover { border-color: var(--gold-hi); }
+.v-app .drawpage .tabs button.on {
+  color: #21160a; border-color: var(--gold-hi); background: linear-gradient(180deg, #f3d995, #d9ac63);
+  box-shadow: 0 0 20px rgba(228, 190, 128, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.45);
+}
+.v-app .drawpage .tabs button.on svg { color: #21160a; }
+
+/* ---------- рамки під карти ---------- */
+.v-app .drawpage .slots { list-style: none; margin: 0 0 10px; padding: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: clamp(20px, 7vw, 96px); }
+.v-app .drawpage .slots li { position: relative; padding: 16px 0 40px; display: grid; justify-items: center; }
+.v-app .drawpage .pos {
+  position: absolute; top: 0; left: 50%; transform: translateX(-50%); z-index: 2; white-space: nowrap;
+  padding: 3px 18px; border-radius: 999px; font-size: 14px; color: var(--gold-hi);
+  background: #07121f; border: 1px solid var(--line); box-shadow: 0 0 10px rgba(7, 18, 32, 0.9);
+}
+.v-app .drawpage .blank {
+  position: relative; width: 112px; aspect-ratio: 2 / 3; box-sizing: border-box; border-radius: 14px; border: 1px solid var(--line);
+  outline: 1px solid rgba(228, 190, 128, 0.16); outline-offset: 5px;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(228, 190, 128, 0.18), transparent 58%),
+    repeating-conic-gradient(from 0deg at 50% 50%, rgba(228, 190, 128, 0.22) 0 1.1deg, transparent 1.1deg 8deg),
+    #07121f;
+  box-shadow: inset 0 0 34px 16px rgba(7, 18, 32, 0.96);
+}
+.v-app .drawpage .blank b { position: absolute; inset: 0; display: grid; place-items: center; font: 600 46px/1 'Crimson Text', Georgia, serif; color: var(--gold); text-shadow: 0 0 18px rgba(228, 190, 128, 0.6); }
+.v-app .drawpage .blank .c { position: absolute; width: 11px; height: 11px; background: var(--gold); clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%); }
+.v-app .drawpage .blank .tl { top: 9px; left: 9px; }
+.v-app .drawpage .blank .tr { top: 9px; right: 9px; }
+.v-app .drawpage .blank .bl { bottom: 9px; left: 9px; }
+.v-app .drawpage .blank .br { bottom: 9px; right: 9px; }
+.v-app .drawpage .next .blank { border-color: var(--gold-hi); box-shadow: inset 0 0 34px 16px rgba(7, 18, 32, 0.96), 0 0 24px rgba(228, 190, 128, 0.4); animation: pulse 1.8s ease-in-out infinite; }
+@keyframes pulse { 50% { box-shadow: inset 0 0 34px 16px rgba(7, 18, 32, 0.96), 0 0 34px rgba(241, 221, 166, 0.65); } }
+
+.v-app .drawpage .face { width: 112px; margin: 0; text-align: center; }
+.v-app .drawpage .face img { width: 100%; aspect-ratio: 2 / 3; object-fit: cover; border-radius: 12px; box-shadow: 0 8px 26px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(228, 190, 128, 0.6), 0 0 22px rgba(228, 190, 128, 0.18); }
+.v-app .drawpage .face img.rev { transform: rotate(180deg); }
+.v-app .drawpage .face figcaption { position: absolute; left: -20px; right: -20px; bottom: 2px; display: grid; gap: 1px; font-size: 14px; line-height: 1.25; color: var(--ink); }
+.v-app .drawpage .face em { font-style: normal; font-size: 12px; color: var(--gold); }
+
+/* ---------- колода ---------- */
+.v-app .drawpage .fan { display: grid; grid-template-columns: repeat(auto-fill, minmax(32px, 1fr)); gap: 7px; margin: 0 0 14px; }
+.v-app .drawpage button.back {
+  aspect-ratio: 5 / 6; padding: 0; cursor: pointer; border-radius: 6px; border: 1px solid rgba(228, 190, 128, 0.7);
+  background: #0b1626 center / cover no-repeat; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
+  transition: transform 0.12s, border-color 0.12s, box-shadow 0.12s;
+}
+.v-app .drawpage button.back:hover:not(:disabled) { transform: translateY(-5px); border-color: var(--gold-hi); box-shadow: 0 6px 14px rgba(228, 190, 128, 0.3); }
+.v-app .drawpage button.back:focus-visible { outline: 2px solid var(--gold-hi); outline-offset: 2px; }
+.v-app .drawpage button.back.taken { visibility: hidden; }
+.v-app .drawpage button.back:disabled:not(.taken) { opacity: 0.45; cursor: default; }
+
+.v-app .drawpage .row { display: flex; gap: 14px; justify-content: center; }
+.v-app .drawpage .ghost {
+  display: inline-flex; align-items: center; gap: 9px; padding: 9px 20px; border-radius: 999px; cursor: pointer; font: inherit; font-size: 15px;
+  color: var(--gold-hi); background: var(--glass); border: 1px solid rgba(228, 190, 128, 0.55);
+}
+.v-app .drawpage .ghost svg { font-size: 18px; }
+.v-app .drawpage .ghost:hover:not(:disabled) { border-color: var(--gold-hi); box-shadow: 0 0 16px rgba(228, 190, 128, 0.25); }
+.v-app .drawpage .ghost:disabled { opacity: 0.4; cursor: default; }
+
+/* ---------- свої карти ---------- */
+.v-app .drawpage .own { list-style: none; margin: 0 0 8px; padding: 0; display: grid; gap: 12px; }
+.v-app .drawpage .own li {
+  display: grid; grid-template-columns: 1fr auto auto; gap: 18px; align-items: center; padding: 14px 18px; border-radius: 20px;
+  background: var(--glass); border: 1px solid rgba(228, 190, 128, 0.3);
+}
+.v-app .drawpage .pick { display: grid; gap: 7px; }
+.v-app .drawpage .own .pos { position: static; transform: none; padding: 0; background: none; border: 0; box-shadow: none; justify-self: start; }
+.v-app .drawpage select {
+  width: 100%; box-sizing: border-box; padding: 11px 40px 11px 14px; border-radius: 14px; font: inherit; color: var(--ink); cursor: pointer;
+  appearance: none; background: #0b1b2f url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23e4be80' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") right 12px center / 18px no-repeat;
+  border: 1px solid rgba(228, 190, 128, 0.4);
+}
+.v-app .drawpage select:focus { outline: none; border-color: var(--gold-hi); box-shadow: 0 0 14px rgba(228, 190, 128, 0.3); }
+.v-app .drawpage .mini { width: 44px; aspect-ratio: 2 / 3; object-fit: cover; border-radius: 6px; box-shadow: 0 0 0 1px rgba(228, 190, 128, 0.6); }
+.v-app .drawpage .mini.rev { transform: rotate(180deg); }
+.v-app .drawpage .mini.empty { display: block; box-shadow: none; border-radius: 6px; border: 1px dashed rgba(228, 190, 128, 0.35); box-sizing: border-box; }
+.v-app .drawpage .check { display: flex; align-items: center; gap: 10px; color: #cfc8b8; cursor: pointer; }
+.v-app .drawpage .check input {
+  appearance: none; margin: 0; width: 40px; height: 22px; border-radius: 999px; position: relative; cursor: pointer;
+  background: #0b1b2f; border: 1px solid rgba(228, 190, 128, 0.5); transition: background 0.15s;
+}
+.v-app .drawpage .check input::after { content: ''; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: var(--gold); transition: transform 0.15s; }
+.v-app .drawpage .check input:checked { background: rgba(228, 190, 128, 0.35); }
+.v-app .drawpage .check input:checked::after { transform: translateX(18px); background: var(--gold-hi); }
+.v-app .drawpage .check input:focus-visible { outline: 2px solid var(--gold-hi); outline-offset: 2px; }
+
+/* ---------- питання й кнопка ---------- */
+.v-app .drawpage .q { display: grid; gap: 6px; margin: 12px 0 0; }
+.v-app .drawpage .q > span { color: var(--gold); font-size: 14px; }
+.v-app .drawpage .field { display: flex; align-items: center; gap: 12px; padding: 10px 18px; border-radius: 16px; background: var(--glass); border: 1px solid rgba(228, 190, 128, 0.5); transition: border-color 0.15s, box-shadow 0.15s; }
+.v-app .drawpage .field svg { font-size: 20px; color: var(--gold); }
+.v-app .drawpage .field:focus-within { border-color: var(--gold-hi); box-shadow: 0 0 18px rgba(228, 190, 128, 0.28); }
+.v-app .drawpage textarea { flex: 1; min-height: 26px; padding: 2px 0; resize: none; font: inherit; color: var(--ink); background: transparent; border: 0; outline: 0; field-sizing: content; max-height: 160px; }
+.v-app .drawpage textarea::placeholder { color: #7e8a9a; }
+.v-app .drawpage .err { margin: 14px 0 0; color: #ff9a8b; text-align: center; }
+.v-app .drawpage .go {
+  display: flex; align-items: center; justify-content: center; gap: 10px; width: min(100%, 360px); margin: 14px auto 0; padding: 12px 24px;
+  border: 0; border-radius: 999px; cursor: pointer; font: 700 18px/1 'Source Sans 3', 'Segoe UI', sans-serif; color: #21160a;
+  background: linear-gradient(180deg, #f5dc9b, #d9ac63);
+  box-shadow: 0 8px 28px rgba(228, 190, 128, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+.v-app .drawpage .go svg { font-size: 20px; }
+.v-app .drawpage .go:hover:not(:disabled) { filter: brightness(1.06); }
+.v-app .drawpage .go:disabled { opacity: 0.5; cursor: default; filter: saturate(0.6); }
+
+/* ---------- тасування: купка розсипається навпіл і зливається (рифл) тричі, потім карти по одній лягають у віяло ---------- */
+.v-app .drawpage .shuffle { height: 250px; display: grid; place-items: center; align-content: center; gap: 22px; margin: 0 auto 14px; }
+.v-app .drawpage .shuffle p { margin: 0; color: var(--gold); letter-spacing: 0.04em; }
+.v-app .drawpage .pile { position: relative; width: 112px; height: 172px; }
+.v-app .drawpage .pile i {
+  position: absolute; inset: 0; border-radius: 8px; border: 1px solid rgba(228, 190, 128, 0.65);
+  background: #0b1626 center / cover no-repeat; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+  transform: translateY(calc(var(--i) * -1px));
+  animation: riffle 0.64s ease-in-out 3 both; animation-delay: calc(var(--i) * 18ms);
+}
+@keyframes riffle {
+  0%   { transform: translate(0, calc(var(--i) * -1px)) rotate(0); }
+  30%  { transform: translate(calc(var(--dir) * 84px), calc(var(--i) * -2px - 8px)) rotate(calc(var(--dir) * 9deg)); }
+  55%  { transform: translate(calc(var(--dir) * 60px), calc(var(--i) * -3px)) rotate(calc(var(--dir) * 5deg)); }
+  80%  { transform: translate(calc(var(--dir) * 6px), calc(var(--i) * -1.5px - 14px)) rotate(0); }
+  100% { transform: translate(0, calc(var(--i) * -1px)) rotate(0); }
+}
+.v-app .drawpage .fan button.back { animation: deal 0.45s ease-out backwards; animation-delay: calc(var(--n) * 7ms); }
+@keyframes deal {
+  from { opacity: 0; transform: translateY(-26px) scale(0.85) rotate(-6deg); }
+  to   { opacity: 1; transform: none; }
+}
+
+@media (max-width: 820px) {
+  .v-app .drawpage { padding-left: 0; }
+  .v-app .drawpage .side { display: none; }
+  .v-app .drawpage .draw { --ml: 16px; width: calc(100% - 32px); margin: 0 auto; padding-top: 16px; }
+  .v-app .drawpage .tabs { grid-template-columns: 1fr; }
+  .v-app .drawpage .own li { grid-template-columns: 1fr auto; }
+  .v-app .drawpage .own .mini, .v-app .drawpage .own .mini.empty { display: none; }
+  .v-app .drawpage .rule { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .v-app .drawpage .pile i, .v-app .drawpage .fan button.back, .v-app .drawpage .next .blank { animation: none; }
+}
+
+.v-app .drawpage .locked { margin: 0; text-align: center; color: var(--gold); font-size: 15px; }

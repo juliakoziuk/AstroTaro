@@ -1,0 +1,20 @@
+/* Глобальна база SPA: решту стилів кожен екран тримає під своїм префіксом (.v-landing, .v-login, .v-app). */
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  min-height: 100%;
+  background: #0b1828;
+}
+
+/* плавна поява екрана при переході */
+.route { animation: route-in 0.28s ease both; }
+
+@keyframes route-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .route { animation: none; }
+}

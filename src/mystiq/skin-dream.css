@@ -1,0 +1,179 @@
+/* =====================================================================
+   Skin 3 — «хмарне скло»: сутінкове небо, напівпрозорі панелі,
+   лавандово-блакитна палітра, серифні заголовки.
+   Підключається після skin.css і перекриває його кольори та каркас.
+   Щоб повернути неоновий вигляд, прибери імпорт цього файлу в main.jsx.
+   ===================================================================== */
+:root {
+  --text: #f3f0ff;
+  --muted: #bdb7e0;
+  --gold: #b9a8ff;
+  --gold-hi: #e4dcff;
+  --gold-lo: #7d70c9;
+  --line: rgba(255, 255, 255, 0.22);
+  --line-soft: rgba(255, 255, 255, 0.11);
+  --glow: 170, 150, 255;
+  --grad: linear-gradient(135deg, #a89cff, #7f9bff);
+  --panel: linear-gradient(160deg, rgba(255, 255, 255, 0.13), rgba(255, 255, 255, 0.05));
+  --display: 'Forum', 'Cormorant Garamond', Georgia, serif;
+}
+
+[data-room='tarot'] { --glow: 205, 150, 255; }
+[data-room='dreams'] { --glow: 120, 170, 255; }
+[data-room='astrology'] { --glow: 150, 130, 255; }
+[data-room='journal'] { --glow: 235, 150, 205; }
+[data-room='companion'] { --glow: 120, 205, 235; }
+[data-room='history'] { --glow: 255, 190, 140; }
+
+body {
+  background:
+    radial-gradient(40% 35% at 78% 22%, rgba(255, 190, 225, 0.55), transparent 70%),
+    radial-gradient(45% 40% at 20% 80%, rgba(150, 130, 235, 0.65), transparent 70%),
+    radial-gradient(50% 45% at 90% 95%, rgba(220, 200, 255, 0.6), transparent 70%),
+    radial-gradient(45% 40% at 5% 10%, rgba(90, 110, 230, 0.6), transparent 70%),
+    linear-gradient(160deg, #1b1a4a 0%, #2f2a6e 40%, #5a4a9c 75%, #8c78c4 100%);
+  background-attachment: fixed;
+}
+h1, h2, h3, h4 { font-family: var(--display); font-weight: 400; letter-spacing: 0.01em; }
+
+.mq-app {
+  display: grid;
+  grid-template-columns: 244px minmax(0, 1fr);
+  gap: 16px;
+  padding: 14px;
+  background: rgba(30, 28, 80, 0.38);
+  backdrop-filter: blur(26px) saturate(1.2);
+  -webkit-backdrop-filter: blur(26px) saturate(1.2);
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  box-shadow: 0 30px 80px rgba(18, 14, 60, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+/* ---------- бокова панель ---------- */
+.mq-rail {
+  height: 100%;
+  padding: 22px 14px 16px;
+  border-radius: 22px;
+  border: 1px solid var(--line-soft);
+  background: var(--panel);
+}
+.mq-logo { font-family: var(--display); font-weight: 400; font-size: 22px; letter-spacing: 0.22em; text-transform: uppercase; }
+.mq-logo-mark { background: radial-gradient(circle at 70% 25%, #fff 0 14%, transparent 15%), linear-gradient(135deg, #cbb8ff, #7f9bff); box-shadow: 0 0 18px rgba(185, 168, 255, 0.7); }
+.mq-nav a { border-radius: 12px; font-weight: 400; color: #d6d0f2; }
+.mq-nav a:hover { background: rgba(255, 255, 255, 0.08); }
+.mq-nav a.is-active { background: rgba(176, 166, 255, 0.36); border-color: transparent; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18); color: #fff; }
+.mq-nav a.is-active svg { color: #fff; }
+.mq-nav--sub a { border-radius: 10px; }
+.mq-rail-moon { border-radius: 16px; background: rgba(255, 255, 255, 0.06); }
+
+/* ---------- верхня панель ---------- */
+.mq-top { padding: 4px 8px 6px 0; }
+.mq-top-left { display: flex; align-items: center; gap: 18px; min-width: 0; }
+.mq-search { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 999px; background: rgba(255, 255, 255, 0.09); border: 1px solid var(--line-soft); color: var(--muted); width: 240px; }
+.mq-search input { background: none; border: 0; outline: none; color: var(--text); font: inherit; font-size: 13.5px; width: 100%; padding: 0; }
+.mq-search input::placeholder { color: var(--muted); }
+.mq-search:focus-within { border-color: rgba(255, 255, 255, 0.5); }
+.mq-top-title { color: var(--muted); letter-spacing: 0.12em; }
+.mq-hello { display: grid; text-align: right; line-height: 1.25; }
+.mq-hello strong { font-weight: 500; font-size: 14px; color: #fff; }
+.mq-hello span { font-size: 12px; color: var(--muted); }
+.mq-avatar { background: linear-gradient(135deg, #d6c8ff, #7f9bff); color: #1b1a4a; }
+.mq-bell span { background: #ffb4e6; }
+.mq-main { padding: 8px 8px 40px 0; scrollbar-color: rgba(255, 255, 255, 0.3) transparent; }
+.mq-main::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.28); }
+
+/* ---------- заголовки сторінок ---------- */
+.mq-head {
+  border-radius: 22px;
+  border-color: var(--line-soft);
+  background: linear-gradient(100deg, rgba(var(--glow), 0.34), rgba(255, 255, 255, 0.05) 65%);
+  backdrop-filter: blur(10px);
+}
+.mq-head::after {
+  right: -20px; top: -40px; width: 380px; height: 300px; border-radius: 50%;
+  background:
+    radial-gradient(ellipse at 30% 40%, rgba(255, 255, 255, 0.55), transparent 55%),
+    radial-gradient(ellipse at 70% 65%, rgba(var(--glow), 0.7), transparent 65%);
+  filter: blur(26px); opacity: 0.8;
+}
+.mq-head h1 { font-weight: 400; font-size: clamp(34px, 4vw, 52px); }
+
+/* ---------- панелі, кнопки, поля ---------- */
+.mq-plaque, .mq-arch, .mq-orb {
+  border-radius: 20px;
+  border-color: var(--line-soft);
+  background: var(--panel);
+  backdrop-filter: blur(14px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14), 0 10px 30px -14px rgba(12, 10, 50, 0.6);
+}
+.mq-plaque h2, .mq-arch h2 { font-size: 22px; }
+.mq-btn { background: rgba(255, 255, 255, 0.08); border-color: rgba(255, 255, 255, 0.28); font-weight: 400; }
+.mq-btn:hover:not(:disabled) { background: rgba(255, 255, 255, 0.18); border-color: rgba(255, 255, 255, 0.55); box-shadow: 0 0 22px rgba(185, 168, 255, 0.35); }
+.mq-btn--lit { background: var(--grad); color: #fff; border-color: rgba(255, 255, 255, 0.35); font-weight: 500; box-shadow: 0 8px 26px -6px rgba(127, 155, 255, 0.7); }
+.mq-btn--lit:hover:not(:disabled) { background: linear-gradient(135deg, #bdb2ff, #92acff); box-shadow: 0 10px 32px -4px rgba(150, 160, 255, 0.85); }
+.mq-btn--text { color: #d8ceff; text-decoration-color: rgba(216, 206, 255, 0.4); background: none; }
+.mq-input, .mq-textarea, .mq-select { background: rgba(255, 255, 255, 0.08); border-color: rgba(255, 255, 255, 0.16); }
+.mq-input:focus, .mq-textarea:focus, .mq-select:focus { border-color: rgba(255, 255, 255, 0.6); box-shadow: 0 0 0 3px rgba(185, 168, 255, 0.25); }
+.mq-select option { background: #26245c; }
+.mq-chip { background: rgba(255, 255, 255, 0.07); }
+.mq-chip.is-on { background: var(--grad); }
+.mq-chip.tone-glow { color: #e4dcff; border-color: rgba(255, 255, 255, 0.32); background: rgba(185, 168, 255, 0.18); }
+.mq-whisper { border-left-color: #cbb8ff; }
+.mq-caret { background: #e4dcff; }
+.mq-eyebrow, .mq-room-stat, .mq-entry .when { color: #d8ceff; }
+.mq-room-sub { color: #e6e1fa; }
+.mq-spread-pick button { border-radius: 16px; }
+.mq-spread-pick button strong { font-family: var(--display); font-weight: 400; font-size: 21px; }
+.mq-spread-pick button.is-on { border-color: rgba(255, 255, 255, 0.6); background: rgba(176, 166, 255, 0.3); box-shadow: 0 0 30px -8px rgba(185, 168, 255, 0.8); }
+.mq-slot-label, .mq-reading .card-line b { font-family: var(--display); font-weight: 400; }
+.mq-seg button.is-on { background: rgba(176, 166, 255, 0.4); }
+.mq-msg.ai { background: rgba(255, 255, 255, 0.1); }
+.mq-typing i { background: #cbb8ff; }
+.mq-symbols span { color: #e4dcff; font-family: var(--display); }
+.mq-timeline::before { background: linear-gradient(180deg, #cbb8ff, transparent); }
+.mq-event::before { border-color: #cbb8ff; box-shadow: 0 0 12px rgba(203, 184, 255, 0.7); background: #26245c; }
+.mq-constellation .edge { stroke: #cbb8ff; }
+.mq-ring strong, .mq-stat { font-family: var(--display); font-weight: 400; }
+.mq-chart { filter: drop-shadow(0 0 36px rgba(185, 168, 255, 0.45)); }
+.mq-entry, .mq-entry:first-child, .mq-event, .mq-cycle { background: var(--panel); border-color: var(--line-soft); }
+.mq-entry h3, .mq-event h3 { font-family: var(--display); font-weight: 400; font-size: 22px; }
+.mq-main::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.28); }
+::selection { background: rgba(176, 166, 255, 0.5); }
+
+/* ---------- Dashboard: головна колонка + права панель ---------- */
+.mq-dash { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 20px; align-items: start; }
+.mq-dash-main, .mq-dash-side { display: grid; gap: 20px; min-width: 0; }
+.mq-dash-side { gap: 16px; }
+
+.mq-banner { border-radius: 24px; border-color: var(--line-soft); min-height: 270px; background: #15153d; }
+.mq-banner::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(21, 21, 61, 0.78) 0%, rgba(21, 21, 61, 0.25) 60%, transparent); pointer-events: none; }
+.mq-banner-art { width: 100%; mask-image: none; -webkit-mask-image: none; }
+.mq-banner-text { max-width: 60%; z-index: 2; }
+.mq-banner-text h1 { font-weight: 400; font-size: clamp(36px, 4vw, 54px); }
+
+.mq-rooms { grid-template-columns: repeat(3, minmax(0, 1fr)); margin-bottom: 0; }
+.mq-room { min-height: 250px; border-radius: 20px; border-color: var(--line-soft); }
+.mq-room:hover { border-color: rgba(255, 255, 255, 0.6); box-shadow: 0 22px 46px -16px rgba(150, 140, 255, 0.7); }
+.mq-room-body { padding: 70px 16px 14px; background: linear-gradient(0deg, rgba(22, 20, 66, 0.92) 50%, transparent); }
+.mq-room-body h3 { font-family: var(--display); font-weight: 400; font-size: 23px; }
+.mq-room-text { display: none; }
+.mq-day { margin-bottom: 0; }
+
+.mq-moon-card { display: grid; justify-items: center; text-align: center; gap: 4px; }
+.mq-moon-card svg { filter: drop-shadow(0 0 22px rgba(200, 210, 255, 0.55)); }
+.mq-moon-card h2 { margin: 8px 0 0; }
+.mq-quick { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.mq-quick button { padding: 12px 10px; border-radius: 14px; border: 1px solid var(--line-soft); background: rgba(255, 255, 255, 0.08); color: #fff; font: inherit; font-size: 13.5px; cursor: pointer; transition: all 0.2s; }
+.mq-quick button:hover { background: rgba(176, 166, 255, 0.35); border-color: rgba(255, 255, 255, 0.5); }
+
+@media (max-width: 1250px) {
+  .mq-dash { grid-template-columns: 1fr; }
+  .mq-dash-side { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 860px) {
+  .mq-app { display: block; padding: 0; backdrop-filter: none; background: rgba(24, 22, 66, 0.6); }
+  .mq-rail { border-radius: 0; background: rgba(24, 22, 66, 0.9); border: 0; }
+  .mq-search, .mq-hello { display: none; }
+  .mq-rooms { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .mq-dash-side { grid-template-columns: 1fr; }
+  .mq-banner-text { max-width: 100%; }
+}

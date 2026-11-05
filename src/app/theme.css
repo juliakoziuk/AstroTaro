@@ -1,0 +1,48 @@
+/*
+  Тема застосунку. Темна — основна: усі екрани намальовані саме в ній. Світла — це та сама картинка, розвернута
+  фільтром «інверсія + повернення відтінку» (invert + hue-rotate 180°): світле стає темним, а відтінки лишаються,
+  тож золото стає темним золотом, а нічне небо — світлим. Фото й малюнки карт (<img>) фільтр повертає до оригіналу.
+  Атрибут data-theme ставить src/lib/theme.js.
+*/
+:root { color-scheme: dark; }
+:root[data-theme='light'] { color-scheme: light; --flip: invert(1) hue-rotate(180deg); }
+
+/* ---------- перемикач теми ---------- */
+.theme-toggle {
+  position: relative; display: flex; align-items: center; justify-content: space-between; box-sizing: border-box;
+  padding: 0 0.55em; border-radius: 999px; cursor: pointer; color: #e4be80;
+  background: #0a1627; border: 1.5px solid rgba(214, 170, 104, 0.8);
+}
+.theme-toggle svg { position: relative; z-index: 1; font-size: 1.35em; transition: color 0.2s; }
+.theme-toggle i {
+  position: absolute; top: 12%; bottom: 12%; width: 46%; border-radius: 999px;
+  background: linear-gradient(180deg, #f5dc9b, #d9ac63); box-shadow: 0 0 10px rgba(228, 190, 128, 0.35);
+  transition: left 0.22s ease;
+}
+.theme-toggle.light i { left: 3%; }
+.theme-toggle.dark i { left: 51%; }
+.theme-toggle.light svg:nth-of-type(1), .theme-toggle.dark svg:nth-of-type(2) { color: #21160a; } /* значок під повзунком */
+.theme-toggle:focus-visible { outline: 2px solid #f1dda6; outline-offset: 3px; }
+
+/* ---------- світла тема: екрани-плити ---------- */
+:root[data-theme='light'] .v-app .stage { filter: var(--flip); }
+:root[data-theme='light'] .v-app .stage img { filter: var(--flip); } /* фото й картки карт — як в оригіналі */
+:root[data-theme='light'] .v-app .stage .art img { filter: none; } /* а намальована плита лишається розвернутою */
+:root[data-theme='light'] .v-app .stage .pill.gold { filter: var(--flip); } /* золота кнопка лишається золотою */
+:root[data-theme='light'] .v-app .ambient { background: linear-gradient(180deg, #e3eefb, #dbe7f5); }
+
+/* ---------- світла тема: сторінки у стилі «Draw your cards» (Draw, History) ---------- */
+:root[data-theme='light'] .v-app .drawpage { background-color: #e1edfb; }
+:root[data-theme='light'] .v-app .drawpage::before,
+:root[data-theme='light'] .v-app .drawpage .side,
+:root[data-theme='light'] .v-app .drawpage .draw { filter: var(--flip); }
+:root[data-theme='light'] .v-app .drawpage img,
+:root[data-theme='light'] .v-app .drawpage button.back,
+:root[data-theme='light'] .v-app .drawpage .pile i,
+:root[data-theme='light'] .v-app .drawpage .go,
+:root[data-theme='light'] .v-app .drawpage .tabs button.on { filter: var(--flip); } /* малюнки, рубашки карт і золоті кнопки — як в оригіналі */
+
+/* ---------- світла тема: «Cosmic Today» ---------- */
+:root[data-theme='light'] .v-app .today { filter: var(--flip); }
+:root[data-theme='light'] .v-app .today img { filter: var(--flip); }
+:root[data-theme='light'] .v-app .drawpage .logo img { filter: none; } /* логотип — картинка з темним тлом: розвертається разом із панеллю */

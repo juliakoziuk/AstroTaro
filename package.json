@@ -1,0 +1,50 @@
+{
+  "name": "test-project-react",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "run:frontend": "vite",
+    "run:backend": "npm --prefix server run start:dev",
+    "run:all": "node scripts/run-all.mjs",
+    "dev": "vite",
+    "build": "vite build",
+    "lint": "eslint .",
+    "test": "node --test src/lib/auth.test.js src/app/resolve.test.js src/i18n/i18n.test.js src/lib/theme.test.js scripts/lib/card-files.test.mjs",
+    "preview": "vite preview",
+    "landing:plate": "node scripts/build-plate.mjs && node scripts/trace-landing.mjs",
+    "landing:diff": "node scripts/landing-diff.mjs",
+    "landing:fit": "node scripts/fit-text.mjs && node scripts/fit-boxes.mjs && node scripts/fit-polish.mjs",
+    "landing:shots": "node scripts/landing-shots.mjs",
+    "login:build": "node scripts/build-login.mjs",
+    "login:diff": "node scripts/login/diff.mjs",
+    "login:gaps": "node scripts/login/gaps.mjs",
+    "i18n:check": "node scripts/i18n-check.mjs",
+    "login:fonts": "node scripts/login/rank-fonts.mjs",
+    "login:fit": "node scripts/login/fit.mjs && node scripts/login/fit-colors.mjs",
+    "app:detect": "node scripts/app/detect.mjs all",
+    "app:build": "node scripts/app/build.mjs",
+    "app:diff": "node scripts/app/diff.mjs",
+    "app:test": "node scripts/app/interact.mjs",
+    "app:fonts": "node scripts/app/rank.mjs"
+  },
+  "dependencies": {
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@neplex/vectorizer": "^0.1.0",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.7",
+    "@vitejs/plugin-react": "^6.1.1",
+    "eslint": "^10.10.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.6",
+    "globals": "^17.12.0",
+    "pixelmatch": "^8.0.0",
+    "puppeteer-core": "^25.16.0",
+    "sharp": "^0.35.5",
+    "vite": "^8.3.0"
+  }
+}

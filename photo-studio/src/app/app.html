@@ -1,0 +1,11 @@
+<header class="header">
+  <a routerLink="/" class="logo">📷 Photo Studio</a>
+  <nav>
+    <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Зали</a>
+    <a routerLink="/admin" routerLinkActive="active">Адмінка</a>
+  </nav>
+</header>
+
+<main class="content">
+  <router-outlet />
+</main>

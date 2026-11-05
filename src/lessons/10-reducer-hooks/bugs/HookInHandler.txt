@@ -1,0 +1,8 @@
+function SaveButton() {
+  function handleClick() {
+    const [saved, setSaved] = useState(false) // хук усередині обробника
+    setSaved(true)
+  }
+
+  return <button onClick={handleClick}>Зберегти</button>
+}

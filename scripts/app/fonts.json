@@ -1,0 +1,20 @@
+{
+  "serif": {
+    "family": "Crimson Text",
+    "weights": [
+      400,
+      600,
+      700
+    ]
+  },
+  "sans": {
+    "family": "Source Sans 3",
+    "weights": [
+      300,
+      400,
+      500,
+      600,
+      700
+    ]
+  }
+}

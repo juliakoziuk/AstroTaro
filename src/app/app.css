@@ -1,0 +1,331 @@
+/*
+  Екрани застосунку MYSTIQ. Розкладка = «піксельна сітка макета»: сцена 1536x1024 одиниць, --u — розмір одиниці в px
+  (вписується у вікно за висотою або шириною). Позиції й розміри тексту — числа з макета (scripts/app/build.mjs).
+  Плита (WebP) — макет без тексту й замінюваних контролів.
+
+  Адаптація під екран ПК (як у лендінгу): бічна панель (x < 242) тримається лівого краю вікна, решта екрана центрується
+  в залишку ширини. Проміжок між ними (--g) і поля заповнює рівний темний фон (.ambient), краї центральної частини
+  плавно розчиняються в ній. На пропорції макета (3:2) --g = 0 і шва немає.
+*/
+.v-app {
+  --bg: #0b1828;
+  --gold: #e4be80;
+}
+
+.v-app .page {
+  --u: min(calc(100vw / 1536), calc(100vh / 1024));
+  /* ширина проміжку: половина вільної ширини (центральна частина стоїть посередині залишку) */
+  --g: max(0px, calc((100vw - var(--u) * 1536) / 2));
+  /* ширина розчинення країв центральної частини */
+  --fe: min(var(--g), calc(var(--u) * 26));
+  position: relative;
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+@supports (height: 100svh) {
+  .v-app .page {
+    --u: min(calc(100vw / 1536), calc(100svh / 1024));
+    min-height: 100svh;
+  }
+}
+
+/* поля — рівний темний колір країв плити (раніше розмита копія плити: у ній світились золоті плями-«рамки» збоку) */
+.v-app .ambient {
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(180deg, #091523, #07111d);
+  z-index: 0;
+}
+
+.v-app .stage {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: calc(var(--u) * 1024);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---------- арт ---------- */
+.v-app .art {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.v-app .pl {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  overflow: hidden;
+}
+
+.v-app .pl img {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  width: calc(var(--u) * 1536);
+  max-width: none;
+  user-select: none;
+}
+
+.v-app .pl-side {
+  left: 0;
+  width: calc(var(--u) * 242);
+}
+
+.v-app .pl-side img { left: 0; }
+
+.v-app .pl-main {
+  left: calc(var(--u) * 242 + var(--g));
+  width: calc(var(--u) * 1294 + 1px); /* +1px — щоб на пропорції макета не лишалось шва з правим краєм */
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 var(--fe), #000 calc(100% - var(--fe)), transparent);
+  mask-image: linear-gradient(to right, transparent, #000 var(--fe), #000 calc(100% - var(--fe)), transparent);
+}
+
+.v-app .pl-main img { left: calc(var(--u) * -242); }
+
+/* вікно вище за пропорцію макета (з запасом 0.5 %): верх і низ плавно сходять на розмитий фон */
+@media (max-aspect-ratio: 1527 / 1024) {
+  .v-app .art {
+    -webkit-mask-image: linear-gradient(to bottom, transparent, #000 calc(var(--u) * 26), #000 calc(100% - var(--u) * 26), transparent);
+    mask-image: linear-gradient(to bottom, transparent, #000 calc(var(--u) * 26), #000 calc(100% - var(--u) * 26), transparent);
+  }
+}
+
+/* ---------- текст ---------- */
+.v-app .t {
+  --x: 0;
+  --y: 0;
+  --fs: 16;
+  --ls: 0;
+  --lh: 20;
+  position: absolute;
+  margin: 0;
+  left: calc(var(--u) * var(--x) + var(--g) * var(--s, 0));
+  top: calc(var(--u) * var(--y));
+  font-size: calc(var(--u) * var(--fs));
+  line-height: calc(var(--u) * var(--lh));
+  letter-spacing: calc(var(--u) * var(--ls));
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+.v-app .para { margin: 0; display: contents; }
+
+.v-app a.t:hover { text-decoration: underline; }
+
+/* ---------- клікабельні зони поверх намальованих елементів ---------- */
+.v-app .hit,
+.v-app .tog,
+.v-app .rad,
+.v-app .chk,
+.v-app .sel {
+  position: absolute;
+  left: calc(var(--u) * var(--x) + var(--g) * var(--s, 0));
+  top: calc(var(--u) * var(--y));
+  width: calc(var(--u) * var(--w));
+  height: calc(var(--u) * var(--h));
+  border-radius: calc(var(--u) * var(--r, 0));
+  padding: 0;
+}
+
+.v-app .hit {
+  display: block;
+  cursor: pointer;
+  transition: box-shadow 0.2s, background 0.2s;
+}
+
+.v-app .hit:hover {
+  background: radial-gradient(120% 140% at 50% 0%, rgba(232, 196, 138, 0.1), transparent 62%);
+  box-shadow: 0 0 calc(var(--u) * 16) rgba(224, 184, 120, 0.3), inset 0 0 0 calc(var(--u) * 1.5) rgba(228, 190, 128, 0.5);
+}
+
+.v-app .hit-nav:hover { box-shadow: 0 0 calc(var(--u) * 12) rgba(224, 184, 120, 0.25); background: rgba(232, 196, 138, 0.06); }
+
+.v-app .hit:focus-visible,
+.v-app .tog:focus-visible,
+.v-app .rad:focus-visible,
+.v-app .chk:focus-visible,
+.v-app .sel:focus-within {
+  outline: calc(var(--u) * 2) solid var(--gold);
+  outline-offset: calc(var(--u) * 3);
+}
+
+/* ---------- контроли ---------- */
+.v-app .tog {
+  border: calc(var(--u) * 1.5) solid #c79e63;
+  background: #0d1a2c;
+  cursor: pointer;
+  --r: 999;
+  transition: background 0.2s;
+}
+
+.v-app .tog i {
+  position: absolute;
+  top: 50%;
+  left: calc(var(--u) * 4);
+  width: calc(var(--u) * var(--h) * 0.68);
+  aspect-ratio: 1;
+  transform: translateY(-50%);
+  border-radius: 50%;
+  background: #f4e7cf;
+  transition: left 0.2s;
+}
+
+.v-app .tog[aria-checked='true'] { background: linear-gradient(90deg, #d9a357, #f4cb84); border-color: #f1c680; }
+.v-app .tog[aria-checked='true'] i { left: calc(100% - var(--u) * var(--h) * 0.68 - var(--u) * 4); }
+
+.v-app .rad {
+  border-radius: 50%;
+  border: calc(var(--u) * 2) solid #a8b2c0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.v-app .rad[aria-checked='true'] {
+  border-color: #f1c680;
+  background: radial-gradient(circle, #f4cb84 0 46%, transparent 50%);
+  box-shadow: 0 0 calc(var(--u) * 10) rgba(240, 196, 128, 0.45);
+}
+
+.v-app .chk {
+  --r: 6;
+  border: calc(var(--u) * 2) solid #c9ae80;
+  background: #ffffff06;
+  cursor: pointer;
+}
+
+.v-app .chk[aria-checked='true']::after {
+  content: '';
+  position: absolute;
+  left: 30%;
+  top: 8%;
+  width: 28%;
+  height: 56%;
+  border: solid #f1c680;
+  border-width: 0 calc(var(--u) * 2.6) calc(var(--u) * 2.6) 0;
+  transform: rotate(40deg);
+}
+
+.v-app .sel { cursor: pointer; }
+
+.v-app .sel select {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  color-scheme: dark;
+}
+
+.v-app .in {
+  position: absolute;
+  left: calc(var(--u) * var(--x) + var(--g) * var(--s, 0));
+  top: calc(var(--u) * var(--y));
+  width: calc(var(--u) * var(--w));
+  height: calc(var(--u) * var(--lh));
+  margin: 0;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  background: none;
+  font-size: calc(var(--u) * var(--fs));
+  line-height: calc(var(--u) * var(--lh));
+  letter-spacing: calc(var(--u) * var(--ls));
+}
+
+.v-app .in::placeholder { color: var(--ph); opacity: 1; }
+.v-app .in:focus { caret-color: var(--gold); }
+
+/* ---------- вузькі й «портретні» вікна: макет вписується за висотою, його можна гортати вбік ---------- */
+@media (max-aspect-ratio: 1 / 1) {
+  .v-app .page {
+    --u: calc(100svh / 1024);
+    --g: 0px;
+    place-items: start;
+    overflow-x: auto;
+  }
+
+  .v-app .stage { width: calc(var(--u) * 1536); }
+  .v-app .ambient { position: fixed; }
+}
+
+/* колір тексту екрана (раніше — з body) */
+.v-app { color: #f3efe7; }
+
+/* кнопки-зони (око пароля, «надіслати») виглядають як решта клікабельних зон */
+.v-app button.hit {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+}
+
+/* ---------- широкий арт (екрани з 2x-плитою, напр. реєстрація) ----------
+   Замість розмитих полів арт по боках картки (ліве 242…590, праве 1250…1536) збільшується рівно до країв вікна, центр
+   під карткою лишається в масштабі 1 і розчиняється в збільшеному мистецтві. Коефіцієнти = 1536/348 = 4.41379,
+   242/348 = 0.6954, 1024/348 = 2.94253; 1536/286 = 5.37063, 1250/286 = 4.37063, 1024/286 = 3.58042. На пропорції макета --g = 0. */
+.v-app .art-wide {
+  --wl: calc(var(--u) * 348 + var(--g));
+  --wr: calc(var(--u) * 286 + var(--g));
+  --fade: min(calc(var(--u) * 56), var(--g));
+}
+
+.v-app .art-wide .pl-side { width: calc(var(--u) * 242); }
+.v-app .art-wide .pl-left,
+.v-app .art-wide .pl-mid,
+.v-app .art-wide .pl-right { overflow: hidden; }
+.v-app .art-wide .pl img { height: auto; }
+
+.v-app .art-wide .pl-side img { height: 100%; }
+
+.v-app .art-wide .pl-left {
+  left: calc(var(--u) * 242);
+  width: var(--wl);
+  -webkit-mask-image: linear-gradient(to right, #000 calc(100% - var(--fade)), transparent);
+  mask-image: linear-gradient(to right, #000 calc(100% - var(--fade)), transparent);
+}
+.v-app .art-wide .pl-left img {
+  left: calc(var(--wl) * -0.6954);
+  top: calc((var(--u) * 1024 - var(--wl) * 2.94253) * 0.45);
+  width: calc(var(--wl) * 4.41379);
+  height: calc(var(--wl) * 2.94253);
+}
+
+.v-app .art-wide .pl-mid {
+  left: calc(var(--u) * 590 + var(--g) - var(--fade));
+  width: calc(var(--u) * 660 + var(--fade) * 2);
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 var(--fade), #000 calc(100% - var(--fade)), transparent);
+  mask-image: linear-gradient(to right, transparent, #000 var(--fade), #000 calc(100% - var(--fade)), transparent);
+}
+.v-app .art-wide .pl-mid img { left: calc(var(--fade) - var(--u) * 590); width: calc(var(--u) * 1536); height: 100%; }
+
+.v-app .art-wide .pl-right {
+  right: 0;
+  width: var(--wr);
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 var(--fade));
+  mask-image: linear-gradient(to right, transparent, #000 var(--fade));
+}
+.v-app .art-wide .pl-right img {
+  left: calc(var(--wr) * -4.37063);
+  top: calc((var(--u) * 1024 - var(--wr) * 3.58042) * 0.45);
+  width: calc(var(--wr) * 5.37063);
+  height: calc(var(--wr) * 3.58042);
+}
+
+/* автозаповнення браузера (Chrome/Edge) фарбує поле світло-блакитним: лишаємо фон плити й світлий текст.
+   Фон автозаповнення не перебити через background, тому його перехід відкладаємо майже назавжди. */
+.v-app .in:-webkit-autofill,
+.v-app .in:-webkit-autofill:hover,
+.v-app .in:-webkit-autofill:focus,
+.v-app .in:-webkit-autofill:active {
+  -webkit-text-fill-color: #f3efe7;
+  caret-color: var(--gold);
+  transition: background-color 600000s 0s, color 600000s 0s;
+}
+.v-app .in:autofill { background: transparent !important; color: #f3efe7 !important; } /* Firefox */
