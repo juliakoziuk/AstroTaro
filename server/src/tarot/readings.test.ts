@@ -43,7 +43,7 @@ test('deeper modes give a longer summary', () => {
   ok(interpret('three', cards, 'depth', 'en').summary.length > interpret('three', cards, 'quick', 'en').summary.length)
 })
 
-const locales = ['en', 'uk', 'es'] as const
+const locales = ['en', 'uk'] as const
 const modes = ['quick', 'detailed', 'depth'] as const
 
 test('every spread, mode and language produces clean text for many random draws', () => {
@@ -120,7 +120,6 @@ test('a yes/no reading opens with the verdict, in every language, and reports it
   ok(en.summary.startsWith('The answer is a clear yes'), en.summary)
   deepStrictEqual(en.verdict, { answer: 'yes', strength: 'strong' })
   ok(interpret('yesno', sun, 'quick', 'uk').summary.startsWith('Відповідь — чітке «так»'))
-  ok(interpret('yesno', sun, 'quick', 'es').summary.startsWith('La respuesta es un sí rotundo'))
   strictEqual(interpret('three', [{ id: 1, reversed: false }, { id: 2, reversed: false }, { id: 3, reversed: false }], 'quick', 'en').verdict, undefined)
 })
 

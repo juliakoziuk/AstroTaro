@@ -6,6 +6,7 @@ import { ArrayMaxSize, IsArray, IsBoolean, IsIn, IsInt, IsOptional, IsString, Ma
 import { CurrentUser, JwtAuthGuard } from '../auth/jwt-auth.guard'
 import { ApiAuthed } from '../common/api-docs'
 import { Spread } from '../spreads/spread.model'
+import { User } from '../users/user.model'
 import { currentLocale } from '../i18n/locale'
 import { msg } from '../i18n/messages'
 import { attachNarrative } from './ai'
@@ -30,7 +31,7 @@ export class DrawDto {
 @ApiTags('tarot')
 @Controller('tarot')
 export class TarotController {
-  constructor(@InjectModel(Spread) private spreads: typeof Spread) {}
+  constructor(@InjectModel(Spread) private spreads: typeof Spread, @InjectModel(User) private users: typeof User) {}
 
   @ApiOperation({ summary: 'Типи розкладів і назви позицій (публічно)' })
   @ApiOkResponse({ description: '[{ id, name, positions[] }]' })
@@ -68,18 +69,21 @@ export class TarotController {
     } catch {
       throw new BadRequestException(msg(currentLocale(), 'badCards'))
     }
-    const row = await this.spreads.create({
+    const user = await this.users.findByPk(u.id)
+    const persist = user.settings?.autosave !== false
+    const values = {
       userId: u.id,
       spreadId: dto.spreadId,
       deck: dto.deck,
       mode: dto.mode,
       question: dto.question ?? '',
       cards,
-    } as any)
-    await attachNarrative(row, currentLocale())
-    return presentSpread(row, currentLocale())
+    }
+    const row = persist ? await this.spreads.create(values as any) : this.spreads.build(values as any)
+    await attachNarrative(row, currentLocale(), process.env, fetch, persist)
+    return { ...presentSpread(row, currentLocale()), temporary: !persist }
   }
 }
 
-@Module({ imports: [SequelizeModule.forFeature([Spread])], controllers: [TarotController] })
+@Module({ imports: [SequelizeModule.forFeature([Spread, User])], controllers: [TarotController] })
 export class TarotModule {}

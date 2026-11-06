@@ -20,7 +20,6 @@ const MAX_TOKENS = 3000
 const STYLE: Record<Locale, string> = {
   en: '',
   uk: 'Write natural, grammatically correct Ukrainian. Address the reader informally as "ти". Never use adjectives or past-tense verbs that reveal the reader’s gender (say "ти вже можеш", not "ти готовий/готова"; "будь уважним до себе" is also gendered, so rephrase). Use the card names exactly as given in Ukrainian; never translate or invent names yourself.',
-  es: 'Write natural, grammatically correct Spanish. Address the reader as "tú". Use the card names exactly as given in Spanish; never translate them yourself.',
 }
 
 // як читати карти в кожній сфері життя й що людина хоче від розкладу (англійською: це підказка для моделі)
@@ -106,18 +105,18 @@ export async function narrate(spreadId: string, drawn: DrawnCard[], mode: Mode, 
 }
 
 /** Дописує тлумачення моделі до збереженого розкладу (мовою запиту), якщо воно можливе й ще не збережене. */
-export async function attachNarrative(row: Spread, locale: Locale, env: Env = process.env, fetchFn?: typeof fetch): Promise<void> {
+export async function attachNarrative(row: Spread, locale: Locale, env: Env = process.env, fetchFn?: typeof fetch, persist = true): Promise<void> {
   if (!SPREAD_IDS.includes(row.spreadId) || !Array.isArray(row.cards) || row.narratives?.[locale]) return
   // спершу розуміємо питання (сфера, чого хоче людина) і запам'ятовуємо: від цього залежить і текст моделі, і текст движка
   if (!row.situation && row.question.trim()) {
     const found = await classify(row.question, env, fetchFn)
     if (found.source === 'ai') {
       row.situation = found
-      await row.save()
+      if (persist) await row.save()
     }
   }
   const text = await narrate(row.spreadId, row.cards as DrawnCard[], (row.mode as Mode) ?? 'quick', locale, row.question, env, fetchFn, row.situation ?? undefined)
   if (!text) return
   row.narratives = { ...(row.narratives ?? {}), [locale]: text }
-  await row.save()
+  if (persist) await row.save()
 }

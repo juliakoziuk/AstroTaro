@@ -1,7 +1,7 @@
-import { Body, Controller, Delete, Get, HttpCode, Injectable, Module, Param, ParseUUIDPipe, Patch, Post, Query, UseGuards } from '@nestjs/common'
+import { BadRequestException, Body, Controller, Delete, Get, HttpCode, Injectable, Module, Param, ParseUUIDPipe, Patch, Post, Query, UseGuards } from '@nestjs/common'
 import { InjectModel, SequelizeModule } from '@nestjs/sequelize'
 import { Type } from 'class-transformer'
-import { ArrayMaxSize, ArrayMinSize, IsArray, IsBoolean, IsDateString, IsInt, IsOptional, IsString, Max, MaxLength, Min, ValidateNested } from 'class-validator'
+import { ArrayMaxSize, ArrayMinSize, IsArray, IsBoolean, IsDateString, IsIn, IsInt, IsOptional, IsString, Max, MaxLength, Min, ValidateNested } from 'class-validator'
 import { ApiCreatedResponse, ApiNoContentResponse, ApiOkResponse, ApiOperation, ApiProperty, ApiPropertyOptional, ApiQuery, ApiTags } from '@nestjs/swagger'
 import { ApiAuthed, ApiOwnedNotFound } from '../common/api-docs'
 import { CurrentUser, JwtAuthGuard } from '../auth/jwt-auth.guard'
@@ -10,6 +10,8 @@ import { currentLocale } from '../i18n/locale'
 import { attachNarrative } from '../tarot/ai'
 import { presentSpread } from '../tarot/present'
 import { Spread } from './spread.model'
+import { chosen, DECKS, MODES } from '../tarot/readings'
+import { msg } from '../i18n/messages'
 
 class CardDto {
   @ApiProperty({ minimum: 0, maximum: 77, description: 'Номер карти колоди (0–77)' }) @IsInt() @Min(0) @Max(77) id: number
@@ -21,6 +23,9 @@ export class SaveSpreadDto {
 }
 
 export class CreateSpreadDto {
+  @ApiPropertyOptional({ enum: DECKS }) @IsOptional() @IsIn(DECKS) deck?: string
+  @ApiPropertyOptional({ enum: MODES }) @IsOptional() @IsIn(MODES) mode?: string
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() saved?: boolean
   @ApiPropertyOptional({ format: 'date-time', description: 'За замовчуванням — зараз' }) @IsOptional() @IsDateString() date?: string
   @ApiProperty({ example: 'three-card', description: 'Тип розкладу' }) @IsString() @MaxLength(40) spreadId: string
   @ApiPropertyOptional({ maxLength: 500 }) @IsOptional() @IsString() @MaxLength(500) question?: string
@@ -47,7 +52,14 @@ export class SpreadsController {
   @Get() async list(@CurrentUser() u, @Query('saved') saved?: string) { return (await this.s.list(u.id, saved === 'true' ? { saved: true } : {})).map((r) => presentSpread(r, currentLocale())) }
   @ApiOperation({ summary: 'Створити запис' }) @ApiCreatedResponse({ type: Spread })
   @Post() async create(@CurrentUser() u, @Body() dto: CreateSpreadDto) {
-    const row = await this.s.create(u.id, { ...dto })
+    // ті самі правила, що й у /tarot/readings: відомий розклад, по одній різній карті на позицію
+    let cards
+    try {
+      cards = chosen(dto.spreadId, dto.cards)
+    } catch {
+      throw new BadRequestException(msg(currentLocale(), 'badCards'))
+    }
+    const row = await this.s.create(u.id, { ...dto, cards })
     await attachNarrative(row, currentLocale())
     return presentSpread(row, currentLocale())
   }

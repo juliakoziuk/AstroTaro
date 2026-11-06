@@ -1,7 +1,9 @@
 import { Body, Controller, ForbiddenException, Get, Logger, Module, Post, UseGuards } from '@nestjs/common'
 import { InjectModel, SequelizeModule } from '@nestjs/sequelize'
 import { ApiCreatedResponse, ApiForbiddenResponse, ApiOkResponse, ApiOperation, ApiProperty, ApiTags } from '@nestjs/swagger'
-import { IsIn, IsString, MaxLength, MinLength } from 'class-validator'
+import { ArrayMaxSize, IsArray, IsIn, IsOptional, IsString, MaxLength, MinLength, ValidateNested } from 'class-validator'
+import { Type } from 'class-transformer'
+import { randomUUID } from 'node:crypto'
 import { birthOf } from '../astrology/astrology'
 import { currentPlanets, natalChart } from '../astrology/astro'
 import { CurrentUser, JwtAuthGuard } from '../auth/jwt-auth.guard'
@@ -15,15 +17,21 @@ import { Message } from '../messages/message.model'
 import { Spread } from '../spreads/spread.model'
 import { cardOf } from '../tarot/cards'
 import { DrawnCard, spreadsFor } from '../tarot/readings'
-import { DEFAULT_SETTINGS } from '../users/settings'
+import { withDefaults } from '../users/settings'
 import { User } from '../users/user.model'
 import { generateReply } from './assistant'
 import { UserContext } from './context'
 import { PERSONA_IDS, personas } from './personas'
 
+class HistoryTurnDto {
+  @IsIn(['user', 'ai']) role: 'user' | 'ai'
+  @IsString() @MaxLength(12000) text: string
+}
+
 export class ChatDto {
   @ApiProperty({ enum: PERSONA_IDS, example: 'Mystic Guide' }) @IsIn(PERSONA_IDS) persona: string
   @ApiProperty({ maxLength: 4000 }) @IsString() @MinLength(1) @MaxLength(4000) text: string
+  @IsOptional() @IsArray() @ArrayMaxSize(20) @ValidateNested({ each: true }) @Type(() => HistoryTurnDto) history?: HistoryTurnDto[]
 }
 
 @ApiTags('companion')
@@ -49,9 +57,9 @@ export class CompanionController {
   /** Що асистент знає про людину: профіль і натальна карта, поточне небо, останні сни, розклад і настрій щоденника. */
   private async loadContext(user: User, now: Date): Promise<UserContext> {
     const [dreams, lastSpread, entries] = await Promise.all([
-      this.dreams.findAll({ where: { userId: user.id }, order: [['date', 'DESC']], limit: 3 }),
-      this.spreads.findOne({ where: { userId: user.id }, order: [['date', 'DESC']] }),
-      this.journal.findAll({ where: { userId: user.id }, order: [['date', 'DESC']], limit: 5 }),
+      user.consent?.dreams ? this.dreams.findAll({ where: { userId: user.id }, order: [['date', 'DESC']], limit: 3 }) : [],
+      user.consent?.spreads ? this.spreads.findOne({ where: { userId: user.id }, order: [['date', 'DESC']] }) : null,
+      user.consent?.journal ? this.journal.findAll({ where: { userId: user.id }, order: [['date', 'DESC']], limit: 5 }) : [],
     ])
     const birth = birthOf(user)
     const chart = birth ? natalChart(birth) : null
@@ -82,22 +90,27 @@ export class CompanionController {
   @Post('chat')
   async chat(@CurrentUser() u: { id: string }, @Body() dto: ChatDto) {
     const user = await this.users.findByPk(u.id)
-    const settings = { ...DEFAULT_SETTINGS, ...user.settings }
+    const settings = withDefaults(user.settings)
     if (!settings.companion) throw new ForbiddenException(msg(currentLocale(), 'companionOff'))
-    const sent = await this.messages.create({ userId: u.id, persona: dto.persona, role: 'user', text: dto.text } as any)
-    const recent = await this.messages.findAll({ where: { userId: u.id, persona: dto.persona }, order: [['createdAt', 'DESC']], limit: 20 })
+    const persist = settings.autosave
+    const sentValues = { userId: u.id, persona: dto.persona, role: 'user', text: dto.text }
+    const sent = persist ? await this.messages.create(sentValues as any) : { ...sentValues, id: randomUUID(), createdAt: new Date() }
+    const recent = persist
+      ? (await this.messages.findAll({ where: { userId: u.id, persona: dto.persona }, order: [['createdAt', 'DESC']], limit: 20 })).reverse()
+      : [...(dto.history ?? []), sent]
     const now = new Date()
     const answer = await generateReply({
       persona: dto.persona,
       text: dto.text,
-      history: recent.reverse().map((m) => ({ role: m.role === 'ai' ? ('assistant' as const) : ('user' as const), content: m.text })),
+      history: recent.map((m) => ({ role: m.role === 'ai' ? ('assistant' as const) : ('user' as const), content: m.text })),
       ctx: await this.loadContext(user, now),
       locale: currentLocale(),
       env: process.env,
       now,
       onProviderError: (e) => this.log.warn(`AI provider failed, using the local assistant: ${e.message}`),
     })
-    const reply = await this.messages.create({ userId: u.id, persona: dto.persona, role: 'ai', text: answer.text } as any)
+    const replyValues = { userId: u.id, persona: dto.persona, role: 'ai', text: answer.text }
+    const reply = persist ? await this.messages.create(replyValues as any) : { ...replyValues, id: randomUUID(), createdAt: new Date() }
     return { user: sent, reply, source: answer.source }
   }
 }

@@ -4,8 +4,8 @@ import { CARD_COUNT, cardOf } from './cards'
 import { giftShadowLine, pairLine, practiceLine, reflectQuestion, reversedNote, roleLine, summaryParts } from './narrative'
 import { classifyLocal, Situation } from './sphere'
 
-type T3 = [string, string, string]
-const at = (t: T3, l: Locale) => t[LOCALES.indexOf(l)]
+type T2 = [string, string]
+const at = (t: T2, l: Locale) => t[LOCALES.indexOf(l)]
 
 export interface SpreadDef {
   id: string
@@ -14,14 +14,14 @@ export interface SpreadDef {
 }
 
 // id розкладу лишається однаковим у всіх мовах; назва й позиції перекладаються
-const SPREAD_TEXT: { id: string; name: T3; positions: T3[] }[] = [
-  { id: 'daily', name: ['Daily Card', 'Карта дня', 'Carta del día'], positions: [['Today', 'Сьогодні', 'Hoy']] },
-  { id: 'three', name: ['Three Cards', 'Три карти', 'Tres cartas'], positions: [['Past', 'Минуле', 'Pasado'], ['Present', 'Теперішнє', 'Presente'], ['Future', 'Майбутнє', 'Futuro']] },
-  { id: 'relationship', name: ['Relationship', 'Стосунки', 'Relación'], positions: [['You', 'Ти', 'Tú'], ['Partner', 'Партнер', 'Pareja'], ['Connection', 'Зв’язок', 'Conexión']] },
-  { id: 'career', name: ['Career', 'Кар’єра', 'Carrera'], positions: [['Situation', 'Ситуація', 'Situación'], ['Obstacle', 'Перешкода', 'Obstáculo'], ['Outcome', 'Результат', 'Resultado']] },
-  { id: 'purpose', name: ['Life Purpose', 'Призначення', 'Propósito de vida'], positions: [['Roots', 'Коріння', 'Raíces'], ['Calling', 'Покликання', 'Vocación'], ['Path', 'Шлях', 'Camino']] },
-  { id: 'yesno', name: ['Yes / No', 'Так / Ні', 'Sí / No'], positions: [['Answer', 'Відповідь', 'Respuesta']] },
-  { id: 'custom', name: ['Custom Spread', 'Власний розклад', 'Tirada personalizada'], positions: [['Focus', 'Фокус', 'Enfoque'], ['Challenge', 'Виклик', 'Desafío'], ['Advice', 'Порада', 'Consejo']] },
+const SPREAD_TEXT: { id: string; name: T2; positions: T2[] }[] = [
+  { id: 'daily', name: ['Daily Card', 'Карта дня'], positions: [['Today', 'Сьогодні']] },
+  { id: 'three', name: ['Three Cards', 'Три карти'], positions: [['Past', 'Минуле'], ['Present', 'Теперішнє'], ['Future', 'Майбутнє']] },
+  { id: 'relationship', name: ['Relationship', 'Стосунки'], positions: [['You', 'Ти'], ['Partner', 'Партнер'], ['Connection', 'Зв’язок']] },
+  { id: 'career', name: ['Career', 'Кар’єра'], positions: [['Situation', 'Ситуація'], ['Obstacle', 'Перешкода'], ['Outcome', 'Результат']] },
+  { id: 'purpose', name: ['Life Purpose', 'Призначення'], positions: [['Roots', 'Коріння'], ['Calling', 'Покликання'], ['Path', 'Шлях']] },
+  { id: 'yesno', name: ['Yes / No', 'Так / Ні'], positions: [['Answer', 'Відповідь']] },
+  { id: 'custom', name: ['Custom Spread', 'Власний розклад'], positions: [['Focus', 'Фокус'], ['Challenge', 'Виклик'], ['Advice', 'Порада']] },
 ]
 
 export const SPREAD_IDS = SPREAD_TEXT.map((s) => s.id)
@@ -73,7 +73,6 @@ const sentence = (s: string) => `${s.charAt(0).toUpperCase()}${s.slice(1)}.`
 const TRUST: Record<Locale, string> = {
   en: 'Take time to journal on what each card stirs in you, and trust the process: the reading shows a direction, not a fixed fate.',
   uk: 'Знайди час записати, що викликає в тобі кожна карта, і довірся процесу: розклад показує напрям, а не незмінну долю.',
-  es: 'Tómate un tiempo para escribir lo que cada carta despierta en ti y confía en el proceso: la tirada muestra una dirección, no un destino fijo.',
 }
 
 export interface Interpretation {

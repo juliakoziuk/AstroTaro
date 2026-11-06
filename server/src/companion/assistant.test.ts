@@ -135,7 +135,7 @@ test('a reply usually ends with a follow-up question, except a farewell', () => 
 test('a crisis message gets a caring answer with emergency contacts, in every language', () => {
   ok(reply('я не хочу жити').includes('112'))
   ok(reply('I want to end my life', { locale: 'en' }).includes('112'))
-  ok(reply('quiero morir', { locale: 'es' }).includes('024'))
+  ok(reply('quiero morir', { locale: 'en' }).includes('112'))
 })
 
 test('personas keep their own voice: tarot draws a card, astrology uses the sky and the Sun sign', () => {
