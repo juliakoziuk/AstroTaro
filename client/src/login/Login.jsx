@@ -74,7 +74,7 @@ export default function Login() {
     setBusy(true)
     setError('')
     try {
-      await login(String(f.get('email')).trim(), String(f.get('password')))
+      await login(String(f.get('email')).trim(), String(f.get('password')), remember)
       await applyServerLanguage().catch(() => {}) // мова акаунта важливіша за локальну
       await applyServerTheme().catch(() => {}) // і тема теж
       go('/dashboard')

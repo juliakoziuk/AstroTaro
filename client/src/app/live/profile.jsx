@@ -1,5 +1,5 @@
 // Екрани Profile і Settings + форма редагування профілю (імʼя, дані народження для натальної карти).
-import { get, patch, signOut } from '../../lib/api.js'
+import { get, patch } from '../../lib/api.js'
 import { formatDay } from '../format.js'
 import { useEffect, useState } from 'react'
 import { t } from '../../i18n/index.js'
@@ -7,7 +7,7 @@ import { chooseLanguage } from '../../i18n/sync.js'
 import { getLang, LANGS, langFromSetting } from '../../i18n/index.js'
 import { Field, Modal, Ov, Zone } from './parts.jsx'
 import { ReportsDialog } from './reports.jsx'
-import { loadSettings, session } from './common.js'
+import { loadSettings, logOut, session } from './common.js'
 
 /** Поле «місце народження» з підказками міст (Nominatim через наш сервер): вибір дає координати й країну. */
 function PlaceField({ profile, pick, setPick }) {
@@ -130,9 +130,7 @@ export const profile = {
     'My Reports': (ctx) => ctx.openModal({ name: 'reports' }),
     Reports: (ctx) => ctx.openModal({ name: 'reports' }),
     'Log Out': (ctx) => {
-      signOut()
-      session.set('readingId', '')
-      session.set('dreamId', '')
+      logOut()
       ctx.go('/login')
     },
     'Saved Readings': async (ctx) => {

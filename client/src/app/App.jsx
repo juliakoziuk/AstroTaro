@@ -27,6 +27,8 @@ import { applyServerTheme } from '../lib/themeSync.js'
 const PUBLIC = new Set(['/', '/login', '/register', '/pricing'])
 // Перемикач мови потрібен там, де людина ще не може зайти в налаштування
 const BEFORE_LOGIN = new Set(['landing', 'login', 'register'])
+// Екрани входу: залогінений користувач (є дійсний токен) одразу потрапляє на дашборд; лендінг лишається, але показує його акаунт
+const GUEST_ONLY = new Set(['login', 'register'])
 const THEMED = new Set(['app', 'today', 'draw', 'history'])
 const LIGHT_BG = '#f3f0e7'
 setUnauthorizedHandler(() => go('/login', { replace: true }))
@@ -38,10 +40,15 @@ export default function App() {
   const lang = useLang()
   const theme = useTheme()
   const locked = !PUBLIC.has(screen.path) && !getToken()
+  const signedInGuest = GUEST_ONLY.has(screen.id) && !!getToken()
 
   useEffect(() => {
     if (locked) go('/login', { replace: true })
   }, [locked])
+
+  useEffect(() => {
+    if (signedInGuest) go('/dashboard', { replace: true })
+  }, [signedInGuest])
 
   // залогінений користувач: мова й тема з його налаштувань на сервері
   useEffect(() => {
@@ -63,12 +70,12 @@ export default function App() {
   return (
     <>
       <div className="route" key={screen.path}>
-        {!locked && screen.kind === 'landing' && <Landing />}
-        {!locked && screen.kind === 'login' && <Login />}
-        {!locked && screen.kind === 'today' && <Today />}
-        {!locked && screen.kind === 'draw' && <Draw />}
-        {!locked && screen.kind === 'history' && <History />}
-        {!locked && screen.kind === 'app' && (screen.id === 'settings' ? <SettingsPage /> : <Shell d={screen.data} live={screen.live} />)}
+        {!locked && !signedInGuest && screen.kind === 'landing' && <Landing />}
+        {!locked && !signedInGuest && screen.kind === 'login' && <Login />}
+        {!locked && !signedInGuest && screen.kind === 'today' && <Today />}
+        {!locked && !signedInGuest && screen.kind === 'draw' && <Draw />}
+        {!locked && !signedInGuest && screen.kind === 'history' && <History />}
+        {!locked && !signedInGuest && screen.kind === 'app' && (screen.id === 'settings' ? <SettingsPage /> : <Shell d={screen.data} live={screen.live} />)}
       </div>
       {BEFORE_LOGIN.has(screen.id) && <LangSwitch />}
       <Proto />

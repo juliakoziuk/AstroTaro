@@ -70,7 +70,7 @@ export default function History() {
   }
 
   return (
-    <Frame active="/history">
+    <Frame>
       <header>
         <a className="back" {...navProps('/tarot')}>← {t('Tarot')}</a>
         <h1>{t('Reading history')}</h1>

@@ -4,7 +4,11 @@ import { go, navProps } from './router.js'
 import { resolveTexts } from './resolve.js'
 import { say } from './toast.js'
 import { optionLabel, t, useLang } from '../i18n/index.js'
+import NavLinks from './NavLinks.jsx'
+import SideProfile from './SideProfile.jsx'
 import ThemeToggle from './ThemeToggle.jsx'
+import { LogoutIcon } from './icons.jsx'
+import { logOut } from './live/common.js'
 import { box } from './live/parts.jsx'
 
 // екрани, де арт по боках картки розтягується на всю ширину вікна (розкладка в app.css: .art-wide)
@@ -20,6 +24,11 @@ const FAMILY = {
 const SIDE = 242
 // місце намальованого перемикача теми в нижній частині бічної панелі (x, y, w, h, r, зсув): живий перемикач лягає поверх нього
 const THEME_TOGGLE = [62, 854, 152, 48, 24, 0]
+// Живе меню лягає на місце намальованих пунктів (вони на плиті від y = 227 до 645) і закриває їх; під ним — профіль з аватаром,
+// а під профілем «Вийти»; x, y, w, h, r, без зсуву
+const SIDE_NAV = [46, 212, 184, 440, 0, 0]
+const PROFILE = [46, 668, 184, 64, 32, 0]
+const LOGOUT = [46, 744, 184, 56, 28, 0]
 const shift = (x) => (x >= SIDE ? 1 : 0)
 
 // Один рядок тексту: позиція, кегль, трекінг і колір підібрані за макетом (scripts/app/build.mjs)
@@ -202,7 +211,19 @@ export default function Screen({ d, live }) {
 
   return (
     <main className="stage" ref={stage} aria-label={d.title} data-screen={d.id}>
-      {d.hits.some((h) => h.nav) && <ThemeToggle className="ov" style={{ ...box(...THEME_TOGGLE), fontSize: 'calc(var(--u) * 22)' }} />}
+      {d.hits.some((h) => h.nav) && (
+        <>
+          <div className="ov side-nav" style={box(...SIDE_NAV)}>
+            <NavLinks />
+          </div>
+          <SideProfile at={PROFILE} />
+          <button type="button" className="ov side-logout" style={box(...LOGOUT)} onClick={() => (logOut(), go('/login'))}>
+            <LogoutIcon />
+            <span>{t('Log Out')}</span>
+          </button>
+          <ThemeToggle className="ov" style={{ ...box(...THEME_TOGGLE), fontSize: 'calc(var(--u) * 22)' }} />
+        </>
+      )}
       {/* плита розрізана на бічну панель і решту: на широких екранах між ними з'являється проміжок (його заповнює розмитий фон) */}
       <div className={WIDE_ART.has(d.id) ? 'art art-wide' : 'art'} aria-hidden="true">
         {WIDE_ART.has(d.id) ? (
@@ -229,7 +250,7 @@ export default function Screen({ d, live }) {
       <Texts texts={texts} />
 
       {/* клікабельні зони поверх намальованих елементів: href — шлях екрана (#/tarot) або back:#/запасний для «назад» */}
-      {d.hits.map((h) => (
+      {d.hits.filter((h) => !h.nav).map((h) => (
         <a key={h.label + h.x + h.y} className={`hit${h.nav ? ' hit-nav' : ''}`} {...hitProps(h)} style={rect(h)} aria-label={live?.hitLabel?.(h.label, state.values) ?? t(h.label)} />
       ))}
 

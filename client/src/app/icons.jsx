@@ -5,6 +5,11 @@ const Svg = ({ children, fill = 'none', ...rest }) => (
   </svg>
 )
 
+export const HomeIcon = () => (
+  <Svg>
+    <path d="M3.5 11.2 12 4l8.5 7.2M5.8 9.8V20h4.4v-5.2h3.6V20h4.4V9.8" />
+  </Svg>
+)
 export const TarotIcon = () => (
   <Svg>
     <rect x="3.5" y="5" width="10" height="15" rx="2" />
@@ -75,6 +80,11 @@ export const SunIcon = () => (
   <Svg>
     <circle cx="12" cy="12" r="4" />
     <path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6 7 7M17 17l1.4 1.4M18.4 5.6 17 7M7 17l-1.4 1.4" />
+  </Svg>
+)
+export const LogoutIcon = () => (
+  <Svg>
+    <path d="M10 4H5v16h5M14 8l4 4-4 4M18 12H9" />
   </Svg>
 )
 export const MoonIcon = () => (

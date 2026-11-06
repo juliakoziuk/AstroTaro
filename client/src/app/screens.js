@@ -1,7 +1,7 @@
 // Реєстр екранів: порядок = «потік» користувача (його ж показує перемикач екранів). Лендінг і логін — окремі React-компоненти,
 // решта — екрани за макетами з даних, які збирає scripts/app/build.mjs (src/app/data/*.json) і плит (src/app/art/*.webp).
 import { LIVE } from './live/index.js'
-import { bindTexts, limitByNeighbours } from './resolve.js'
+import { bindTexts, limitByNeighbours, withoutNavTexts } from './resolve.js'
 
 const data = import.meta.glob('./data/*.json', { eager: true, import: 'default' })
 const plates = import.meta.glob('./art/*.webp', { eager: true, query: '?url', import: 'default' })
@@ -18,7 +18,7 @@ export const SCREENS = [
   { path: '/draw', id: 'draw', kind: 'draw', name: 'Draw your cards', title: 'Draw your cards', bg: '#0a1626' },
   ...APP_ORDER.map((id) => {
     const live = LIVE[id]
-    const d = { ...byId[id], texts: limitByNeighbours(live ? bindTexts(byId[id].texts, live.bind) : byId[id].texts, byId[id].hits) }
+    const d = { ...byId[id], texts: withoutNavTexts(limitByNeighbours(live ? bindTexts(byId[id].texts, live.bind) : byId[id].texts, byId[id].hits), byId[id].hits) }
     return { path: d.route, id, kind: 'app', name: d.title, title: d.title, bg: '#0b1828', data: d, live }
   }),
 ]

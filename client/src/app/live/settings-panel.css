@@ -1,0 +1,37 @@
+.v-app .settings-inactive { background: #091725; border: calc(var(--u) * 1) solid #75654d; }
+.v-app .settings-tab-icon { color: #e4be80; font-size: calc(var(--u) * 34); }
+.v-app .settings-tab { background: transparent; border: 0; cursor: pointer; }
+.v-app .settings-panel { background: #091725; padding: calc(var(--u) * 25) calc(var(--u) * 35); overflow-y: auto; scrollbar-width: thin; scrollbar-color: #a98b58 #091725; color: #ece5d6; font: calc(var(--u) * 20)/1.4 'Source Sans 3', 'Segoe UI', sans-serif; }
+.v-app .settings-panel h2 { margin: 0 0 calc(var(--u) * 12); color: #f3e4bf; font: 600 calc(var(--u) * 40)/1.15 'Crimson Text', Georgia, serif; }
+.v-app .settings-panel > p { margin: 0 0 calc(var(--u) * 18); color: #b9c2cd; }
+.v-app .settings-row { display: flex; justify-content: space-between; align-items: center; gap: calc(var(--u) * 24); padding: calc(var(--u) * 18) 0; border-bottom: 1px solid #d6aa6833; }
+.v-app .settings-row h3 { margin: 0; font: 600 calc(var(--u) * 23)/1.25 'Crimson Text', Georgia, serif; }
+.v-app .settings-row p { margin: calc(var(--u) * 4) 0 0; color: #b9c2cd; font-size: calc(var(--u) * 18); }
+.v-app .settings-switch { position: relative; flex: none; width: calc(var(--u) * 65); height: calc(var(--u) * 35); padding: 0; border: 1px solid #b48b50; border-radius: 999px; background: #172a3d; cursor: pointer; }
+.v-app .settings-switch i { position: absolute; top: 50%; left: calc(var(--u) * 4); width: calc(var(--u) * 24); height: calc(var(--u) * 24); border-radius: 50%; transform: translateY(-50%); background: #f7e8c8; transition: left .2s; }
+.v-app .settings-switch[aria-checked='true'] { background: linear-gradient(100deg, #bc8643, #e9bc71); border-color: #e5bf7c; }
+.v-app .settings-switch[aria-checked='true'] i { left: calc(100% - var(--u) * 28); }
+.v-app .settings-options { display: grid; grid-template-columns: repeat(3, 1fr); gap: calc(var(--u) * 18); margin-top: calc(var(--u) * 30); }
+.v-app .settings-panel button:not(.settings-switch) { padding: calc(var(--u) * 12) calc(var(--u) * 22); border: 1px solid #d6aa6873; border-radius: calc(var(--u) * 22); background: #102235; color: #f1dfb8; font: inherit; cursor: pointer; }
+.v-app .settings-panel button:hover:not(:disabled) { background: #1c3047; border-color: #f0c47c; }
+.v-app .settings-panel button.selected { border-color: #f0c47c; box-shadow: 0 0 calc(var(--u) * 13) #e4be8033; background: #243143; }
+.v-app .settings-panel button:disabled { opacity: .55; cursor: wait; }
+.v-app .settings-panel button:focus-visible { outline: 2px solid #f0c47c; outline-offset: 3px; }
+.v-app .settings-preview { display: grid; place-items: center; height: calc(var(--u) * 100); margin-bottom: calc(var(--u) * 12); border-radius: calc(var(--u) * 14); background: #081523; color: #e4be80; font: calc(var(--u) * 45) Georgia, serif; }
+.v-app .settings-preview.light { background: #f0e8d8; color: #8e6936; }
+.v-app .settings-preview.auto { background: linear-gradient(90deg, #081523 50%, #f0e8d8 50%); }
+.v-app .settings-languages, .v-app .settings-data-actions { display: grid; gap: calc(var(--u) * 14); margin: calc(var(--u) * 20) 0; }
+.v-app .settings-languages button { display: flex; justify-content: space-between; }
+.v-app .settings-panel .settings-note { color: #b0bac6; font-size: calc(var(--u) * 17); margin-top: calc(var(--u) * 18); }
+.v-app .settings-panel .danger { color: #f1b5a3; border-color: #a86450; }
+.v-app .settings-confirm { padding: calc(var(--u) * 18); margin-top: calc(var(--u) * 16); border: 1px solid #d6aa68; border-radius: calc(var(--u) * 18); background: #142334; }
+.v-app .settings-confirm p { margin-top: 0; }
+.v-app .settings-confirm button + button { margin-left: calc(var(--u) * 12); }
+.v-app .settings-status { margin-top: calc(var(--u) * 15); color: #d9c391; font-size: calc(var(--u) * 17); min-height: 1.4em; }
+.v-app .settings-action { margin-top: calc(var(--u) * 20); }
+.v-app .settings-panel .settings-error { color: #f2b4a5; }
+.v-app .settings-about { text-align: center; padding: calc(var(--u) * 12); }
+.v-app .settings-about > span { font: calc(var(--u) * 65) Georgia, serif; color: #e4be80; }
+.v-app .settings-about h3 { margin: 0; letter-spacing: .1em; font: calc(var(--u) * 32) Georgia, serif; }
+.v-app .settings-about p { margin: calc(var(--u) * 10) 0; color: #b9c2cd; }
+@media (prefers-reduced-motion: reduce) { .v-app .settings-switch i { transition: none; } }

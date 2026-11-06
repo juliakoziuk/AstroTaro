@@ -145,7 +145,7 @@ export default function Draw() {
   }
 
   return (
-    <Frame active="/tarot">
+    <Frame>
           <header>
             <a className="back" {...navProps('/tarot')}>← {t('Tarot')}</a>
             <h1>{t('Draw your cards')}</h1>

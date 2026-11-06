@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import { deepStrictEqual, strictEqual, throws } from 'node:assert/strict'
 import { formatDate, formatDay, formatTime, greeting, snippet } from './format.js'
-import { bindTexts, fit, fitValue, limitByNeighbours, resolveTexts, wrap } from './resolve.js'
+import { bindTexts, fit, fitValue, limitByNeighbours, resolveTexts, withoutNavTexts, wrap } from './resolve.js'
 
 const T = (s, extra = {}) => ({ s, x: 0, y: 0, ...extra })
 
@@ -178,4 +178,10 @@ test('greeting depends on the hour and snippet shortens long text', () => {
   strictEqual(greeting(new Date('2026-01-01T20:00:00')), 'Good evening,')
   strictEqual(snippet('short'), 'short')
   strictEqual(snippet('x'.repeat(50), 10), 'xxxxxxxxx…')
+})
+
+test('the painted menu labels are dropped, since the live menu draws them', () => {
+  const hits = [{ x: 46, y: 227, w: 184, h: 66, nav: true }, { x: 283, y: 272, w: 370, h: 140 }]
+  const texts = [T('Home', { x: 127.4, y: 247.6, fs: 20.1, lh: 26 }), T('Tarot', { x: 560, y: 300, fs: 30, lh: 36 }), T('MYSTIQ', { x: 100, y: 120, fs: 30, lh: 36 })]
+  deepStrictEqual(withoutNavTexts(texts, hits).map((x) => x.s), ['Tarot', 'MYSTIQ'])
 })

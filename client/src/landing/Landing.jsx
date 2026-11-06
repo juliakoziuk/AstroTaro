@@ -1,7 +1,9 @@
-import { useSyncExternalStore } from 'react'
+import { useState, useSyncExternalStore } from 'react'
 import './landing.css'
 import { navProps } from '../app/router.js'
 import { t, useLang } from '../i18n/index.js'
+import { useAccount } from '../lib/account.js'
+import { getToken, signOut } from '../lib/api.js'
 import traced from './art/traced/scene.svg'
 import brandMoon from './art/traced/brand-moon.svg'
 import tarot from './art/traced/icon-tarot.svg'
@@ -65,6 +67,13 @@ function ArtImg(props) {
 export default function Landing() {
   const narrow = useMediaQuery(NARROW_QUERY)
   useLang() // підписка: при зміні мови (перемикач EN/УК у куті) тексти перемальовуються
+  const [signedIn, setSignedIn] = useState(() => !!getToken())
+  const account = useAccount()
+  const logOut = (e) => {
+    e.preventDefault()
+    signOut()
+    setSignedIn(false)
+  }
 
   return (
     <div className="v-landing">
@@ -91,6 +100,12 @@ export default function Landing() {
             <span className="brand-name">LOSTIQ</span>
           </a>
           <div className="wordmark">MYSTIQ</div>
+          {signedIn && account && (
+            <a className="account" {...navProps('/profile')} aria-label={t('Profile')}>
+              <span className="account-avatar" aria-hidden="true">{account.initials}</span>
+              <span className="account-name">{account.name}</span>
+            </a>
+          )}
         </header>
 
         <section className="hero">
@@ -105,12 +120,18 @@ export default function Landing() {
             <span>{t('shaping your own destiny.')}</span>
             <span>{t('Explore your world, step by step.')}</span>
           </p>
-          <a className="btn btn-primary" {...navProps('/register')}>
-            <span>{t('Get started')}</span>
+          <a className="btn btn-primary" {...navProps(signedIn ? '/dashboard' : '/register')}>
+            <span>{signedIn ? t('Go to dashboard') : t('Get started')}</span>
           </a>
-          <a className="btn btn-ghost" {...navProps('/login')}>
-            <span>{t('Sign in')}</span>
-          </a>
+          {signedIn ? (
+            <a className="btn btn-ghost" href="#/" onClick={logOut}>
+              <span>{t('Log Out')}</span>
+            </a>
+          ) : (
+            <a className="btn btn-ghost" {...navProps('/login')}>
+              <span>{t('Sign in')}</span>
+            </a>
+          )}
         </section>
 
         <nav className="panel" aria-label={t('MYSTIQ features')}>

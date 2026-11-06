@@ -1,0 +1,45 @@
+.settings-page {
+  --u: calc(1rem / 16); --settings-ink: #f3efe7; --settings-muted: #b9c2cd; --settings-panel: rgba(8, 23, 38, .95); --settings-border: #b78e58;
+  display: grid; grid-template-columns: 15.5rem minmax(0, 1fr); min-height: 100svh;
+  background: #08121f var(--settings-scene) center top / cover fixed no-repeat;
+  color: var(--settings-ink); font: 1.125rem/1.5 'Source Sans 3', 'Segoe UI', sans-serif;
+}
+.settings-page a { color: inherit; text-decoration: none; }
+.settings-sidebar { display: flex; flex-direction: column; align-items: center; padding: 2rem 1rem; background: #071523eb; border-right: 1px solid var(--settings-border); }
+.settings-brand { display: flex; align-items: center; flex-direction: column; color: #e4be80 !important; font: 1.9rem Georgia, serif; letter-spacing: .05em; }
+.settings-brand > span { font: 4rem/1.1 Georgia, serif; margin-bottom: .5rem; }
+.settings-sidebar nav { display: grid; width: 100%; gap: .7rem; margin: 4rem 0; }
+.settings-sidebar nav a { display: flex; align-items: center; gap: .85rem; padding: .9rem 1rem; border: 1px solid transparent; border-radius: 999px; font-size: 1.125rem; font-weight: 600; }
+.settings-sidebar nav svg { flex: none; color: #e4be80; width: 1.65rem; height: 1.65rem; }
+.settings-sidebar nav a.active { border-color: #e4be80; background: #e4be8024; box-shadow: inset 0 0 12px #e4be8026, 0 0 12px #e4be8026; }
+.settings-sidebar nav a:hover { background: #e4be801a; }
+.settings-theme-toggle { margin-top: auto; width: 8.5rem; height: 2.6rem; }
+.settings-main { width: 100%; max-width: 88rem; margin-inline: auto; padding: clamp(1.5rem, 4vw, 4rem); min-width: 0; }
+.settings-heading { display: flex; align-items: flex-start; gap: 1.2rem; margin: 0 0 2.5rem; }
+.settings-heading > a { display: grid; place-items: center; width: 2.8rem; height: 2.8rem; border: 1px solid #b78e58; border-radius: 50%; font-size: 1.8rem; flex: none; background: #081727bf; }
+.settings-heading h1 { font: 600 2.4rem/1.15 'Crimson Text', Georgia, serif; margin: 0 0 .5rem; }
+.settings-heading p { margin: 0; color: var(--settings-muted); }
+.settings-layout { display: grid; grid-template-columns: minmax(13.5rem, 18rem) minmax(0, 1fr); align-items: start; gap: 1.5rem; }
+.settings-tabs { border: 1px solid var(--settings-border); border-radius: 1.8rem; padding: 1.1rem .8rem; background: var(--settings-panel); }
+.settings-tabs button { display: flex; align-items: center; gap: 1rem; width: 100%; text-align: left; border: 1px solid transparent; border-radius: 1.4rem; background: transparent; color: inherit; padding: 1.15rem .9rem; font: 600 1.35rem/1.25 'Crimson Text', Georgia, serif; cursor: pointer; }
+.settings-tabs svg { flex: none; color: #e4be80; width: 1.8rem; height: 1.8rem; }
+.settings-tabs button[aria-selected='true'] { border-color: #edc47b; background: #d2a76b26; box-shadow: inset 0 0 .6rem #e4be8055, 0 0 .7rem #e4be8033; color: #f5dfa6; }
+.settings-tabs button:hover { background: #d2a76b1a; }
+.settings-page .settings-panel { position: static; min-width: 0; width: auto; height: auto; min-height: 36rem; overflow: visible; border: 1px solid var(--settings-border); border-radius: 1.8rem; background: var(--settings-panel); padding: clamp(1.2rem, 2.5vw, 2.6rem); color: var(--settings-ink); }
+.settings-page .settings-panel > p, .settings-page .settings-row p, .settings-page .settings-panel .settings-note { color: var(--settings-muted); }
+.settings-page .settings-panel h2 { color: var(--settings-ink); }
+.settings-select { font: 600 1.3rem/1.3 'Crimson Text', Georgia, serif; }
+.settings-select select { max-width: 50%; min-width: 10rem; padding: .65rem 1rem; border: 1px solid #c49a61; border-radius: 999px; color: var(--settings-ink); background: #102235; font: 1.1rem 'Source Sans 3', sans-serif; }
+.settings-page a:focus-visible, .settings-page button:focus-visible, .settings-page select:focus-visible { outline: 2px solid #e4be80; outline-offset: 4px; }
+.settings-load-error { background: var(--settings-panel); border: 1px solid #c88c73; padding: 1rem; border-radius: 1rem; margin-bottom: 1rem; }
+:root[data-theme='light'] .settings-page { --settings-ink: #352e23; --settings-muted: #665c4c; --settings-panel: #f4efdfed; --settings-border: #b49a71; background-color: #eee8d9; background-blend-mode: soft-light; }
+:root[data-theme='light'] .settings-sidebar { background: #ece4d1eb; }
+:root[data-theme='light'] .settings-page .settings-brand, :root[data-theme='light'] .settings-page svg { color: #8e6b36 !important; }
+:root[data-theme='light'] .settings-tabs button[aria-selected='true'] { color: #65491c; }
+:root[data-theme='light'] .settings-heading > a { background: #f4efdf; }
+:root[data-theme='light'] .settings-page .settings-panel button:not(.settings-switch), :root[data-theme='light'] .settings-select select { color: #45351d; background: #e9e0cd; }
+:root[data-theme='light'] .settings-page .settings-confirm { background: #ede4cf; }
+:root[data-theme='light'] .settings-page .settings-status { color: #705529; }
+@media (max-width: 75rem) { .settings-page { grid-template-columns: 13.5rem minmax(0, 1fr); } .settings-main { padding: 2rem; } .settings-layout { grid-template-columns: 1fr; } .settings-tabs { display: flex; flex-wrap: wrap; gap: .4rem; padding: .7rem; } .settings-tabs button { width: auto; padding: .7rem .9rem; font-size: 1.2rem; } .settings-tabs svg { width: 1.3rem; height: 1.3rem; } }
+@media (max-width: 50rem) { .settings-page { display: block; } .settings-sidebar { padding: 1rem; border-right: 0; border-bottom: 1px solid var(--settings-border); } .settings-brand { flex-direction: row; gap: .7rem; font-size: 1.5rem; } .settings-brand > span { font-size: 2.3rem; margin: 0; } .settings-sidebar nav { display: flex; flex-wrap: wrap; justify-content: center; gap: .3rem; margin: 1rem 0; } .settings-sidebar nav a { padding: .55rem .7rem; font-size: 1.125rem; } .settings-sidebar nav svg { width: 1.25rem; height: 1.25rem; } .settings-main { padding: 1.5rem 1rem 3rem; } .settings-heading { margin-bottom: 1.5rem; } .settings-heading h1 { font-size: 2rem; } }
+@media (max-width: 32rem) { .settings-page .settings-row { align-items: flex-start; } .settings-page .settings-select { flex-direction: column; gap: .7rem; } .settings-select select { max-width: 100%; width: 100%; } .settings-page .settings-options { grid-template-columns: 1fr; } .settings-page .settings-preview { height: 4rem; } .settings-tabs { border-radius: 1.2rem; } .settings-tabs button { font-size: 1.1rem; gap: .6rem; } .settings-page .settings-panel { border-radius: 1.2rem; } .settings-page .settings-panel h2 { font-size: 2rem; } }
