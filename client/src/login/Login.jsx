@@ -31,17 +31,6 @@ const PLATE_SIZES = 'min(100vw, calc(100vh * 1535 / 1024))'
 const ZOOM_SIZES = '3070px'
 const CARD_SIZES = 'calc(min(100vw, 100vh * 1535 / 1024) * 649 / 1535)'
 
-// cy — центр пункту, zone — ділянка значка в референсі (збігається з INK у scripts/login/config.mjs)
-// href — маршрути застосунку (hash-роутер, src/app/router.js)
-const NAV = [
-  { id: 'home', label: 'Home', cy: 259.5, zone: [70, 240, 44, 38], active: true, href: '/dashboard' },
-  { id: 'chat', label: 'Chat', cy: 337, zone: [70, 318, 44, 38], href: '/companion' },
-  { id: 'analytics', label: 'Analytics', cy: 406, zone: [70, 386, 44, 38], href: '/analysis' },
-  { id: 'access', label: 'Access', cy: 474.5, zone: [70, 454, 44, 42], href: '/pricing' },
-  { id: 'settings', label: 'Settings', cy: 543, zone: [70, 522, 44, 42], href: '/settings' },
-  { id: 'help', label: 'Help', cy: 611, zone: [70, 590, 44, 42], href: '/settings' },
-]
-
 // позиція «чорнильного» елемента (ліво/верх/розмір у одиницях)
 const at = ([x, y, w, h]) => ({ '--x': x, '--y': y, '--w': w, '--h': h })
 
@@ -91,9 +80,9 @@ export default function Login() {
     <main className="page">
       <div className="stage">
         {!narrow && (
-          // арт з однієї плити: бічна панель | ліва частина (на широких екранах збільшується до картки) | центр | права частина
+          // арт з однієї плити (без бічної панелі — гість ще не в застосунку): ліва частина | центр | права частина
           <div className="art" aria-hidden="true">
-            {['side', 'left', 'mid', 'right'].map((part) => (
+            {['left', 'mid', 'right'].map((part) => (
               <div className={`art-${part}`} key={part}>
                 <img src={first(PLATE_SET)} srcSet={PLATE_SET} sizes={part === 'left' || part === 'right' ? ZOOM_SIZES : PLATE_SIZES} width="1535" height="1024" alt="" draggable="false" decoding="async" fetchPriority="high" />
               </div>
@@ -101,29 +90,6 @@ export default function Login() {
           </div>
         )}
         {narrow && <div className="art-flat" aria-hidden="true" />}
-
-        {/* ---------- бічна панель ---------- */}
-        <aside className="sidebar" aria-label={t('Navigation')}>
-          <Ink name="sb-crest" zone={[80, 34, 120, 88]} />
-          <div className="t sb-word">MYSTIQ</div>
-
-          <span className="nav-pill" aria-hidden="true" />
-          <nav className="nav">
-            {NAV.map(({ id, label, cy, zone, active, href }) => (
-              <a className={`nav-item${active ? ' is-active' : ''}`} {...navProps(href)} key={id} style={{ '--cy': cy }} aria-current={active ? 'page' : undefined}>
-                <Ink name={`sb-${id}`} zone={zone} className="nav-icon" origin={[46, cy - 33]} />
-                <span className="t nav-label">{t(label)}</span>
-              </a>
-            ))}
-          </nav>
-
-          <Ink name="sb-divider" zone={[84, 824, 126, 26]} />
-          <button className="theme" type="button" aria-label={t('Toggle theme')}>
-            <Ink name="sb-sun" zone={[74, 864, 36, 34]} origin={[63, 858]} />
-            <i className="theme-knob" />
-            <Ink name="sb-moon" zone={[168, 864, 32, 32]} origin={[63, 858]} />
-          </button>
-        </aside>
 
         {/* ---------- картка входу ---------- */}
         <section className="card" aria-label={t('Sign in')}>

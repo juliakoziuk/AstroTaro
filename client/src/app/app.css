@@ -266,56 +266,48 @@
   color: inherit;
 }
 
-/* ---------- широкий арт (екрани з 2x-плитою, напр. реєстрація) ----------
-   Замість розмитих полів арт по боках картки (ліве 242…590, праве 1250…1536) збільшується рівно до країв вікна, центр
-   під карткою лишається в масштабі 1 і розчиняється в збільшеному мистецтві. Коефіцієнти = 1536/348 = 4.41379,
-   242/348 = 0.6954, 1024/348 = 2.94253; 1536/286 = 5.37063, 1250/286 = 4.37063, 1024/286 = 3.58042. На пропорції макета --g = 0. */
-.v-app .art-wide {
-  --wl: calc(var(--u) * 348 + var(--g));
-  --wr: calc(var(--u) * 286 + var(--g));
-  --fade: min(calc(var(--u) * 56), var(--g));
-}
+/* ---------- гостьові екрани (реєстрація): без бічної панелі, картка посередині ----------
+   Гість ще не в застосунку, тож меню йому не потрібне. Плита розрізана так: ліве мистецтво 242…590 і праве 1250…1536
+   збільшуються (zoom із кроплінням по висоті) до країв сцени, центр 590…1250 під карткою лишається в масштабі 1 і
+   розчиняється в збільшеному мистецтві. Картка (590…1250, центр 920) зсувається на -152 одиниці, щоб стати по центру сцени
+   (768): це --g, який додається до x усіх елементів правої частини макета. Коефіцієнти: 438/348 = 1.25862 (ліве),
+   438/286 = 1.53147 (праве); ширина зони 438 = 768 - 330. */
+.v-app .stage.guest { --g: calc(var(--u) * -152); }
 
-.v-app .art-wide .pl-side { width: calc(var(--u) * 242); }
-.v-app .art-wide .pl-left,
-.v-app .art-wide .pl-mid,
-.v-app .art-wide .pl-right { overflow: hidden; }
-.v-app .art-wide .pl img { height: auto; }
+.v-app .art-guest { --fade: calc(var(--u) * 56); }
+.v-app .art-guest .pl { overflow: hidden; }
+.v-app .art-guest .pl img { height: auto; }
 
-.v-app .art-wide .pl-side img { height: 100%; }
-
-.v-app .art-wide .pl-left {
-  left: calc(var(--u) * 242);
-  width: var(--wl);
+.v-app .art-guest .pl-left {
+  left: 0;
+  width: calc(var(--u) * 438);
   -webkit-mask-image: linear-gradient(to right, #000 calc(100% - var(--fade)), transparent);
   mask-image: linear-gradient(to right, #000 calc(100% - var(--fade)), transparent);
 }
-.v-app .art-wide .pl-left img {
-  left: calc(var(--wl) * -0.6954);
-  top: calc((var(--u) * 1024 - var(--wl) * 2.94253) * 0.45);
-  width: calc(var(--wl) * 4.41379);
-  height: calc(var(--wl) * 2.94253);
+.v-app .art-guest .pl-left img {
+  left: calc(var(--u) * -304.6);
+  top: calc(var(--u) * -119.2);
+  width: calc(var(--u) * 1933.2);
 }
 
-.v-app .art-wide .pl-mid {
-  left: calc(var(--u) * 590 + var(--g) - var(--fade));
+.v-app .art-guest .pl-mid {
+  left: calc(var(--u) * 438 - var(--fade));
   width: calc(var(--u) * 660 + var(--fade) * 2);
   -webkit-mask-image: linear-gradient(to right, transparent, #000 var(--fade), #000 calc(100% - var(--fade)), transparent);
   mask-image: linear-gradient(to right, transparent, #000 var(--fade), #000 calc(100% - var(--fade)), transparent);
 }
-.v-app .art-wide .pl-mid img { left: calc(var(--fade) - var(--u) * 590); width: calc(var(--u) * 1536); height: 100%; }
+.v-app .art-guest .pl-mid img { left: calc(var(--fade) - var(--u) * 590); top: 0; width: calc(var(--u) * 1536); height: 100%; }
 
-.v-app .art-wide .pl-right {
+.v-app .art-guest .pl-right {
   right: 0;
-  width: var(--wr);
+  width: calc(var(--u) * 438);
   -webkit-mask-image: linear-gradient(to right, transparent, #000 var(--fade));
   mask-image: linear-gradient(to right, transparent, #000 var(--fade));
 }
-.v-app .art-wide .pl-right img {
-  left: calc(var(--wr) * -4.37063);
-  top: calc((var(--u) * 1024 - var(--wr) * 3.58042) * 0.45);
-  width: calc(var(--wr) * 5.37063);
-  height: calc(var(--wr) * 3.58042);
+.v-app .art-guest .pl-right img {
+  left: calc(var(--u) * -1914.3);
+  top: calc(var(--u) * -244.9);
+  width: calc(var(--u) * 2352.4);
 }
 
 /* автозаповнення браузера (Chrome/Edge) фарбує поле світло-блакитним: лишаємо фон плити й світлий текст.

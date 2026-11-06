@@ -11,8 +11,9 @@ import { LogoutIcon } from './icons.jsx'
 import { logOut } from './live/common.js'
 import { box } from './live/parts.jsx'
 
-// екрани, де арт по боках картки розтягується на всю ширину вікна (розкладка в app.css: .art-wide)
-const WIDE_ART = new Set(['register'])
+// гостьові екрани: людина ще не в застосунку, тож без бічного меню; картка посередині, арт по боках розтягується до країв
+// (розкладка в app.css: .guest, .art-guest)
+const GUEST = new Set(['register'])
 
 const FAMILY = {
   serif: `'${fonts.serif.family}', Georgia, serif`,
@@ -134,9 +135,16 @@ export default function Screen({ d, live }) {
   const [modal, setModal] = useState(null)
   const [busy, setBusy] = useState(false)
   const alive = useRef(true)
+  const guest = GUEST.has(d.id)
+  // у гостя бічної панелі немає: її тексти (логотип) не показуємо
   // eslint-disable-next-line react-hooks/exhaustive-deps -- переклад залежить від поточної мови
-  const texts = useMemo(() => resolveTexts(d.texts, state.values, t), [d.texts, state.values, lang])
+  const texts =useMemo(() => resolveTexts(guest ? d.texts.filter((x) => x.x >= SIDE) : d.texts, state.values, t), [d, guest, state.values, lang])
   const stage = useRef(null)
+  // у портретному вікні сцена ширша за екран і гортається вбік: гостя одразу ставимо на картку (вона по центру сцени)
+  useLayoutEffect(() => {
+    const page = guest ? stage.current?.closest('.page') : null
+    if (page) page.scrollLeft = (page.scrollWidth - page.clientWidth) / 2
+  }, [guest])
   useLayoutEffect(() => {
     const root = stage.current
     if (!root) return
@@ -210,8 +218,8 @@ export default function Screen({ d, live }) {
   const send = () => (actions.Send ? ctx.run(() => actions.Send(ctx)) : undefined)
 
   return (
-    <main className="stage" ref={stage} aria-label={d.title} data-screen={d.id}>
-      {d.hits.some((h) => h.nav) && (
+    <main className={guest ? 'stage guest' : 'stage'} ref={stage} aria-label={d.title} data-screen={d.id}>
+      {!guest && d.hits.some((h) => h.nav) && (
         <>
           <div className="ov side-nav" style={box(...SIDE_NAV)}>
             <NavLinks />
@@ -225,10 +233,10 @@ export default function Screen({ d, live }) {
         </>
       )}
       {/* плита розрізана на бічну панель і решту: на широких екранах між ними з'являється проміжок (його заповнює розмитий фон) */}
-      <div className={WIDE_ART.has(d.id) ? 'art art-wide' : 'art'} aria-hidden="true">
-        {WIDE_ART.has(d.id) ? (
-          // широкий екран: арт по боках картки збільшується до країв вікна (як у логіні), 2x-плита тримає різкість
-          ['side', 'left', 'mid', 'right'].map((part) => (
+      <div className={guest ? 'art art-guest' : 'art'} aria-hidden="true">
+        {guest ? (
+          // арт по боках картки збільшується до країв вікна (як у логіні), 2x-плита тримає різкість; панелі немає
+          ['left', 'mid', 'right'].map((part) => (
             <div className={`pl pl-${part}`} key={part}>
               <img src={d.plate2} width="1536" height="1024" alt="" draggable="false" decoding="async" fetchPriority="high" />
             </div>

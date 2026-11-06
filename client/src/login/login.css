@@ -2,7 +2,7 @@
   Екран Login. Розкладка = «піксельна сітка референсу» (1535x1024): --u — розмір однієї одиниці в px, тож будь-яку
   позицію/розмір пишемо числом з референсу: calc(var(--u) * 742). Та сама схема, що й у Landing:
    · арт (плита) розрізана посередині картки й на широких екранах розсувається — проміжок заповнює плитка fill.webp;
-   · бічна панель тримається лівого краю, картка лишається фіксованого розміру й центрується між частинами арту;
+   · бічної панелі тут немає (гість ще не в застосунку): картка фіксованого розміру стоїть точно посередині вікна між частинами арту;
    · параметри тексту (--x --y --fs --ls --lh --wght) підібрані scripts/login/fit.mjs за піксельною різницею.
   Колір синього підігнано під палітру Landing (scripts/lib/grade.mjs).
 */
@@ -54,16 +54,15 @@
    мистецтві (--fade; на пропорції референсу --g = 0, --fade = 0 і все збігається з плитою піксель у піксель). */
 .v-login .art {
   --g: max(0px, calc(100vw - var(--u) * 1535));
-  --wl: calc(var(--u) * 358 + var(--g) / 2);
-  --wr: calc(var(--u) * 286 + var(--g) / 2);
-  --fade: min(calc(var(--u) * 56), calc(var(--g) * 0.5));
+  --wl: calc((100vw - var(--u) * 649) / 2);
+  --wr: var(--wl);
+  --fade: min(calc(var(--u) * 56), calc(var(--wl) * 0.2));
   position: absolute;
   inset: 0;
   z-index: -1;
   pointer-events: none;
 }
 
-.v-login .art-side,
 .v-login .art-left,
 .v-login .art-mid,
 .v-login .art-right {
@@ -79,13 +78,9 @@
   user-select: none;
 }
 
-/* бічна панель: масштаб 1 */
-.v-login .art-side { left: 0; width: calc(var(--u) * 242); }
-.v-login .art-side img { left: 0; top: 0; width: calc(var(--u) * 1535); height: 100%; }
-
-/* ліве мистецтво: від бічної панелі до картки, збільшене; верх обрізається менше, ніж низ (місяць лишається в кадрі) */
+/* ліве мистецтво: від краю вікна до картки, збільшене; верх обрізається менше, ніж низ (місяць лишається в кадрі) */
 .v-login .art-left {
-  left: calc(var(--u) * 242);
+  left: 0;
   width: var(--wl);
   -webkit-mask-image: linear-gradient(to right, #000 calc(100% - var(--fade)), transparent);
   mask-image: linear-gradient(to right, #000 calc(100% - var(--fade)), transparent);
@@ -99,7 +94,7 @@
 
 /* центр плити (під карткою й навколо неї): масштаб 1, з розчиненням по краях */
 .v-login .art-mid {
-  left: calc(50% - var(--u) * 167.5 - var(--fade));
+  left: calc(50% - var(--u) * 324.5 - var(--fade));
   width: calc(var(--u) * 649 + var(--fade) * 2);
   -webkit-mask-image: linear-gradient(to right, transparent, #000 var(--fade), #000 calc(100% - var(--fade)), transparent);
   mask-image: linear-gradient(to right, transparent, #000 var(--fade), #000 calc(100% - var(--fade)), transparent);
@@ -163,83 +158,10 @@
 
 .v-login .serif { font-family: 'Cormorant Garamond', Georgia, serif; }
 
-/* ---------- бічна панель (її фон і лінії — в плиті) ---------- */
-.v-login .sidebar {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-}
-
-.v-login .sidebar > *, .v-login .sidebar .nav-item, .v-login .sidebar .theme { pointer-events: auto; }
-
-.v-login .sb-word {
-  --x: 80.5;
-  --y: 124;
-  --fs: 27.39;
-  --ls: 0.4;
-  --lh: 30;
-  --wght: 400;
-  font-family: 'Cardo', Georgia, serif;
-  color: #efdbb8;
-}
-
-.v-login .nav-item {
-  position: absolute;
-  left: calc(var(--u) * 46);
-  width: calc(var(--u) * 184);
-  top: calc(var(--u) * (var(--cy) - 33));
-  height: calc(var(--u) * 66);
-  border-radius: 999px;
-  color: #a8b3bf;
-  text-decoration: none;
-}
-
-.v-login .nav-item.is-active { color: var(--ink); 
-  color: #f0e8ce;
-}
-
-.v-login .nav-label {
-  --x: 81;
-  --y: 18;
-  --fs: 18.25;
-  --ls: 0.1;
-  --lh: 30;
-  --wght: 375;
-  --dy: 0;
-  top: calc(var(--u) * (33 - var(--lh) / 2 + var(--dy)));
-  font-family: 'Noto Sans', 'Lato', sans-serif;
-}
-
-.v-login .nav-item:hover { filter: brightness(1.2); }
-
-.v-login .theme {
-  position: absolute;
-  left: calc(var(--u) * 63);
-  top: calc(var(--u) * 858);
-  width: calc(var(--u) * 150);
-  height: calc(var(--u) * 45);
-  padding: 0;
-  border: 0;
-  border-radius: 999px;
-  background: none;
-  cursor: pointer;
-}
-
-.v-login .theme-knob {
-  position: absolute;
-  left: calc(var(--u) * 54);
-  top: calc(var(--u) * 6.5);
-  width: calc(var(--u) * 41);
-  height: calc(var(--u) * 31);
-  border-radius: 999px;
-  background: linear-gradient(90deg, #c59c6d 0%, #b29170 50%, #93857c 100%);
-  box-shadow: 0 0 0 calc(var(--u) * 1) #1a1510, inset 0 calc(var(--u) * 1) 0 #ffffff40;
-}
-
 /* ---------- картка ---------- */
 .v-login .card {
   position: absolute;
-  left: calc(50% - var(--u) * 167.5);
+  left: calc(50% - var(--u) * 324.5);
   top: calc(var(--u) * 62);
   width: calc(var(--u) * 649);
   height: calc(var(--u) * 862);
@@ -530,16 +452,12 @@
 }
 
 /* ---------- фокус з клавіатури ---------- */
-.v-login .nav-item:focus-visible,
-.v-login .theme:focus-visible,
 .v-login .eye:focus-visible,
 .v-login .forgot:focus-visible,
 .v-login .foot-link:focus-visible {
   outline: calc(var(--u) * 2) solid var(--gold);
   outline-offset: calc(var(--u) * 3);
 }
-
-.v-login .nav-item:focus-visible { outline-offset: calc(var(--u) * -3); }
 
 /* ---------- вузькі й «портретні» вікна: лише картка на тлі арту ---------- */
 @media (max-width: 720px), (max-aspect-ratio: 1 / 1) {
@@ -566,7 +484,6 @@
     background: url('./art/plate-1x.webp') 72% 40% / auto 100% no-repeat, var(--bg);
   }
 
-  .v-login .sidebar { display: none; }
   .v-login .card { position: relative; left: auto; top: auto; margin: 0 auto; }
 }
 
