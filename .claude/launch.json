@@ -4,13 +4,13 @@
     {
       "name": "vite-dev",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev", "--", "--port", "5173", "--strictPort"],
+      "runtimeArgs": ["--prefix", "client", "run", "dev", "--", "--port", "5173", "--strictPort"],
       "port": 5173
     },
     {
       "name": "mystiq-5180",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev", "--", "--port", "5180", "--strictPort"],
+      "runtimeArgs": ["--prefix", "client", "run", "dev", "--", "--port", "5180", "--strictPort"],
       "port": 5180
     }
   ]
