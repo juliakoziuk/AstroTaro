@@ -1,6 +1,7 @@
-import { Controller, ForbiddenException, Get, Module, Post, UseGuards } from '@nestjs/common'
+import { BadRequestException, Body, Controller, ForbiddenException, Get, Module, Post, Query, UseGuards } from '@nestjs/common'
 import { InjectModel, SequelizeModule } from '@nestjs/sequelize'
-import { ApiCreatedResponse, ApiForbiddenResponse, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger'
+import { ApiCreatedResponse, ApiForbiddenResponse, ApiOkResponse, ApiOperation, ApiProperty, ApiPropertyOptional, ApiTags } from '@nestjs/swagger'
+import { IsDateString, IsOptional, IsString, Matches, MaxLength } from 'class-validator'
 import { Column, DataType, ForeignKey, Model, Table } from 'sequelize-typescript'
 import { CurrentUser, JwtAuthGuard } from '../auth/jwt-auth.guard'
 import { ApiAuthed } from '../common/api-docs'
@@ -9,7 +10,10 @@ import { zoneAt } from '../cosmos/timezone'
 import { currentLocale } from '../i18n/locale'
 import { msg } from '../i18n/messages'
 import { currentPlanets, natalChart, nextMoonEvents } from './astro'
-import { buildReport } from './report'
+import { aspectMeaning, planetMeaning } from './interpretation'
+import { aspectsOf, buildReport } from './report'
+import { buildForecast } from './forecast'
+import { buildCompatibility } from './synastry'
 import { inSign, monthlyInsight, moonEventName, planetName, signName } from './text'
 
 @Table({ tableName: 'reports', indexes: [{ fields: ['userId', 'createdAt'] }] })
@@ -26,6 +30,17 @@ export class Report extends Model {
 
   @Column({ type: DataType.TEXT, allowNull: false })
   declare text: string
+}
+
+const MIN_BIRTH_YEAR = 1900
+
+const DATE_ONLY = /^\d{4}-\d{2}-\d{2}$/
+
+export class CompatibilityDto {
+  @ApiPropertyOptional({ example: 'Anna', description: 'Імʼя другої людини (необовʼязково)' }) @IsOptional() @IsString() @MaxLength(60) name?: string
+  @ApiProperty({ example: '1999-03-14', description: 'Дата народження другої людини, YYYY-MM-DD' }) @Matches(DATE_ONLY) @IsDateString({ strict: true }) birthDate: string
+  @ApiPropertyOptional({ example: 'Yullia', description: 'Імʼя першої людини; без нього береться імʼя з профілю' }) @IsOptional() @IsString() @MaxLength(60) firstName?: string
+  @ApiPropertyOptional({ example: '2004-06-22', description: 'Дата народження першої людини; без неї береться натальна карта з профілю (з часом і місцем)' }) @IsOptional() @Matches(DATE_ONLY) @IsDateString({ strict: true }) firstBirthDate?: string
 }
 
 export const birthOf = (u: User) =>
@@ -55,21 +70,69 @@ export class AstrologyController {
     const now = new Date()
     const locale = currentLocale()
     const natal = birth ? natalChart(birth) : null
+    const sky = currentPlanets(now)
     // id (name, sign) лишаються англійськими; поруч — назви мовою запиту
     const place = (p: { name: string; sign: string; degree: number }) => ({ ...p, planet: planetName(p.name, locale), signName: signName(p.sign, locale) })
     return {
       natal: natal && {
-        planets: natal.planets.map(place),
+        planets: natal.planets.map((p) => ({ ...place(p), meaning: planetMeaning(p, locale) })),
         sun: signName(natal.planets[0].sign, locale),
         moon: signName(natal.planets[1].sign, locale),
         ascendant: natal.ascendant && signName(natal.ascendant, locale),
+        // точні довготи кутів і куспіди будинків — для колеса; усі аспекти між планетами
+        angles: natal.houses && { ascendant: natal.ascendantLongitude, midheaven: natal.midheaven },
+        houses: natal.houses,
+        aspects: aspectsOf(natal.planets, Number.POSITIVE_INFINITY).map((a) => ({ ...a, meaning: aspectMeaning(a, locale) })),
       },
-      current: currentPlanets(now)
+      // положення всіх планет зараз (довгота 0–360) — для живого колеса, коли дати народження ще немає
+      sky: { planets: sky.map(({ name, longitude }) => ({ name, longitude })), aspects: aspectsOf(sky, Number.POSITIVE_INFINITY) },
+      current: sky
         .filter((p) => ['Mercury', 'Venus', 'Mars'].includes(p.name))
         .map((p) => ({ ...place(p), label: inSign(p.name, p.sign, locale) })),
       events: nextMoonEvents(now).map((e) => ({ ...e, id: e.name, name: moonEventName(e.name, locale) })),
       insight: monthlyInsight(now, locale),
     }
+  }
+
+  @ApiOperation({
+    summary: 'Сумісність із партнером (синастрія)',
+    description: 'Порівнює натальну карту користувача з картою за датою народження партнера: аспекти між планетами, оцінки за сферами та текстовий звіт. Нічого не зберігає.',
+  })
+  @ApiOkResponse({ description: '{ title, text, score, level, categories[], aspects[], me, partner }' })
+  @ApiForbiddenResponse({ description: 'У користувача немає дати народження' })
+  @Post('compatibility')
+  async compatibility(@CurrentUser() u: { id: string }, @Body() dto: CompatibilityDto) {
+    const user = await this.users.findByPk(u.id)
+    const locale = currentLocale()
+    const today = new Date().toISOString().slice(0, 10)
+    for (const date of [dto.birthDate, dto.firstBirthDate]) {
+      if (date && (Number(date.slice(0, 4)) < MIN_BIRTH_YEAR || date > today)) throw new BadRequestException(msg(locale, 'badPartnerBirth'))
+    }
+    // перша людина: введена дата (планети на полудень) або профіль користувача з часом і місцем, якщо вони є
+    const profileBirth = birthOf(user)
+    if (!dto.firstBirthDate && !profileBirth) throw new ForbiddenException(msg(locale, 'reportNeedsBirth'))
+    const mine = natalChart(dto.firstBirthDate ? { birthDate: dto.firstBirthDate } : (profileBirth as NonNullable<typeof profileBirth>))
+    const theirs = natalChart({ birthDate: dto.birthDate }) // без часу й місця: планети на полудень, без будинків
+    const names = { a: dto.firstName?.trim() || user.name, b: dto.name?.trim() || msg(locale, 'partnerName') }
+    const plotted = (c: typeof mine) => c.planets.map((p) => ({ name: p.name, planet: planetName(p.name, locale), sign: p.sign, signName: signName(p.sign, locale), longitude: p.longitude }))
+    return { ...buildCompatibility(mine, theirs, names, locale), me: { name: names.a, planets: plotted(mine) }, partner: { name: names.b, planets: plotted(theirs) } }
+  }
+
+  @ApiOperation({
+    summary: 'Особистий прогноз: день, тиждень і місяць',
+    description: 'Транзити (поточне небо) до натальної карти користувача: оцінки дня за сферами життя, ключові аспекти, прогноз на 7 і 30 днів уперед, новий і повний місяць. Потрібна дата народження.',
+  })
+  @ApiOkResponse({ description: '{ date, day, week, month }' })
+  @ApiForbiddenResponse({ description: 'У користувача немає дати народження' })
+  @Get('forecast')
+  async forecast(@CurrentUser() u: { id: string }, @Query('date') date?: string) {
+    const user = await this.users.findByPk(u.id)
+    const locale = currentLocale()
+    const birth = birthOf(user)
+    if (!birth) throw new ForbiddenException(msg(locale, 'reportNeedsBirth'))
+    // день рахуємо від дати, яку надіслав клієнт (його місцевий «сьогодні»), інакше від сьогодні за UTC
+    if (date !== undefined && (!DATE_ONLY.test(date) || Number.isNaN(Date.parse(date)))) throw new BadRequestException(msg(locale, 'badDate'))
+    return buildForecast(natalChart(birth).planets, date ?? new Date().toISOString().slice(0, 10), locale)
   }
 
   @ApiOperation({ summary: 'Мої астрологічні звіти' })

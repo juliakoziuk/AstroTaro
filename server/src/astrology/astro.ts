@@ -1,5 +1,6 @@
 import * as Astronomy from 'astronomy-engine'
 import { localToUtc } from '../cosmos/timezone'
+import { houseCusps, houseOf, midheavenLongitude } from './houses'
 
 // Реальна ефемеридна астрологія (astronomy-engine): знаки планет, асцендент, найближчі фази Місяця.
 export const SIGNS = ['Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo', 'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces']
@@ -42,31 +43,58 @@ export interface ChartPlanet {
   sign: string
   degree: number
   longitude: number // абсолютна екліптична довгота, 0–360
+  retrograde: boolean
+  house: number | null // 1–12, лише коли відомі час і місце народження
 }
 
 export interface NatalChart {
   planets: ChartPlanet[]
   ascendant: string | null
+  ascendantLongitude: number | null
+  midheaven: number | null // довгота MC
+  houses: number[] | null // куспіди будинків 1–12 (Плацідус)
+}
+
+const RETROGRADE_PROBE_MS = 24 * 60 * 60 * 1000
+const HALF_CIRCLE = 180
+const NEVER_RETROGRADE = new Set<string>(['Sun', 'Moon'])
+
+/** Планета рухається назад по екліптиці: довгота за добу зменшується. */
+const isRetrograde = (body: (typeof PLANETS)[number], date: Date, longitude: number): boolean => {
+  if (NEVER_RETROGRADE.has(body)) return false
+  const shift = norm(longitudeOf(body, new Date(date.getTime() + RETROGRADE_PROBE_MS)) - longitude)
+  return shift > HALF_CIRCLE
 }
 
 export function natalChart(b: BirthData): NatalChart {
   const hasPlace = b.birthTime && b.lat != null && b.lon != null
   const date = b.birthTime && b.timeZone ? localToUtc(b.birthDate, b.birthTime, b.timeZone) : new Date(`${b.birthDate}T${b.birthTime ?? '12:00'}:00Z`)
-  const planets = PLANETS.map((name) => {
+  const bodies = PLANETS.map((name) => {
     const longitude = norm(longitudeOf(name, date))
-    return { name, ...signOf(longitude), longitude }
+    return { name, ...signOf(longitude), longitude, retrograde: isRetrograde(name, date, longitude) }
   })
-  let ascendant: string | null = null
-  if (hasPlace) {
-    const T = (Astronomy.MakeTime(date).tt) / 36525
-    const obliquity = 23.4392911 - 0.0130042 * T
-    const ramc = norm(Astronomy.SiderealTime(date) * 15 + (b.lon as number))
-    ascendant = signOf(ascendantLongitude(ramc, b.lat as number, obliquity)).sign
+  if (!hasPlace) {
+    return { planets: bodies.map((p) => ({ ...p, house: null })), ascendant: null, ascendantLongitude: null, midheaven: null, houses: null }
   }
-  return { planets, ascendant }
+  const T = (Astronomy.MakeTime(date).tt) / 36525
+  const obliquity = 23.4392911 - 0.0130042 * T
+  const ramc = norm(Astronomy.SiderealTime(date) * 15 + (b.lon as number))
+  const ascLon = ascendantLongitude(ramc, b.lat as number, obliquity)
+  const houses = houseCusps(ascLon, ramc, b.lat as number, obliquity)
+  return {
+    planets: bodies.map((p) => ({ ...p, house: houseOf(p.longitude, houses) })),
+    ascendant: signOf(ascLon).sign,
+    ascendantLongitude: ascLon,
+    midheaven: midheavenLongitude(ramc, obliquity),
+    houses,
+  }
 }
 
-export const currentPlanets = (now = new Date()) => PLANETS.map((name) => ({ name, ...signOf(longitudeOf(name, now)) }))
+export const currentPlanets = (now = new Date()) =>
+  PLANETS.map((name) => {
+    const longitude = norm(longitudeOf(name, now))
+    return { name, ...signOf(longitude), longitude }
+  })
 
 export interface MoonEvent {
   name: 'New Moon' | 'Full Moon'
