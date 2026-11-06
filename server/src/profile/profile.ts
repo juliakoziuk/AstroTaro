@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Module, Patch, UseGuards } from '@nestjs/common'
+import { Body, Controller, Get, Module, Patch, Post, UseGuards } from '@nestjs/common'
 import { InjectModel, SequelizeModule } from '@nestjs/sequelize'
 import { ApiOkResponse, ApiOperation, ApiPropertyOptional, ApiTags } from '@nestjs/swagger'
 import { IsBoolean, IsDateString, IsIn, IsLatitude, IsLongitude, IsOptional, IsString, Length, Matches, MaxLength, MinLength } from 'class-validator'
@@ -7,8 +7,10 @@ import { ApiAuthed } from '../common/api-docs'
 import { Dream } from '../dreams/dream.model'
 import { Report } from '../astrology/astrology'
 import { Spread } from '../spreads/spread.model'
-import { DEFAULT_SETTINGS, SETTING_OPTIONS } from '../users/settings'
+import { DEFAULT_SETTINGS, SETTING_OPTIONS, withDefaults } from '../users/settings'
 import { User } from '../users/user.model'
+import { JournalEntry } from '../journal/journal.model'
+import { Message } from '../messages/message.model'
 
 export class UpdateProfileDto {
   @ApiPropertyOptional({ example: 'Yullia' }) @IsOptional() @IsString() @MinLength(1) @MaxLength(80) name?: string
@@ -42,6 +44,8 @@ export class ProfileController {
     @InjectModel(Spread) private spreads: typeof Spread,
     @InjectModel(Dream) private dreams: typeof Dream,
     @InjectModel(Report) private reports: typeof Report,
+    @InjectModel(JournalEntry) private journal: typeof JournalEntry,
+    @InjectModel(Message) private messages: typeof Message,
   ) {}
 
   private async profile(id: string) {
@@ -81,7 +85,7 @@ export class ProfileController {
   @ApiOkResponse({ description: 'Усі налаштування користувача' })
   @Get('settings')
   async settings(@CurrentUser() u: { id: string }) {
-    return { ...DEFAULT_SETTINGS, ...(await this.users.findByPk(u.id)).settings }
+    return withDefaults((await this.users.findByPk(u.id)).settings)
   }
 
   @ApiOperation({ summary: 'Змінити налаштування', description: 'Змінює лише передані поля.' })
@@ -89,11 +93,38 @@ export class ProfileController {
   @Patch('settings')
   async updateSettings(@CurrentUser() u: { id: string }, @Body() dto: UpdateSettingsDto) {
     const user = await this.users.findByPk(u.id)
-    user.settings = { ...DEFAULT_SETTINGS, ...user.settings, ...dto }
+    user.settings = { ...withDefaults(user.settings), ...dto }
+    await user.save()
+    return user.settings
+  }
+
+  @ApiOperation({ summary: 'Експорт усіх власних даних без пароля й токенів' })
+  @Get('profile/export')
+  async exportData(@CurrentUser() u: { id: string }) {
+    const user = await this.users.findByPk(u.id)
+    const where = { userId: u.id }
+    const [spreads, dreams, journal, reports, messages] = await Promise.all([
+      this.spreads.findAll({ where }), this.dreams.findAll({ where }), this.journal.findAll({ where }),
+      this.reports.findAll({ where }), this.messages.findAll({ where }),
+    ])
+    return {
+      exportedAt: new Date().toISOString(), schemaVersion: 1,
+      profile: { name: user.name, email: user.email, plan: user.plan, birthDate: user.birthDate,
+        birthTime: user.birthTime, birthPlace: user.birthPlace, birthLat: user.birthLat, birthLon: user.birthLon, country: user.country },
+      settings: withDefaults(user.settings), consent: user.consent,
+      spreads, dreams, journal, reports, messages,
+    }
+  }
+
+  @ApiOperation({ summary: 'Скинути лише налаштування, зберегти записи та згоди AI' })
+  @Post('settings/reset')
+  async resetSettings(@CurrentUser() u: { id: string }) {
+    const user = await this.users.findByPk(u.id)
+    user.settings = { ...DEFAULT_SETTINGS }
     await user.save()
     return user.settings
   }
 }
 
-@Module({ imports: [SequelizeModule.forFeature([User, Spread, Dream, Report])], controllers: [ProfileController] })
+@Module({ imports: [SequelizeModule.forFeature([User, Spread, Dream, Report, JournalEntry, Message])], controllers: [ProfileController] })
 export class ProfileModule {}

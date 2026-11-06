@@ -23,6 +23,10 @@ export class LoginDto {
   @ApiProperty({ example: 'secret123' })
   @IsString()
   password: string
+
+  @ApiPropertyOptional({ description: 'Запам’ятати мене: токен діє довше (30 днів замість JWT_EXPIRES)' })
+  @IsOptional() @IsBoolean()
+  remember?: boolean
 }
 
 export class ConsentDto {

@@ -31,7 +31,7 @@ async function bootstrap() {
   app.enableCors({ origin: (process.env.CORS_ORIGIN ?? '').split(',').filter(Boolean) })
   const docs = new DocumentBuilder()
     .setTitle('AstroTarot API')
-    .setDescription('Таро, сни, щоденник і AI-компаньйон. Захищені ендпоїнти потребують Bearer-токена з /auth/login. Мова відповідей — заголовок Accept-Language (en, uk, es).')
+    .setDescription('Таро, сни, щоденник і AI-компаньйон. Захищені ендпоїнти потребують Bearer-токена з /auth/login. Мова відповідей — заголовок Accept-Language (en, uk).')
     .setVersion('0.1.0')
     .addBearerAuth()
     .build()

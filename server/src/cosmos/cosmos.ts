@@ -7,6 +7,7 @@ import { ApiAuthed } from '../common/api-docs'
 import { User } from '../users/user.model'
 import { currentLocale } from '../i18n/locale'
 import { msg } from '../i18n/messages'
+import { apodFromLibrary, dailyIndex, isRealApod, LIBRARY_SEARCH_URL, LibraryItem } from './apod'
 import { artQuery } from './art'
 import { Place, parseNominatim } from './geo'
 import { Holiday, upcomingHolidays } from './holidays'
@@ -72,7 +73,12 @@ export class CosmosController {
         const load = (date = '') => fetchJson<Record<string, string>>(`https://api.nasa.gov/planetary/apod?api_key=${key}${date && `&date=${date}`}`)
         // «Сьогоднішня» картинка інколи ще не опублікована або дає збій на боці NASA: тоді беремо вчорашню
         const d = await load().catch(() => load(new Date(Date.now() - 864e5).toISOString().slice(0, 10)))
-        return { date: d.date, title: d.title, explanation: d.explanation, mediaType: d.media_type, url: d.url, copyright: d.copyright?.trim() ?? null }
+        if (isRealApod(d)) return { date: d.date, title: d.title, explanation: d.explanation, mediaType: d.media_type, url: d.url, copyright: d.copyright?.trim() ?? null }
+        // APOD віддав заглушку: показуємо знімок із NASA Image Library (той самий на весь день)
+        const today = new Date().toISOString().slice(0, 10)
+        const { collection } = await fetchJson<{ collection: { items: LibraryItem[] } }>(LIBRARY_SEARCH_URL)
+        const withImage = collection.items.filter((i) => i.links?.[0]?.href)
+        return apodFromLibrary(withImage[dailyIndex(today, withImage.length)], today)
       }),
     )
   }
