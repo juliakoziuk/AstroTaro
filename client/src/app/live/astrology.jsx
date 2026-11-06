@@ -6,6 +6,7 @@ import { loadSettings } from './common.js'
 import { ProfileModal } from './profile.jsx'
 import { Zone } from './parts.jsx'
 import { ReportDialog, UpgradeDialog } from './reports.jsx'
+import { CompatibilityDialog } from './CompatibilityDialog.jsx'
 import { NatalChartDialog } from './NatalChartDialog.jsx'
 import { ZodiacWheel } from './ZodiacWheel.jsx'
 
@@ -60,11 +61,13 @@ export const astrology = {
         )}
         {/* рядки меню та картка подій ведуть на сторінку «Cosmic Today» (транзити, прогноз, календар) */}
         <Zone at={[300, 210, 390, 88]} label="Natal Chart" onClick={() => ctx.openModal({ name: natal ? 'natal' : 'profile' })} />
-        <Zone at={[300, 300, 390, 92]} label="Transits" onClick={() => ctx.go('/today')} />
-        <Zone at={[300, 485, 390, 88]} label="Daily Forecast" onClick={() => ctx.go('/today')} />
-        <Zone at={[300, 575, 390, 92]} label="Astro Calendar" onClick={() => ctx.go('/today')} />
+        <Zone at={[300, 300, 390, 92]} label="Transits" onClick={() => ctx.go('/today?section=transits')} />
+        <Zone at={[300, 393, 390, 90]} label="Compatibility" onClick={() => ctx.openModal({ name: 'compat' })} />
+        <Zone at={[300, 485, 390, 88]} label="Daily Forecast" onClick={() => ctx.go('/today?section=forecast')} />
+        <Zone at={[300, 575, 390, 92]} label="Astro Calendar" onClick={() => ctx.go('/today?section=calendar')} />
         <Zone at={[1255, 598, 232, 165, 22]} label="Upcoming Events" onClick={() => ctx.go('/today')} />
         {ctx.modal?.name === 'natal' && natal && <NatalChartDialog natal={natal} onClose={ctx.closeModal} />}
+        {ctx.modal?.name === 'compat' && ctx.data && <CompatibilityDialog profile={ctx.data.profile} onClose={ctx.closeModal} />}
         {ctx.modal?.name === 'profile' && <ProfileModal ctx={ctx} profile={ctx.data?.profile} />}
         {ctx.modal?.name === 'upgrade' && <UpgradeDialog onClose={ctx.closeModal} onPlans={() => (ctx.closeModal(), ctx.go('/pricing'))} />}
         {ctx.modal?.name === 'report' && <ReportDialog report={ctx.modal.report} onClose={ctx.closeModal} />}

@@ -323,3 +323,37 @@
 
 /* клікабельний рядок списку: без прямокутної рамки при наведенні, лише ледь помітне підсвічування */
 .v-app .hit.quiet:hover { box-shadow: none; background: rgba(232, 196, 138, 0.06); }
+
+/* сумісність: загальна оцінка, подвійне колесо, смужки за сферами */
+.v-app .mdl .syn-score { display: flex; align-items: baseline; gap: 14px; margin-bottom: 8px; }
+.v-app .mdl .syn-score b { font: 600 46px/1 'Crimson Text', Georgia, serif; color: #f1dda6; }
+.v-app .mdl .syn-score small { font-size: 18px; color: #b9a07a; }
+.v-app .mdl .syn-score span { color: #e2dccd; font-size: 15px; }
+.v-app .mdl .syn-wheel { display: block; width: min(100%, 440px); margin: 0 auto; }
+.v-app .mdl .syn-legend { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 18px; margin: 8px 0 14px; font-size: 13px; color: #b9a07a; }
+.v-app .mdl .syn-legend i { display: inline-block; width: 10px; height: 10px; margin-right: 6px; border-radius: 50%; }
+.v-app .mdl .syn-bars { list-style: none; margin: 0 0 16px; padding: 0; }
+.v-app .mdl .syn-bars li { display: grid; grid-template-columns: minmax(130px, 200px) 1fr 32px; align-items: center; gap: 10px; padding: 4px 0; font-size: 14.5px; color: #e2dccd; }
+.v-app .mdl .syn-bars b { text-align: right; color: #f1dda6; }
+.v-app .mdl .syn-bar { height: 8px; border-radius: 4px; background: rgba(228, 190, 128, 0.15); overflow: hidden; }
+.v-app .mdl .syn-bar div { height: 100%; border-radius: 4px; background: linear-gradient(90deg, #d3a768, #f0cf94); }
+.v-app .mdl .syn-change { margin-bottom: 10px; }
+
+/* підпис біля намальованої стрілки «назад» (напр. «Таро» на екрані Reading) */
+.v-app .crumb-ov { display: flex; align-items: center; }
+.v-app .crumb-ov button {
+  all: unset; box-sizing: border-box; cursor: pointer; color: #e4be80; font: 600 calc(var(--u) * 21) / 1 'Source Sans 3', 'Segoe UI', sans-serif;
+  padding: calc(var(--u) * 4) calc(var(--u) * 10); border-radius: calc(var(--u) * 16);
+}
+.v-app .crumb-ov button:hover { background: rgba(228, 190, 128, 0.14); color: #fff; }
+.v-app .crumb-ov button:focus-visible { outline: 2px solid #f4e1a8; outline-offset: 2px; }
+.v-app .mdl .syn-counted { margin: 0 0 8px; }
+.v-app .mdl .syn-all { margin: 0 0 16px; }
+.v-app .mdl .syn-all summary { cursor: pointer; color: #e4be80; font-weight: 600; padding: 4px 0; }
+.v-app .mdl .syn-all .chart-table { margin-top: 6px; font-size: 14px; }
+.v-app .mdl .chart-table td.eff { white-space: nowrap; font-size: 13px; }
+.v-app .mdl .chart-table td.eff.harmonious { color: #7bd389; }
+.v-app .mdl .chart-table td.eff.tense { color: #e0645c; }
+.v-app .mdl .chart-table td.eff.mixed { color: #e4be80; }
+.v-app .mdl .syn-person { margin: 0 0 12px; padding: 8px 12px 0; border: 1px solid rgba(228, 190, 128, 0.25); border-radius: 12px; }
+.v-app .mdl .syn-person legend { padding: 0 6px; font: 600 15px/1.2 'Crimson Text', Georgia, serif; color: #e4be80; }

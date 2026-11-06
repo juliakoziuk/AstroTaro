@@ -13,8 +13,14 @@
 .v-app .today > * { max-width: 1040px; margin-inline: auto; }
 .v-app .today header { margin-bottom: 22px; }
 .v-app .today h1 { margin: 6px 0 4px; font: 600 clamp(32px, 6vw, 52px)/1.1 'Crimson Text', Georgia, serif; color: #f1dda6; }
-.v-app .today .back { color: #e4be80; text-decoration: none; font-size: 15px; }
-.v-app .today .back:hover { text-decoration: underline; }
+.v-app .today .crumbs { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.v-app .today .crumbs a {
+  display: inline-block; padding: 6px 14px; border: 1px solid rgba(228, 190, 128, 0.45); border-radius: 999px;
+  color: #e4be80; text-decoration: none; font-size: 15px; background: rgba(14, 28, 46, 0.6);
+}
+.v-app .today .crumbs a:hover { background: rgba(228, 190, 128, 0.14); color: #fff; }
+.v-app .today .crumbs a:focus-visible { outline: 2px solid #f4e1a8; outline-offset: 2px; }
+.v-app .today .crumbs a.home { border-color: rgba(228, 190, 128, 0.22); color: #c7b894; }
 .v-app .today .muted { margin: 0; color: #a7b0bd; }
 .v-app .today .grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
 .v-app .today .tcard {
@@ -25,6 +31,7 @@
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
 }
 .v-app .today .tcard.wide { grid-column: 1 / -1; }
+.v-app .today .tcard.active { border-color: #f1dda6; box-shadow: 0 0 0 1px rgba(241, 221, 166, 0.55), 0 8px 30px rgba(0, 0, 0, 0.35); }
 .v-app .today h2 { margin: 0 0 12px; font: 600 22px/1.2 'Crimson Text', Georgia, serif; color: #e4be80; }
 .v-app .today h3 { margin: 14px 0 6px; font: 600 17px/1.3 'Crimson Text', Georgia, serif; color: #f1dda6; }
 .v-app .today .insight { margin: 0 0 10px; color: #dcd6c8; }
@@ -47,3 +54,49 @@
   font-size: 14px;
   cursor: pointer;
 }
+
+/* особистий прогноз: вкладки, оцінка, смужка днів, смужки сфер, транзити */
+.v-app .today .forecast { --good: #7bd389; --hard: #e0645c; --mixed: #e4be80; }
+.v-app .today .forecast .tone-good { --tone: var(--good); }
+.v-app .today .forecast .tone-hard { --tone: var(--hard); }
+.v-app .today .forecast .tone-mixed { --tone: var(--mixed); }
+.v-app .today .fc-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 18px; }
+.v-app .today .fc-tabs button {
+  display: grid; gap: 2px; padding: 8px 18px; border: 1px solid rgba(228, 190, 128, 0.35); border-radius: 14px;
+  background: rgba(14, 28, 46, 0.6); color: #e4be80; font: 600 16px/1.2 'Source Sans 3', sans-serif; cursor: pointer; text-align: left;
+}
+.v-app .today .fc-tabs button small { font: 400 12px/1.2 'Source Sans 3', sans-serif; color: #a7b0bd; }
+.v-app .today .fc-tabs button.on { background: linear-gradient(180deg, #f0cf94, #d3a768); color: #1a1208; border-color: transparent; }
+.v-app .today .fc-tabs button.on small { color: #4b3a1f; }
+.v-app .today .fc-score { display: flex; align-items: center; gap: 16px; margin-bottom: 6px; }
+.v-app .today .fc-score b { font: 600 52px/1 'Crimson Text', Georgia, serif; color: var(--tone); }
+.v-app .today .fc-score b small { font-size: 20px; margin-left: 2px; }
+.v-app .today .fc-score span { color: #e2dccd; font-size: 16px; line-height: 1.4; max-width: 640px; }
+.v-app .today .fc-moon { margin: 0 0 14px; color: #b9a07a; font-size: 14px; }
+.v-app .today .fc-bars { list-style: none; margin: 0 0 14px; padding: 0; display: grid; gap: 4px 0; }
+.v-app .today .fc-bars li { display: grid; grid-template-columns: minmax(150px, 230px) 1fr 44px; align-items: center; gap: 4px 12px; padding: 4px 0; color: #e2dccd; font-size: 15px; }
+.v-app .today .fc-bars b { text-align: right; color: var(--tone); }
+.v-app .today .fc-bars p { grid-column: 1 / -1; margin: 0 0 6px; font-size: 13.5px; line-height: 1.45; color: #aeb6c2; }
+.v-app .today .fc-bar { height: 8px; border-radius: 4px; background: rgba(228, 190, 128, 0.15); overflow: hidden; }
+.v-app .today .fc-bar div { height: 100%; border-radius: 4px; background: var(--tone); }
+.v-app .today .fc-focus { display: flex; flex-wrap: wrap; gap: 8px 22px; margin: 0 0 8px; font-size: 14.5px; }
+.v-app .today .fc-focus span { color: var(--tone); }
+.v-app .today .fc-list { list-style: none; margin: 0 0 8px; padding: 0; display: grid; gap: 10px; }
+.v-app .today .fc-hit { padding: 10px 14px; border-left: 3px solid var(--tone); border-radius: 0 12px 12px 0; background: rgba(8, 17, 30, 0.5); }
+.v-app .today .fc-hit div { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
+.v-app .today .fc-hit b { color: #f1dda6; font-weight: 600; }
+.v-app .today .fc-hit i { font-style: normal; color: var(--tone); font-size: 18px; }
+.v-app .today .fc-hit small { color: #a7b0bd; font-size: 12.5px; }
+.v-app .today .fc-hit p { margin: 4px 0 0; font-size: 14px; line-height: 1.45; color: #cfd3da; }
+.v-app .today .fc-strip { display: flex; gap: 8px; align-items: flex-end; margin: 12px 0 8px; }
+.v-app .today .fc-strip.long { gap: 3px; }
+.v-app .today .fc-day { flex: 1 1 0; min-width: 0; display: grid; gap: 4px; justify-items: center; text-align: center; }
+.v-app .today .fc-day-bar { width: 100%; height: 90px; display: flex; align-items: flex-end; border-radius: 8px; background: rgba(228, 190, 128, 0.1); overflow: hidden; }
+.v-app .today .fc-strip.long .fc-day-bar { height: 70px; border-radius: 4px; }
+.v-app .today .fc-day-bar i { display: block; width: 100%; background: var(--tone); border-radius: 6px 6px 0 0; opacity: 0.85; }
+.v-app .today .fc-day b { color: var(--tone); font-size: 15px; }
+.v-app .today .fc-day small { color: #a7b0bd; font-size: 11.5px; white-space: nowrap; }
+.v-app .today .fc-strip.long .fc-day small { font-size: 9.5px; }
+.v-app .today .fc-chips { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; margin-top: 6px; }
+.v-app .today .fc-chips h3 { margin: 0 6px 0 0; }
+.v-app .today .fc-chips span { padding: 3px 10px; border: 1px solid var(--tone); border-radius: 999px; color: var(--tone); font-size: 13.5px; }

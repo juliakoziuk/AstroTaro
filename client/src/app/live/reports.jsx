@@ -6,7 +6,7 @@ import { formatDate } from '../format.js'
 import { Dialog } from './parts.jsx'
 
 /** Текст звіту з сервера: блоки «## Розділ» з рядками; рядки, що починаються з «- », — пункти (аспекти). */
-function ReportBody({ text }) {
+export function ReportBody({ text }) {
   return text.split(/\n\n+/).map((block) => {
     const [first, ...lines] = block.split('\n')
     const heading = first.startsWith('## ')

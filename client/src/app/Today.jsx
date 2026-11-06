@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { get } from '../lib/api.js'
 import { formatDay, formatTime } from './format.js'
 import { t, useLang } from '../i18n/index.js'
+import ForecastCard from './Forecast.jsx'
 import { navProps } from './router.js'
 import './today.css'
 
@@ -21,9 +22,15 @@ function useLoad(load) {
   return state
 }
 
-function Card({ title, state, children, className = '' }) {
+function Card({ id, title, state, children, className = '', active = false }) {
+  const ref = useRef(null)
+  const ready = state.status !== 'loading'
+  // картку, на яку вели з меню «Astrology», прокручуємо в поле зору, коли вона завантажилась
+  useEffect(() => {
+    if (active && ready) ref.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }, [active, ready])
   return (
-    <section className={`tcard ${className}`}>
+    <section id={id} ref={ref} className={`tcard ${className}${active ? ' active' : ''}`}>
       <h2>{title}</h2>
       {state.status === 'loading' && <p className="muted">{t('Loading…')}</p>}
       {state.status === 'error' && <p className="muted">{t('Couldn’t load this right now.')} {state.error}</p>}
@@ -103,29 +110,32 @@ export default function Today() {
   const quote = useLoad(loadQuote)
   const holidays = useLoad(loadHolidays)
   const fmts = base.status === 'ok' ? base.data[1] : { dateFormat: 'DD/MM/YYYY', timeFormat: '24-hour' }
+  // #/today?section=transits|forecast|calendar — який пункт меню Astrology відкрив сторінку
+  const section = new URLSearchParams(window.location.hash.split('?')[1] ?? '').get('section')
 
   return (
     <div className="v-app">
       <main className="today">
         <header>
-          <a className="back" {...navProps('/dashboard')}>← {t('Home')}</a>
+          {/* Сторінку відкривають з екрана Astrology (Transits, Daily Forecast, Astro Calendar) або з Dashboard: тож дві дороги назад */}
+          <nav className="crumbs" aria-label={t('Navigation')}>
+            <a className="back" {...navProps('/astrology')}>← {t('Astrology')}</a>
+            <a className="home" {...navProps('/dashboard')}>{t('Home')}</a>
+          </nav>
           <h1>{t('Cosmic Today')}</h1>
           <p className="muted">{t('The sky, a picture from space and a thought for the day.')}</p>
         </header>
 
         <div className="grid">
-          <Card title={t('The sky now')} state={sky}>
-            {(a) => (
-              <>
-                <p className="insight">{a.insight}</p>
-                {a.current.map((p) => (
-                  <div className="pair" key={p.name}><span>{p.planet}</span><b>{p.signName}</b></div>
-                ))}
-              </>
-            )}
+          <ForecastCard active={section === 'forecast'} />
+
+          <Card id="transits" active={section === 'transits'} title={t('The sky now')} state={sky}>
+            {(a) => a.current.map((p) => (
+              <div className="pair" key={p.name}><span>{p.planet}</span><b>{p.signName}</b></div>
+            ))}
           </Card>
 
-          <Card title={t('Moon & calendar')} state={sky}>
+          <Card id="calendar" active={section === 'calendar'} title={t('Moon & calendar')} state={sky}>
             {(a) => (
               <>
                 {a.events.map((e) => (
