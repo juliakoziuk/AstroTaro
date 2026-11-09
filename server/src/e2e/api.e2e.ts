@@ -3,6 +3,9 @@
 import { after, before, describe, test } from 'node:test'
 import { createHmac } from 'node:crypto'
 import { deepStrictEqual, ok, strictEqual } from 'node:assert/strict'
+import { createServer, Server } from 'node:http'
+import { AddressInfo } from 'node:net'
+import { signStripePayload } from '../billing/stripe'
 import { Harness, startHarness } from './harness'
 
 let h: Harness
@@ -397,6 +400,172 @@ describe('sharing a reading by a public link', () => {
       else strictEqual(r.status, 404)
     }
     ok(blocked > 0 && blocked <= 61, 'a 429 appeared within 61 requests, got ' + blocked)
+  })
+})
+
+describe('paid plans through Stripe', () => {
+  const SECRET = 'whsec_test_secret'
+  const PRICES = { pro: 'price_pro_1', premium: 'price_premium_1' }
+  type Seen = { path: string; auth: string | undefined; form: URLSearchParams }
+  let seen: Seen[] = []
+  let failNext = false
+  let fake: Server
+  let u: Awaited<ReturnType<Harness['register']>>
+  let v: Awaited<ReturnType<Harness['register']>>
+  const keep: Record<string, string | undefined> = {}
+  const ENV = ['STRIPE_SECRET_KEY', 'STRIPE_WEBHOOK_SECRET', 'STRIPE_PRICE_PRO', 'STRIPE_PRICE_PREMIUM', 'STRIPE_API_BASE']
+
+  /** Вебхук так, як його шле Stripe: сире тіло й підпис у заголовку. */
+  const hook = async (event: object, opts: { signature?: string | null; secret?: string; timestamp?: number; tamper?: boolean } = {}) => {
+    const body = JSON.stringify(event)
+    const signature = opts.signature === undefined ? signStripePayload(body, opts.secret ?? SECRET, opts.timestamp) : opts.signature
+    const res = await fetch(h.baseUrl + '/billing/webhook', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...(signature ? { 'Stripe-Signature': signature } : {}) },
+      body: opts.tamper ? body.replace('pro', 'premium') : body,
+    })
+    return res.status
+  }
+  const completed = (userId: string, extra: object = {}, metadata: object = { plan: 'pro' }) => ({
+    type: 'checkout.session.completed',
+    data: { object: { mode: 'subscription', payment_status: 'paid', client_reference_id: userId, customer: 'cus_123', subscription: 'sub_123', metadata, ...extra } },
+  })
+  const planOf = async (user: { token: string }) => (await h.api('GET', '/profile', { token: user.token })).body.plan
+
+  before(async () => {
+    h.resetLimits()
+    for (const k of ENV) keep[k] = process.env[k]
+    // підроблений Stripe: запам'ятовує запити й відповідає як справжній
+    fake = createServer((req, res) => {
+      let body = ''
+      req.on('data', (c) => (body += c))
+      req.on('end', () => {
+        seen.push({ path: req.url ?? '', auth: req.headers.authorization, form: new URLSearchParams(body) })
+        res.setHeader('Content-Type', 'application/json')
+        if (failNext) {
+          failNext = false
+          res.statusCode = 402
+          return res.end(JSON.stringify({ error: { message: 'Your card was declined' } }))
+        }
+        res.end(JSON.stringify({ url: req.url?.includes('portal') ? 'https://billing.stripe.test/p/session' : 'https://checkout.stripe.test/c/pay/cs_test_1' }))
+      })
+    })
+    await new Promise<void>((r) => fake.listen(0, '127.0.0.1', r))
+    u = await h.register('Payer')
+    v = await h.register('Other payer')
+  })
+  after(async () => {
+    for (const k of ENV) {
+      if (keep[k] === undefined) delete process.env[k]
+      else process.env[k] = keep[k]
+    }
+    await new Promise((r) => fake?.close(r))
+  })
+  const configure = () => {
+    Object.assign(process.env, { STRIPE_SECRET_KEY: 'sk_test_123', STRIPE_WEBHOOK_SECRET: SECRET, STRIPE_PRICE_PRO: PRICES.pro, STRIPE_PRICE_PREMIUM: PRICES.premium, STRIPE_API_BASE: 'http://127.0.0.1:' + (fake.address() as AddressInfo).port })
+  }
+
+  test('without Stripe configured a paid plan cannot be bought, and the endpoint needs a token and a known plan', async () => {
+    for (const k of ENV) delete process.env[k]
+    strictEqual((await h.api('POST', '/billing/checkout', { body: { plan: 'pro' } })).status, 401)
+    strictEqual((await h.api('POST', '/billing/checkout', { token: u.token, body: { plan: 'pro' } })).status, 403)
+    strictEqual((await h.api('POST', '/billing/checkout', { token: u.token, body: { plan: 'free' } })).status, 400, 'free needs no payment')
+    strictEqual((await h.api('POST', '/billing/checkout', { token: u.token, body: { plan: 'pro', userId: v.id } })).status, 400)
+    strictEqual((await h.api('POST', '/billing/portal', { token: u.token })).status, 400, 'nothing to manage yet')
+    strictEqual(await hook(completed(u.id)), 400, 'a webhook cannot be accepted without a configured secret')
+    strictEqual(await planOf(u), 'free')
+  })
+
+  test('checkout creates a Stripe subscription session for this user and does not grant the plan by itself', async () => {
+    configure()
+    seen = []
+    const r = await h.api('POST', '/billing/checkout', { token: u.token, body: { plan: 'pro' }, lang: 'uk' })
+    strictEqual(r.status, 201, text(r.body))
+    strictEqual(r.body.url, 'https://checkout.stripe.test/c/pay/cs_test_1')
+    strictEqual(seen.length, 1)
+    strictEqual(seen[0].path, '/v1/checkout/sessions')
+    strictEqual(seen[0].auth, 'Bearer sk_test_123')
+    const f = seen[0].form
+    strictEqual(f.get('mode'), 'subscription')
+    strictEqual(f.get('line_items[0][price]'), PRICES.pro, 'the price comes from the server, never from the client')
+    strictEqual(f.get('line_items[0][quantity]'), '1')
+    strictEqual(f.get('client_reference_id'), u.id)
+    strictEqual(f.get('customer_email'), u.email)
+    strictEqual(f.get('metadata[plan]'), 'pro')
+    strictEqual(f.get('subscription_data[metadata][userId]'), u.id)
+    strictEqual(f.get('locale'), 'uk')
+    ok(f.get('success_url')?.includes('#/pricing?checkout=success'))
+    strictEqual(await planOf(u), 'free', 'paying is confirmed by the webhook, not by this answer')
+  })
+
+  test('a Stripe failure becomes a 502 and leaves the plan alone', async () => {
+    failNext = true
+    strictEqual((await h.api('POST', '/billing/checkout', { token: u.token, body: { plan: 'premium' } })).status, 502)
+    strictEqual(await planOf(u), 'free')
+  })
+
+  test('the webhook refuses a missing, wrong, tampered or stale signature', async () => {
+    const event = completed(u.id)
+    strictEqual(await hook(event, { signature: null }), 400, 'no signature')
+    strictEqual(await hook(event, { signature: 'garbage' }), 400)
+    strictEqual(await hook(event, { secret: 'whsec_someone_else' }), 400, 'signed with another secret')
+    strictEqual(await hook(event, { tamper: true }), 400, 'the body was changed after signing')
+    strictEqual(await hook(event, { timestamp: Math.floor(Date.now() / 1000) - 3600 }), 400, 'a replayed old request')
+    strictEqual(await planOf(u), 'free')
+  })
+
+  test('a signed payment event turns the plan on, once or many times', async () => {
+    strictEqual(await hook(completed(u.id)), 200)
+    strictEqual(await planOf(u), 'pro')
+    strictEqual(await hook(completed(u.id)), 200, 'Stripe repeats events')
+    strictEqual(await planOf(u), 'pro')
+  })
+
+  test('events that are not a paid subscription for a known user change nothing', async () => {
+    strictEqual(await hook(completed(v.id, { payment_status: 'unpaid' })), 200)
+    strictEqual(await hook(completed(v.id, { mode: 'payment' })), 200)
+    strictEqual(await hook(completed(v.id, {}, { plan: 'free' })), 200, 'free is not a paid plan')
+    strictEqual(await hook(completed(v.id, {}, { plan: 'gold' })), 200)
+    strictEqual(await hook(completed('not-a-uuid')), 200)
+    strictEqual(await hook(completed('00000000-0000-4000-8000-000000000009')), 200, 'an unknown user does not make Stripe retry forever')
+    strictEqual(await hook({ type: 'invoice.paid', data: { object: {} } }), 200, 'an event we do not use')
+    strictEqual(await planOf(v), 'free')
+  })
+
+  test('with an active subscription: no second checkout, no plan change outside the portal, and the portal opens', async () => {
+    strictEqual((await h.api('POST', '/billing/checkout', { token: u.token, body: { plan: 'premium' } })).status, 409)
+    const free = await h.api('POST', '/billing/plan', { token: u.token, body: { plan: 'free' }, lang: 'uk' })
+    strictEqual(free.status, 403)
+    ok(/порталі/.test(text(free.body)))
+    strictEqual(await planOf(u), 'pro', 'downgrading by a plain request would leave the person still being charged')
+    seen = []
+    const portal = await h.api('POST', '/billing/portal', { token: u.token })
+    strictEqual(portal.status, 201, text(portal.body))
+    strictEqual(portal.body.url, 'https://billing.stripe.test/p/session')
+    strictEqual(seen[0].path, '/v1/billing_portal/sessions')
+    strictEqual(seen[0].form.get('customer'), 'cus_123')
+  })
+
+  test('Stripe changes of the subscription follow the plan: upgrade, cancel, delete', async () => {
+    const updated = (status: string, price: string) => ({ type: 'customer.subscription.updated', data: { object: { id: 'sub_123', status, items: { data: [{ price: { id: price } }] } } } })
+    strictEqual(await hook(updated('active', PRICES.premium)), 200)
+    strictEqual(await planOf(u), 'premium', 'the plan follows the price in the portal')
+    strictEqual(await hook(updated('past_due', PRICES.pro)), 200)
+    strictEqual(await planOf(u), 'premium', 'a late payment alone does not end the plan')
+    strictEqual(await hook(updated('canceled', PRICES.premium)), 200)
+    strictEqual(await planOf(u), 'free')
+    await hook(completed(u.id, { subscription: 'sub_456' }, { plan: 'pro' }))
+    strictEqual(await planOf(u), 'pro')
+    strictEqual(await hook({ type: 'customer.subscription.deleted', data: { object: { id: 'sub_456' } } }), 200)
+    strictEqual(await planOf(u), 'free')
+    strictEqual((await h.api('POST', '/billing/checkout', { token: u.token, body: { plan: 'pro' } })).status, 201, 'after the end a new subscription is possible')
+    strictEqual((await h.api('POST', '/billing/plan', { token: u.token, body: { plan: 'free' } })).status, 201)
+  })
+
+  test('a subscription belongs to one user: another user is not affected', async () => {
+    strictEqual(await planOf(v), 'free')
+    strictEqual(await hook({ type: 'customer.subscription.deleted', data: { object: { id: 'sub_unknown' } } }), 200)
+    strictEqual(await planOf(v), 'free')
   })
 })
 

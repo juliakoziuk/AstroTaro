@@ -61,6 +61,13 @@ export class User extends Model {
   @Column({ type: DataType.DATE })
   declare passwordChangedAt: Date | null
 
+  // Stripe: клієнт і активна підписка (тариф вмикає вебхук); null — платної підписки немає
+  @Column({ type: DataType.STRING(64) })
+  declare stripeCustomerId: string | null
+
+  @Column({ type: DataType.STRING(64) })
+  declare stripeSubscriptionId: string | null
+
   @Column({ type: DataType.STRING, allowNull: false, defaultValue: 'free' })
   declare plan: string
 

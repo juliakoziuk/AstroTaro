@@ -5,6 +5,8 @@ import { greeting } from '../format.js'
 import { t } from '../../i18n/index.js'
 import { saveCurrentLanguage } from '../../i18n/sync.js'
 import { session } from './common.js'
+import { hashParam } from '../../lib/hashParam.js'
+import { say } from '../toast.js'
 import { Ov } from './parts.jsx'
 
 // ---------- Dashboard ----------
@@ -65,6 +67,9 @@ export const pricing = {
   ]),
   async load() {
     const plans = await get('/plans')
+    // повернення зі сторінки оплати: тариф вмикає вебхук, тож він може з'явитися з невеликою затримкою
+    if (hashParam('checkout') === 'success') say(t('Payment received. Your plan turns on in a moment.'))
+    if (hashParam('checkout') === 'cancelled') say(t('Payment was cancelled. Nothing was charged.'))
     const values = {}
     plans.forEach((p, i) => {
       values[`p${i}.name`] = p.name
@@ -81,7 +86,14 @@ export const pricing = {
           if (!getToken()) return ctx.go('/register')
           const plan = ctx.data?.plans[i]
           if (!plan) throw new Error(t('Data is still loading'))
-          await post('/billing/plan', { plan: plan.id })
+          if (plan.price > 0) {
+            // платний тариф: сервер створює сесію оплати Stripe й повертає адресу; тариф вмикається вебхуком після оплати.
+            // Без підключеної оплати в демо-режимі сервер вмикає тариф одразу й адреси не дає.
+            const { url } = await post('/billing/checkout', { plan: plan.id })
+            if (url) return window.location.assign(url)
+          } else {
+            await post('/billing/plan', { plan: plan.id })
+          }
           ctx.say(t('Plan: {name}', { name: plan.name }))
           ctx.go('/dashboard')
         },

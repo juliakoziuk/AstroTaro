@@ -26,6 +26,8 @@ export interface Harness {
   users: typeof User
   /** Обнулити ліміти входу й реєстрації: ліміти діють на всю адресу, а набір тестів створює багато акаунтів. */
   resetLimits(): void
+  /** Адреса API (з /api) для запитів, яким потрібне сире тіло чи власні заголовки. */
+  baseUrl: string
   close(): Promise<void>
 }
 
@@ -35,7 +37,7 @@ export interface Harness {
  */
 export async function startHarness(): Promise<Harness> {
   if (process.env.NODE_ENV !== 'test') throw new Error('e2e tests must run through `npm run test:e2e` (NODE_ENV=test, separate database)')
-  const app = await NestFactory.create(AppModule, { logger: false })
+  const app = await NestFactory.create(AppModule, { logger: false, rawBody: true })
   configureApp(app)
   // ConfigModule щойно прочитав .env у process.env: ключі моделей не потрібні, відповіді мають бути локальними й детермінованими
   for (const k of ['ANTHROPIC_API_KEY', 'LLM_BASE_URL', 'LLM_API_KEY', 'LLM_MODEL']) delete process.env[k]
@@ -62,5 +64,5 @@ export async function startHarness(): Promise<Harness> {
     return { token: r.body.token, id: r.body.user.id, email, password }
   }
 
-  return { app, api, register, outbox: app.get(MailService).outbox, users: app.get(getModelToken(User)), resetLimits: () => app.get(AuthThrottle).reset(), close: () => app.close() }
+  return { app, api, baseUrl: base, register, outbox: app.get(MailService).outbox, users: app.get(getModelToken(User)), resetLimits: () => app.get(AuthThrottle).reset(), close: () => app.close() }
 }

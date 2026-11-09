@@ -67,6 +67,7 @@ export class PlansController {
   @UseGuards(JwtAuthGuard)
   @Post('billing/plan')
   async choose(@CurrentUser() u: { id: string }, @Body() dto: PlanDto) {
+    if ((await this.users.findByPk(u.id)).stripeSubscriptionId) throw new ForbiddenException(msg(currentLocale(), 'billingManageInPortal'))
     if (!canChoosePlan(dto.plan, flagOn(this.config.get('ALLOW_DEMO_BILLING')))) throw new ForbiddenException(msg(currentLocale(), 'paymentUnavailable'))
     await this.users.update({ plan: dto.plan }, { where: { id: u.id } })
     return { plan: dto.plan }

@@ -69,6 +69,8 @@ export default {
   'Remember me': 'Запам’ятати мене',
   'Forgot password?': 'Не пам’ятаєш пароль?',
   'Forgot password': 'Забули пароль',
+  'Payment received. Your plan turns on in a moment.': 'Оплату отримано. Тариф увімкнеться за мить.',
+  'Payment was cancelled. Nothing was charged.': 'Оплату скасовано. Гроші не списано.',
   'Shared reading': 'Розклад за посиланням',
   'A reading shared with you': 'Розклад, яким з вами поділилися',
   'This reading is not shared any more, or the link is wrong.': 'Цим розкладом більше не діляться, або посилання хибне.',

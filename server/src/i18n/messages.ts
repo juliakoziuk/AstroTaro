@@ -56,6 +56,15 @@ const MESSAGES = {
     en: 'Welcome, {name}!\n\nConfirm that this is your email by opening the link (valid for 3 days):\n\n{link}',
     uk: 'Вітаємо, {name}!\n\nПідтвердіть, що ця пошта ваша, відкривши посилання (діє 3 дні):\n\n{link}',
   },
+  billingAlreadySubscribed: {
+    en: 'You already have a subscription. Change or cancel it in the billing portal.',
+    uk: 'Підписка вже оформлена. Змінити чи скасувати її можна в порталі оплати.',
+  },
+  billingManageInPortal: {
+    en: 'The plan of an active subscription is changed in the billing portal',
+    uk: 'Тариф активної підписки змінюється в порталі оплати',
+  },
+  billingNoCustomer: { en: 'There is no subscription to manage yet', uk: 'Підписки для керування ще немає' },
   unknown: { en: 'Something went wrong', uk: 'Щось пішло не так',  },
 } satisfies Record<string, Text>
 
