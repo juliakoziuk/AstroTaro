@@ -91,6 +91,9 @@ export const pricing = {
             // Без підключеної оплати в демо-режимі сервер вмикає тариф одразу й адреси не дає.
             const { url } = await post('/billing/checkout', { plan: plan.id })
             if (url) return window.location.assign(url)
+            // без url сервер увімкнув тариф без оплати (демо): кажемо про це прямо, а не вдаємо, що заплатили
+            ctx.say(t('Demo mode: {name} was switched on without payment, because Stripe is not set up on the server.', { name: plan.name }))
+            return ctx.go('/dashboard')
           } else {
             await post('/billing/plan', { plan: plan.id })
           }

@@ -30,7 +30,7 @@ describe('pricing buttons', () => {
     mockApi({ 'POST /billing/checkout': [201, { activated: true, plan: 'premium' }] })
     const c = ctx()
     await pricing.actions.Choose(c)
-    expect(c.say).toHaveBeenCalledWith('Plan: Premium')
+    expect(c.say).toHaveBeenCalledWith(expect.stringMatching(/Demo mode: Premium was switched on without payment/))
     expect(c.go).toHaveBeenCalledWith('/dashboard')
   })
 

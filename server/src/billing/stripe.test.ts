@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import { deepStrictEqual, rejects, strictEqual } from 'node:assert/strict'
-import { encodeForm, signStripePayload, stripeConfig, stripeLocale, stripePost, verifyStripeSignature } from './stripe'
+import { encodeForm, signStripePayload, stripeConfig, stripeLocale, stripePost, stripeProblems, verifyStripeSignature } from './stripe'
 
 const SECRET = 'whsec_unit'
 const BODY = '{"type":"checkout.session.completed","data":{"object":{"id":"cs_1"}}}'
@@ -67,4 +67,14 @@ test('Stripe has no Ukrainian checkout language: we ask for auto instead of a lo
   strictEqual(stripeLocale('en'), 'en')
   strictEqual(stripeLocale('uk'), 'auto')
   strictEqual(stripeLocale('xx'), 'auto')
+})
+
+test('the configuration check names what is wrong, never the secret itself', () => {
+  const good = stripeConfig({ STRIPE_SECRET_KEY: 'sk_test_abc', STRIPE_PRICE_PRO: 'price_1', STRIPE_PRICE_PREMIUM: 'price_2', STRIPE_WEBHOOK_SECRET: 'whsec_x' })
+  deepStrictEqual(stripeProblems(good), [])
+  const bad = stripeConfig({ STRIPE_SECRET_KEY: 'sk_test_SUPERSECRET', STRIPE_PRICE_PRO: 'prod_123', STRIPE_PRICE_PREMIUM: '', STRIPE_WEBHOOK_SECRET: '' })
+  const text = stripeProblems(bad).join(' | ')
+  strictEqual(/product id/.test(text) && /STRIPE_PRICE_PREMIUM is empty/.test(text) && /STRIPE_WEBHOOK_SECRET is empty/.test(text), true, text)
+  strictEqual(text.includes('SUPERSECRET'), false)
+  strictEqual(stripeProblems(stripeConfig({})).length, 4)
 })

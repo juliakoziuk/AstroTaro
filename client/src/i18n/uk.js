@@ -69,6 +69,7 @@ export default {
   'Remember me': 'Запам’ятати мене',
   'Forgot password?': 'Не пам’ятаєш пароль?',
   'Forgot password': 'Забули пароль',
+  'Demo mode: {name} was switched on without payment, because Stripe is not set up on the server.': 'Демо-режим: тариф {name} увімкнено без оплати, бо на сервері не налаштовано Stripe.',
   'Payment received. Your plan turns on in a moment.': 'Оплату отримано. Тариф увімкнеться за мить.',
   'Payment was cancelled. Nothing was charged.': 'Оплату скасовано. Гроші не списано.',
   'Shared reading': 'Розклад за посиланням',

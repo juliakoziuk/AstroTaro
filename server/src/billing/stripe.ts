@@ -52,6 +52,25 @@ export function verifyStripeSignature(rawBody: Buffer | string, header: string |
 export const signStripePayload = (rawBody: string, secret: string, timestamp = Math.floor(Date.now() / 1000)) =>
   `t=${timestamp},v1=${createHmac('sha256', secret).update(`${timestamp}.${rawBody}`).digest('hex')}`
 
+/**
+ * Що не так з налаштуванням Stripe, словами для журналу сервера. Самих ключів не повертає, лише чи вони є й як виглядають.
+ * Порожній список problems — оплата налаштована повністю.
+ */
+export function stripeProblems(cfg: StripeConfig): string[] {
+  const problems: string[] = []
+  if (!cfg.secretKey) problems.push('STRIPE_SECRET_KEY is empty or missing')
+  else if (!/^(sk|rk)_(test|live)_/.test(cfg.secretKey)) problems.push('STRIPE_SECRET_KEY does not look like a Stripe key (sk_test_… or rk_test_…)')
+  for (const [plan, id] of Object.entries(cfg.prices)) {
+    const name = `STRIPE_PRICE_${plan.toUpperCase()}`
+    if (!id) problems.push(`${name} is empty or missing`)
+    else if (id.startsWith('prod_')) problems.push(`${name} is a product id (prod_…): a price id (price_…) is needed`)
+    else if (!id.startsWith('price_')) problems.push(`${name} does not look like a price id (price_…)`)
+  }
+  if (!cfg.webhookSecret) problems.push('STRIPE_WEBHOOK_SECRET is empty or missing: webhooks will be refused and paid plans will never turn on')
+  else if (!cfg.webhookSecret.startsWith('whsec_')) problems.push('STRIPE_WEBHOOK_SECRET does not look like a webhook secret (whsec_…)')
+  return problems
+}
+
 export class StripeError extends Error {
   constructor(
     message: string,
