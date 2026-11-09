@@ -1,8 +1,11 @@
-import { Body, Controller, Delete, Get, HttpCode, Injectable, Module, Param, ParseUUIDPipe, Patch, Post, UseGuards } from '@nestjs/common'
+import { Body, Controller, Delete, Get, HttpCode, Injectable, Module, Param, ParseUUIDPipe, Patch, Post, Query, Res, UseGuards } from '@nestjs/common'
+import { Response } from 'express'
+import { Op } from 'sequelize'
 import { InjectModel, SequelizeModule } from '@nestjs/sequelize'
 import { ArrayMaxSize, IsArray, IsDateString, IsOptional, IsString, MaxLength, MinLength } from 'class-validator'
 import { ApiCreatedResponse, ApiNoContentResponse, ApiOkResponse, ApiOperation, ApiProperty, ApiPropertyOptional, ApiTags } from '@nestjs/swagger'
 import { ApiAuthed, ApiOwnedNotFound } from '../common/api-docs'
+import { listConditions, ListQueryDto } from '../common/list-query'
 import { CurrentUser, JwtAuthGuard } from '../auth/jwt-auth.guard'
 import { OwnedService } from '../common/owned.service'
 import { currentLocale } from '../i18n/locale'
@@ -15,6 +18,11 @@ export class CreateDreamDto {
   @ApiPropertyOptional({ example: 'calm' }) @IsOptional() @IsString() @MaxLength(40) mood?: string
   @ApiProperty({ maxLength: 10000 }) @IsString() @MinLength(1) @MaxLength(10000) text: string
   @ApiPropertyOptional({ type: [String], maxItems: 20, example: ['вода'] }) @IsOptional() @IsArray() @ArrayMaxSize(20) @IsString({ each: true }) @MaxLength(40, { each: true }) symbols?: string[]
+}
+
+export class DreamQueryDto extends ListQueryDto {
+  @ApiPropertyOptional({ description: 'Лише сни з цим символом (заданим вручну або знайденим автоматично)', maxLength: 40 }) @IsOptional() @IsString() @MaxLength(40) tag?: string
+  @ApiPropertyOptional({ description: 'Лише сни з цим настроєм', maxLength: 40 }) @IsOptional() @IsString() @MaxLength(40) mood?: string
 }
 
 export class UpdateDreamDto {
@@ -49,8 +57,33 @@ export class DreamsService extends OwnedService<Dream> {
 export class DreamsController {
   constructor(private s: DreamsService) {}
 
-  @ApiOperation({ summary: 'Список записів користувача' }) @ApiOkResponse({ type: [Dream] })
-  @Get() async list(@CurrentUser() u) { return (await this.s.list(u.id)).map((d) => this.s.present(d)) }
+  @ApiOperation({
+    summary: 'Список записів користувача',
+    description: 'Без параметрів повертає всі сни. Пошук q (назва й текст), tag (символ), mood, період from/to, сторінки limit/offset; кількість усіх знайдених — у заголовку X-Total-Count.',
+  })
+  @ApiOkResponse({ type: [Dream] })
+  @Get()
+  async list(@CurrentUser() u, @Query() query: DreamQueryDto, @Res({ passthrough: true }) res: Response) {
+    const conditions = listConditions(query, ['title', 'text'])
+    if (query.mood) conditions.push({ mood: query.mood })
+    let items = (await this.s.list(u.id, conditions.length ? { [Op.and]: conditions } : {})).map((d) => this.s.present(d))
+    // символи рахуються з тексту мовою запиту, тож за ними фільтруємо вже після вибірки
+    const tag = query.tag?.trim().toLowerCase()
+    if (tag) items = items.filter((d) => d.symbols.some((s) => s.toLowerCase() === tag))
+    res.setHeader('X-Total-Count', String(items.length))
+    const offset = query.offset ?? 0
+    return query.limit ? items.slice(offset, offset + query.limit) : items.slice(offset)
+  }
+
+  @ApiOperation({ summary: 'Символи у снах користувача з кількістю: для фільтра за тегом' })
+  @ApiOkResponse({ description: '[{ tag, count }] від частіших до рідших' })
+  @Get('tags')
+  async tags(@CurrentUser() u) {
+    const counts = new Map<string, number>()
+    for (const d of (await this.s.list(u.id)).map((row) => this.s.present(row))) for (const s of new Set<string>(d.symbols as string[])) counts.set(s, (counts.get(s) ?? 0) + 1)
+    return [...counts].map(([tag, count]) => ({ tag, count })).sort((a, b) => b.count - a.count || a.tag.localeCompare(b.tag))
+  }
+
   @ApiOperation({ summary: 'Створити запис' }) @ApiCreatedResponse({ type: Dream })
   @Post() async create(@CurrentUser() u, @Body() dto: CreateDreamDto) { return this.s.present(await this.s.create(u.id, { ...dto })) }
   @ApiOperation({ summary: 'Один запис за id' }) @ApiOkResponse({ type: Dream }) @ApiOwnedNotFound()

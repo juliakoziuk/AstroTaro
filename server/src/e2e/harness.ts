@@ -3,6 +3,7 @@ import { INestApplication } from '@nestjs/common'
 import { NestFactory } from '@nestjs/core'
 import { getModelToken } from '@nestjs/sequelize'
 import { AppModule } from '../app.module'
+import { AuthThrottle } from '../auth/rate-limit'
 import { MailService, Mail } from '../mail/mail'
 import { User } from '../users/user.model'
 import { configureApp } from '../app.setup'
@@ -23,6 +24,8 @@ export interface Harness {
   outbox: Mail[]
   /** Пряма модель користувачів: для перевірок, яких не видно через API (що лежить у базі). */
   users: typeof User
+  /** Обнулити ліміти входу й реєстрації: ліміти діють на всю адресу, а набір тестів створює багато акаунтів. */
+  resetLimits(): void
   close(): Promise<void>
 }
 
@@ -59,5 +62,5 @@ export async function startHarness(): Promise<Harness> {
     return { token: r.body.token, id: r.body.user.id, email, password }
   }
 
-  return { app, api, register, outbox: app.get(MailService).outbox, users: app.get(getModelToken(User)), close: () => app.close() }
+  return { app, api, register, outbox: app.get(MailService).outbox, users: app.get(getModelToken(User)), resetLimits: () => app.get(AuthThrottle).reset(), close: () => app.close() }
 }

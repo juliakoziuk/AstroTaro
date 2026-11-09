@@ -29,6 +29,11 @@ export class JournalEntry extends Model {
   @ApiProperty({})
   declare text: string
 
+  // Теги записів (малими літерами): для пошуку й фільтра
+  @Column({ type: DataType.ARRAY(DataType.STRING), allowNull: false, defaultValue: [] })
+  @ApiProperty({ type: [String] })
+  declare tags: string[]
+
   // Прив'язки до снів/розкладів: [{ type: 'dream' | 'spread', id }]
   @Column({ type: DataType.JSONB, allowNull: false, defaultValue: [] })
   @ApiProperty({ type: 'array', items: { type: 'object', properties: { type: { enum: ['dream', 'spread'] }, id: { type: 'string' } } } })

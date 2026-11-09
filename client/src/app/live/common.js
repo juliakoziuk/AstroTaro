@@ -20,6 +20,13 @@ export const session = {
 
 export const loadSettings = () => get('/settings')
 
+/** Рядок пошуку → query-рядок списку: «#море» — фільтр за тегом, решта — пошук за текстом; порожній рядок — без параметрів. */
+export function searchQuery(input) {
+  const text = String(input ?? '').trim()
+  if (!text) return ''
+  return text.startsWith('#') && text.length > 1 ? `?tag=${encodeURIComponent(text.slice(1).trim())}` : `?q=${encodeURIComponent(text)}`
+}
+
 /** Вихід з акаунта: забуває токен і вибір поточного сну/розкладу, далі екран веде на вхід. */
 export function logOut() {
   signOut()

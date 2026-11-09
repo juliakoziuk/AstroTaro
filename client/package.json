@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "test": "node --test src/lib/auth.test.js src/app/resolve.test.js src/app/avatar.test.js src/app/nav.test.js src/i18n/i18n.test.js src/lib/theme.test.js src/lib/account.test.js src/lib/api.test.js scripts/lib/card-files.test.mjs && vitest run",
+    "test": "node --test src/lib/auth.test.js src/app/resolve.test.js src/app/avatar.test.js src/app/nav.test.js src/i18n/i18n.test.js src/lib/theme.test.js src/lib/account.test.js src/lib/api.test.js src/app/live/common.test.js scripts/lib/card-files.test.mjs && vitest run",
     "preview": "vite preview",
     "landing:plate": "node scripts/build-plate.mjs && node scripts/trace-landing.mjs",
     "landing:diff": "node scripts/landing-diff.mjs",

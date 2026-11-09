@@ -1,5 +1,5 @@
 // Наскрізні тести HTTP-шару проти справжнього застосунку й бази (npm run test:e2e): вхід, права доступу, чужі записи, тарифи, ліміти.
-// Лімітер реєстрації в памʼяті (10 за годину з адреси), тож набір створює небагато користувачів, а тест ліміту йде останнім.
+// Лімітери в памʼяті діють на всю адресу (10 реєстрацій за годину), тож перед блоком про ліміти їх обнуляємо.
 import { after, before, describe, test } from 'node:test'
 import { createHmac } from 'node:crypto'
 import { deepStrictEqual, ok, strictEqual } from 'node:assert/strict'
@@ -238,6 +238,88 @@ describe('plans and consent', () => {
   })
 })
 
+describe('search, tags and paging of dreams and the journal', () => {
+  let u: Awaited<ReturnType<Harness['register']>>
+  let other: Awaited<ReturnType<Harness['register']>>
+  const dream = (title: string, text: string, extra: object = {}) => h.api('POST', '/dreams', { token: u.token, body: { title, text, ...extra } })
+  const titles = (r: { body: { title: string }[] }) => r.body.map((d) => d.title).sort()
+  before(async () => {
+    u = await h.register()
+    other = await h.register()
+    await dream('Whale', 'A huge whale in the ocean', { mood: 'calm', symbols: ['whale', 'sea'], date: '2026-03-10T10:00:00.000Z' })
+    await dream('Stairs', 'Climbing a long staircase, 100% sure it was real', { mood: 'anxious', symbols: ['stairs'], date: '2026-04-15T10:00:00.000Z' })
+    await dream('Door', 'A door_in a dark room', { mood: 'calm', symbols: ['sea'], date: '2026-05-20T10:00:00.000Z' })
+    await h.api('POST', '/dreams', { token: other.token, body: { title: 'Whale of someone else', text: 'ocean', symbols: ['sea'] } })
+  })
+
+  test('dreams: text search ignores case, looks in title and text, and never returns other people records', async () => {
+    deepStrictEqual(titles(await h.api('GET', '/dreams?q=WHALE', { token: u.token })), ['Whale'])
+    deepStrictEqual(titles(await h.api('GET', '/dreams?q=staircase', { token: u.token })), ['Stairs'], 'matches the text, not only the title')
+    deepStrictEqual(titles(await h.api('GET', '/dreams?q=nothing-like-this', { token: u.token })), [])
+  })
+
+  test('dreams: % and _ in the search are letters, not wildcards', async () => {
+    deepStrictEqual(titles(await h.api('GET', '/dreams?q=' + encodeURIComponent('100%'), { token: u.token })), ['Stairs'])
+    deepStrictEqual(titles(await h.api('GET', '/dreams?q=' + encodeURIComponent('door_in'), { token: u.token })), ['Door'])
+    deepStrictEqual(titles(await h.api('GET', '/dreams?q=' + encodeURIComponent('%'), { token: u.token })), ['Stairs'], 'a bare % matches only text that contains it')
+    deepStrictEqual(titles(await h.api('GET', '/dreams?q=' + encodeURIComponent('d_or'), { token: u.token })), [], '_ does not stand for any letter')
+  })
+
+  test('dreams: filter by tag, mood and period, and the filters combine', async () => {
+    deepStrictEqual(titles(await h.api('GET', '/dreams?tag=sea', { token: u.token })), ['Door', 'Whale'])
+    deepStrictEqual(titles(await h.api('GET', '/dreams?tag=SEA', { token: u.token })), ['Door', 'Whale'], 'tags are case-insensitive')
+    deepStrictEqual(titles(await h.api('GET', '/dreams?mood=calm', { token: u.token })), ['Door', 'Whale'])
+    deepStrictEqual(titles(await h.api('GET', '/dreams?from=2026-04-01&to=2026-04-30', { token: u.token })), ['Stairs'])
+    deepStrictEqual(titles(await h.api('GET', '/dreams?to=2026-04-15', { token: u.token })), ['Stairs', 'Whale'], 'the end date includes the whole day')
+    deepStrictEqual(titles(await h.api('GET', '/dreams?tag=sea&mood=calm&q=door', { token: u.token })), ['Door'])
+  })
+
+  test('dreams: tag list with counts, and paging with the total in a header', async () => {
+    const tags = await h.api('GET', '/dreams/tags', { token: u.token })
+    strictEqual(tags.status, 200)
+    deepStrictEqual(tags.body[0], { tag: 'sea', count: 2 }, 'the most common tag comes first')
+    ok(!text(tags.body).includes('someone'), 'only own dreams are counted')
+    const page = await h.api('GET', '/dreams?limit=2&offset=1', { token: u.token })
+    strictEqual(page.body.length, 2)
+    strictEqual(page.headers.get('x-total-count'), '3')
+    deepStrictEqual(page.body.map((d: { title: string }) => d.title), ['Stairs', 'Whale'], 'newest first: Door, Stairs, Whale; the page skips the first')
+  })
+
+  test('dreams: bad query values are refused', async () => {
+    for (const q of ['limit=0', 'limit=501', 'offset=-1', 'limit=abc', 'from=yesterday', 'unknown=1']) strictEqual((await h.api('GET', '/dreams?' + q, { token: u.token })).status, 400, q)
+  })
+
+  test('journal: tags are normalized, searchable and filterable, with counts', async () => {
+    const make = (text: string, mood: number, tags: string[], date: string) => h.api('POST', '/journal', { token: u.token, body: { text, mood, tags, date } })
+    const first = await make('Long walk by the river', 5, [' Walk ', 'WALK', 'river', ''], '2026-02-01T08:00:00.000Z')
+    strictEqual(first.status, 201, text(first.body))
+    deepStrictEqual(first.body.tags, ['walk', 'river'], 'trimmed, lower-cased, no duplicates or empty tags')
+    await make('Hard day at work', 2, ['work'], '2026-02-02T08:00:00.000Z')
+    await make('Quiet evening, a walk again', 4, ['walk'], '2026-02-03T08:00:00.000Z')
+    await h.api('POST', '/journal', { token: other.token, body: { text: 'walk walk walk', mood: 3, tags: ['walk'] } })
+
+    const j = async (query: string) => (await h.api('GET', '/journal?' + query, { token: u.token })).body.map((e: { text: string }) => e.text.split(' ')[0])
+    deepStrictEqual(await j('q=WALK'), ['Quiet', 'Long'], 'searches the text, newest first')
+    deepStrictEqual(await j('tag=walk'), ['Quiet', 'Long'])
+    deepStrictEqual(await j('tag=walk&mood=5'), ['Long'])
+    deepStrictEqual(await j('mood=2'), ['Hard'])
+    deepStrictEqual(await j('from=2026-02-02&to=2026-02-02'), ['Hard'])
+    deepStrictEqual(await j('q=walk&limit=1&offset=1'), ['Long'])
+    strictEqual((await h.api('GET', '/journal?tag=walk', { token: u.token })).headers.get('x-total-count'), '2')
+    deepStrictEqual((await h.api('GET', '/journal/tags', { token: u.token })).body, [{ tag: 'walk', count: 2 }, { tag: 'river', count: 1 }, { tag: 'work', count: 1 }])
+    strictEqual((await h.api('GET', '/journal?mood=9', { token: u.token })).status, 400)
+  })
+
+  test('journal: the tags of an entry can be changed, and tag routes need a token', async () => {
+    const entry = (await h.api('GET', '/journal?q=Hard', { token: u.token })).body[0]
+    const upd = await h.api('PATCH', '/journal/' + entry.id, { token: u.token, body: { tags: ['Stress', 'work'] } })
+    strictEqual(upd.status, 200)
+    deepStrictEqual(upd.body.tags, ['stress', 'work'])
+    strictEqual((await h.api('GET', '/journal/tags')).status, 401)
+    strictEqual((await h.api('GET', '/dreams/tags')).status, 401)
+  })
+})
+
 describe('email verification and password reset', () => {
   const tokenIn = (mail: { text: string }) => /token=([\w-]+)/.exec(mail.text)?.[1] ?? ''
   const lastMailTo = (email: string) => [...h.outbox].reverse().find((m) => m.to === email)
@@ -352,6 +434,8 @@ describe('tarot and companion flows', () => {
 })
 
 describe('brute force protection (runs last: it uses up the address limits)', () => {
+  before(() => h.resetLimits())
+
   test('after 8 wrong passwords even the right one is refused with 429, in the request language', async () => {
     const u = await h.register()
     for (let i = 0; i < 8; i++) strictEqual((await h.api('POST', '/auth/login', { body: { email: u.email, password: 'wrong password here' } })).status, 401)

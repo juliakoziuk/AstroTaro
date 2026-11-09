@@ -1,10 +1,10 @@
 // Екрани Dream Journal і Dream Analysis: один набір даних (GET /dreams), різна розкладка.
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { api, get, post } from '../../lib/api.js'
 import { formatDate, snippet } from '../format.js'
 import { t } from '../../i18n/index.js'
 import { Field, Modal, Ov, Prose, RowFrames, TILE, Zone } from './parts.jsx'
-import { loadSettings, session, slots } from './common.js'
+import { loadSettings, searchQuery, session, slots } from './common.js'
 
 const rowsOf = (w) => [0, 1, 2, 3, 4].map((i) => [291, 309 + i * 121, w, 106, 22])
 const ROWS = rowsOf(600)
@@ -37,7 +37,8 @@ const LIST_ANALYSIS = [
 ]
 
 async function loadDreams() {
-  const [dreams, settings] = await Promise.all([get('/dreams'), loadSettings()])
+  const search = session.get('dreamSearch') ?? ''
+  const [dreams, settings] = await Promise.all([get(`/dreams${searchQuery(search)}`), loadSettings()])
   const wanted = session.get('dreamId')
   const index = Math.max(0, dreams.findIndex((d) => d.id === wanted))
   const cur = dreams[index]
@@ -56,7 +57,7 @@ async function loadDreams() {
     tag0: tags[0] ?? '', tag1: tags[1] ?? '', tag2: tags[2] ?? '', tag3: tags[3] ?? '',
     key0: cur?.analysis?.keyMeanings[0] ?? '', key1: cur?.analysis?.keyMeanings[1] ?? '', key2: cur?.analysis?.keyMeanings[2] ?? '',
   })
-  return { values, data: { dreams, index, cur } }
+  return { values, data: { dreams, index, cur, search } }
 }
 
 /** Картина з колекції Met Museum (суспільне надбання) до першого символу сну; поки вантажиться — плитка або намальований фон. */
@@ -107,7 +108,38 @@ function EmptyRows({ geo, rows, from }) {
   return <Ov at={[geo.list[0], top, geo.list[1], LIST_BOTTOM - top, 16]} className="ov-none" style={{ background: COVER }} />
 }
 
+/** Поле пошуку в шапці списку: текст або #тег; шукає після короткої паузи в наборі. */
+function SearchBox({ ctx }) {
+  const timer = useRef(0)
+  useEffect(() => () => clearTimeout(timer.current), [])
+  const change = (e) => {
+    const value = e.target.value
+    clearTimeout(timer.current)
+    timer.current = setTimeout(() => {
+      session.set('dreamSearch', value)
+      ctx.reload()
+    }, 350)
+  }
+  return (
+    <Ov at={SEARCH} className="search">
+      <input type="search" defaultValue={ctx.data?.search ?? ''} onChange={change} placeholder={t('Search or #tag')} aria-label={t('Search dreams')} maxLength={100} />
+    </Ov>
+  )
+}
+
 function EmptyList({ geo, rows, ctx }) {
+  if (ctx.data?.search) {
+    return (
+      <>
+        <EmptyRows geo={geo} rows={rows} from={0} />
+        <Ov at={[geo.list[0], rows[0][1], geo.list[1], 520]} className="empty">
+          <h3>{t('Nothing found')}</h3>
+          <p>{t('Try another word or clear the search.')}</p>
+          <button type="button" className="cta" onClick={() => { session.set('dreamSearch', ''); ctx.reload() }}>{t('Clear search')}</button>
+        </Ov>
+      </>
+    )
+  }
   return (
     <>
       <EmptyRows geo={geo} rows={rows} from={0} />
@@ -166,6 +198,7 @@ const pick = (ctx, i) => {
 }
 
 const NEW = [702, 233, 188, 52, 26]
+const SEARCH = [452, 236, 238, 46, 23] // між заголовком «Мої сни» і кнопкою нового запису
 
 export const dreams = {
   ...common('dreams', LIST_DREAMS, ROWS, [
@@ -181,6 +214,7 @@ export const dreams = {
     return (
       <>
         <Zone at={NEW} label="New Entry" onClick={() => ctx.openModal({ name: 'dream' })} />
+        {ctx.data && <SearchBox ctx={ctx} />}
         {cur && <ArtFrame symbol={cur.symbols?.[0] ?? ''} at={[957, 320, 536, 167, 14]} caption />}
         {cur && (
           <>

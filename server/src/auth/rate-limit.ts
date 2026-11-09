@@ -37,6 +37,10 @@ export class RateLimiter {
     this.hits.delete(key)
   }
 
+  clear() {
+    this.hits.clear()
+  }
+
   private live(key: string) {
     const hit = this.hits.get(key)
     if (hit && hit.resetAt <= this.now()) {
@@ -74,6 +78,11 @@ export class AuthThrottle {
   private forgotByIp = new RateLimiter(10, 60 * MINUTE)
   private forgotByEmail = new RateLimiter(3, 60 * MINUTE)
   private verifyByUser = new RateLimiter(3, 60 * MINUTE)
+
+  /** Обнулити всі лічильники (наскрізні тести створюють багато акаунтів з однієї адреси). */
+  reset() {
+    for (const limiter of [this.loginByIp, this.loginFails, this.registerByIp, this.forgotByIp, this.forgotByEmail, this.verifyByUser]) limiter.clear()
+  }
 
   private pair = (ip: string, email: string) => `${ip}|${email.trim().toLowerCase()}`
 
