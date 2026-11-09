@@ -16,6 +16,7 @@ export const SCREENS = [
   { path: '/forgot-password', id: 'forgot-password', kind: 'account', name: 'Forgot password', title: 'Reset your password', bg: '#0a1626' },
   { path: '/reset-password', id: 'reset-password', kind: 'account', name: 'New password', title: 'Choose a new password', bg: '#0a1626' },
   { path: '/verify-email', id: 'verify-email', kind: 'account', name: 'Confirm email', title: 'Confirm your email', bg: '#0a1626' },
+  { path: '/shared', id: 'shared', kind: 'account', name: 'Shared reading', title: 'A reading shared with you', bg: '#0a1626' },
   { path: '/today', id: 'today', kind: 'today', name: 'Cosmic Today', title: 'Cosmic Today', bg: '#0a1626' },
   { path: '/history', id: 'history', kind: 'history', name: 'Reading history', title: 'Reading history', bg: '#0a1626' },
   { path: '/draw', id: 'draw', kind: 'draw', name: 'Draw your cards', title: 'Draw your cards', bg: '#0a1626' },

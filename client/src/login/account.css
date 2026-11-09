@@ -80,3 +80,15 @@
 .v-account .account-back { justify-self: center; color: var(--gold); font-size: 15px; }
 .v-account .account-error { color: #ff9c8f; }
 .v-account .account-note { color: #cfe6c9; }
+
+/* публічна сторінка розкладу за посиланням (app/SharedReading.jsx) */
+.v-account .account-card.wide { width: min(760px, 100%); }
+.v-account .shared-date { text-align: center; font-size: 14px; }
+.v-account .shared-question { text-align: center; font: italic 400 20px 'Cormorant Garamond', Georgia, serif; color: #f1dda6; }
+.v-account .shared-cards { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 18px; }
+.v-account .shared-cards li { display: grid; justify-items: center; gap: 4px; width: 132px; text-align: center; }
+.v-account .shared-cards img { width: 120px; border-radius: 8px; box-shadow: 0 0 18px rgba(224, 184, 120, 0.25); }
+.v-account .shared-cards img.rev { transform: rotate(180deg); }
+.v-account .shared-cards span { font-size: 13px; color: var(--muted); }
+.v-account .shared-cards b { font: 600 15px 'Source Sans 3', 'Segoe UI', sans-serif; color: #f8e7c4; }
+.v-account .shared-summary { white-space: pre-line; color: #d9d6cd; }

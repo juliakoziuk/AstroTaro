@@ -5,6 +5,14 @@ const Svg = ({ children, fill = 'none', ...rest }) => (
   </svg>
 )
 
+export const ShareIcon = () => (
+  <Svg>
+    <circle cx="18" cy="5.5" r="2.5" />
+    <circle cx="6" cy="12" r="2.5" />
+    <circle cx="18" cy="18.5" r="2.5" />
+    <path d="m8.2 10.8 7.6-4.1M8.2 13.2l7.6 4.1" />
+  </Svg>
+)
 export const HomeIcon = () => (
   <Svg>
     <path d="M3.5 11.2 12 4l8.5 7.2M5.8 9.8V20h4.4v-5.2h3.6V20h4.4V9.8" />

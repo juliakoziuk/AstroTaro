@@ -8,6 +8,12 @@ import { classifyLocal, Situation } from './sphere'
  * тлумачення рахуються мовою запиту, тож зміна мови перекладає й старі розклади.
  * Розклади зі старих версій (довільний spreadId) віддаємо без тлумачення.
  */
+/** Розклад для публічного перегляду за посиланням: без id, користувача й токена, лише те, що людина вирішила показати. */
+export function presentShared(row: Spread, locale: Locale) {
+  const { date, spreadId, deck, mode, question, cards, result } = presentSpread(row, locale) as ReturnType<typeof presentSpread> & Record<string, any>
+  return { date, spreadId, deck, mode, question, cards, result }
+}
+
 export function presentSpread(row: Spread, locale: Locale) {
   const known = SPREAD_IDS.includes(row.spreadId) && Array.isArray(row.cards)
   const { narratives, situation: saved, ...rest } = row.toJSON()

@@ -55,6 +55,14 @@ export class Spread extends Model {
   @ApiProperty()
   declare saved: boolean
 
+  // Токен публічного посилання на розклад (NULL — не поширюється); людина може показати розклад іншим без входу
+  @Column({ type: DataType.STRING(64), allowNull: true })
+  @ApiProperty({ required: false, nullable: true, description: 'Токен публічного посилання; null, якщо розклад не поширюється' })
+  declare shareToken?: string | null
+
+  @Column({ type: DataType.DATE, allowNull: true })
+  declare sharedAt?: Date | null
+
   // [{ id: number, reversed: boolean }]
   @Column({ type: DataType.JSONB, allowNull: false })
   @ApiProperty({ type: 'array', items: { type: 'object', properties: { id: { type: 'integer', minimum: 0, maximum: 77 }, reversed: { type: 'boolean' } } } })

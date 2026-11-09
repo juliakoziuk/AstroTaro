@@ -57,3 +57,16 @@
   .v-app .drawpage .acts { justify-content: flex-end; }
   .v-app .drawpage .open { flex-direction: column; align-items: flex-start; gap: 12px; }
 }
+
+/* ділення розкладом: панель із посиланням під записом (History.jsx) */
+.v-app .drawpage .sharebox {
+  grid-column: 1 / -1; display: grid; gap: 10px; margin-top: 10px; padding: 14px 16px; border-radius: 16px;
+  border: 1px solid rgba(228, 190, 128, 0.4); background: rgba(8, 20, 36, 0.6);
+}
+.v-app .drawpage .sharebox p { margin: 0; font-size: 14px; color: #b9c3d3; }
+.v-app .drawpage .sharebox .copied { color: #cfe6c9; }
+.v-app .drawpage .sharebox input {
+  width: 100%; box-sizing: border-box; height: 40px; padding: 0 14px; border-radius: 999px; font: inherit; font-size: 14px;
+  color: #f1e9d6; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(228, 190, 128, 0.45);
+}
+.v-app .drawpage .sharebox .acts { justify-content: flex-end; }

@@ -1,14 +1,17 @@
-import { BadRequestException, Body, Controller, Delete, Get, HttpCode, Injectable, Module, Param, ParseUUIDPipe, Patch, Post, Query, UseGuards } from '@nestjs/common'
+import { BadRequestException, Body, Controller, Delete, Get, HttpCode, HttpException, HttpStatus, Injectable, Module, NotFoundException, Param, ParseUUIDPipe, Patch, Post, Query, Req, Res, UseGuards } from '@nestjs/common'
 import { InjectModel, SequelizeModule } from '@nestjs/sequelize'
 import { Type } from 'class-transformer'
 import { ArrayMaxSize, ArrayMinSize, IsArray, IsBoolean, IsDateString, IsIn, IsInt, IsOptional, IsString, Max, MaxLength, Min, ValidateNested } from 'class-validator'
-import { ApiCreatedResponse, ApiNoContentResponse, ApiOkResponse, ApiOperation, ApiProperty, ApiPropertyOptional, ApiQuery, ApiTags } from '@nestjs/swagger'
+import { ApiCreatedResponse, ApiNoContentResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiProperty, ApiPropertyOptional, ApiQuery, ApiTags } from '@nestjs/swagger'
 import { ApiAuthed, ApiOwnedNotFound } from '../common/api-docs'
 import { CurrentUser, JwtAuthGuard } from '../auth/jwt-auth.guard'
 import { OwnedService } from '../common/owned.service'
 import { currentLocale } from '../i18n/locale'
 import { attachNarrative } from '../tarot/ai'
-import { presentSpread } from '../tarot/present'
+import { presentShared, presentSpread } from '../tarot/present'
+import { randomBytes } from 'node:crypto'
+import { Request, Response } from 'express'
+import { RateLimiter } from '../auth/rate-limit'
 import { Spread } from './spread.model'
 import { chosen, DECKS, MODES } from '../tarot/readings'
 import { msg } from '../i18n/messages'
@@ -67,13 +70,54 @@ export class SpreadsController {
   @Get(':id') async get(@CurrentUser() u, @Param('id', ParseUUIDPipe) id: string) { return presentSpread(await this.s.get(u.id, id), currentLocale()) }
   @ApiOperation({ summary: 'Зберегти розклад або прибрати зі збережених' }) @ApiOkResponse({ type: Spread }) @ApiOwnedNotFound()
   @Patch(':id') async save(@CurrentUser() u, @Param('id', ParseUUIDPipe) id: string, @Body() dto: SaveSpreadDto) { return presentSpread(await this.s.update(u.id, id, { saved: dto.saved }), currentLocale()) }
+  @ApiOperation({ summary: 'Поділитися розкладом: створити публічне посилання (лише для читання)', description: 'Якщо посилання вже є, повертає його ж. Щоб замінити, спершу відкличте.' })
+  @ApiOkResponse({ description: '{ token, path, url }' }) @ApiOwnedNotFound()
+  @Post(':id/share') async share(@CurrentUser() u, @Param('id', ParseUUIDPipe) id: string) {
+    const row = await this.s.get(u.id, id)
+    if (!row.shareToken) await row.update({ shareToken: randomBytes(32).toString('base64url'), sharedAt: new Date() })
+    return shareLink(row.shareToken)
+  }
+  @ApiOperation({ summary: 'Відкликати публічне посилання: воно одразу перестає працювати' }) @ApiNoContentResponse({ description: 'Відкликано' }) @ApiOwnedNotFound()
+  @Delete(':id/share') @HttpCode(204) async unshare(@CurrentUser() u, @Param('id', ParseUUIDPipe) id: string) {
+    const row = await this.s.get(u.id, id)
+    await row.update({ shareToken: null, sharedAt: null })
+  }
   @ApiOperation({ summary: 'Видалити запис' }) @ApiNoContentResponse({ description: 'Видалено' }) @ApiOwnedNotFound()
   @Delete(':id') @HttpCode(204) remove(@CurrentUser() u, @Param('id', ParseUUIDPipe) id: string) { return this.s.remove(u.id, id) }
 }
 
+/** Посилання, яке людина надсилає іншим: адреса клієнта + токен; APP_URL — де живе клієнт. */
+const shareLink = (token: string) => ({
+  token,
+  path: `/shared?token=${token}`,
+  url: `${(process.env.APP_URL ?? 'http://localhost:5173').replace(/\/$/, '')}/app.html#/shared?token=${token}`,
+})
+
+/** Публічний перегляд розкладу за посиланням: без входу, лише читання. Токен — 256 випадкових біт, тож його не вгадати; запити з однієї адреси обмежені. */
+@ApiTags('shared')
+@Controller('shared')
+export class SharedController {
+  private limiter = new RateLimiter(60, 60_000)
+
+  constructor(@InjectModel(Spread) private spreads: typeof Spread) {}
+
+  @ApiOperation({ summary: 'Розклад за публічним посиланням (без входу)', description: 'Віддає розклад, питання й тлумачення без id та даних акаунта; мова — за Accept-Language.' })
+  @ApiOkResponse({ description: '{ date, spreadId, deck, mode, question, cards, result }' })
+  @ApiNotFoundResponse({ description: 'Посилання не існує або відкликане' })
+  @Get(':token') async view(@Param('token') token: string, @Req() req: Request, @Res({ passthrough: true }) res: Response) {
+    if (this.limiter.record(req.ip ?? '')) throw new HttpException(msg(currentLocale(), 'tooManyAttempts', { minutes: '1' }), HttpStatus.TOO_MANY_REQUESTS)
+    // чужий розклад не повинен потрапити в пошукову видачу чи кеш посередників
+    res.setHeader('X-Robots-Tag', 'noindex, nofollow')
+    res.setHeader('Cache-Control', 'no-store')
+    const row = token.length >= 20 && token.length <= 64 ? await this.spreads.findOne({ where: { shareToken: token } }) : null
+    if (!row) throw new NotFoundException(msg(currentLocale(), 'notFound'))
+    return presentShared(row, currentLocale())
+  }
+}
+
 @Module({
   imports: [SequelizeModule.forFeature([Spread])],
-  controllers: [SpreadsController],
+  controllers: [SpreadsController, SharedController],
   providers: [SpreadsService],
 })
 export class SpreadsModule {}

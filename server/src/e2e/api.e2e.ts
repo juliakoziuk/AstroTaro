@@ -320,6 +320,86 @@ describe('search, tags and paging of dreams and the journal', () => {
   })
 })
 
+describe('sharing a reading by a public link', () => {
+  let owner: Awaited<ReturnType<Harness['register']>>
+  let stranger: Awaited<ReturnType<Harness['register']>>
+  let spreadId: string
+  let link: { token: string; path: string; url: string }
+  before(async () => {
+    h.resetLimits()
+    owner = await h.register('Marta')
+    stranger = await h.register('Stranger')
+    const r = await h.api('POST', '/spreads', { token: owner.token, body: { spreadId: 'three', question: 'Should I move to a new city?', cards: [{ id: 0, reversed: false }, { id: 1, reversed: true }, { id: 2, reversed: false }] } })
+    spreadId = r.body.id
+  })
+
+  test('before sharing nothing is public, and only the owner can create a link', async () => {
+    strictEqual((await h.api('GET', '/shared/' + 'z'.repeat(43))).status, 404)
+    strictEqual((await h.api('POST', '/spreads/' + spreadId + '/share')).status, 401)
+    strictEqual((await h.api('POST', '/spreads/' + spreadId + '/share', { token: stranger.token })).status, 404, 'a stranger cannot share your reading')
+    strictEqual((await h.api('GET', '/spreads/' + spreadId, { token: owner.token })).body.shareToken ?? null, null)
+  })
+
+  test('the owner gets a link; asking again returns the same one', async () => {
+    const first = await h.api('POST', '/spreads/' + spreadId + '/share', { token: owner.token })
+    strictEqual(first.status, 201, text(first.body))
+    link = first.body
+    ok(link.token.length >= 40, 'a long random token')
+    ok(link.url.includes('/app.html#/shared?token=' + link.token), link.url)
+    strictEqual(link.path, '/shared?token=' + link.token)
+    deepStrictEqual((await h.api('POST', '/spreads/' + spreadId + '/share', { token: owner.token })).body, link)
+  })
+
+  test('anyone with the link sees the reading without signing in, but no account data', async () => {
+    const r = await h.api('GET', '/shared/' + link.token)
+    strictEqual(r.status, 200)
+    strictEqual(r.body.question, 'Should I move to a new city?')
+    strictEqual(r.body.cards.length, 3)
+    ok(r.body.result && r.body.result.source, 'the interpretation is included')
+    const raw = text(r.body)
+    ok(!raw.includes(owner.id) && !raw.includes(owner.email) && !raw.includes('Marta'), 'no account data')
+    ok(!raw.includes(spreadId) && !raw.includes(link.token), 'no internal id and no token in the body')
+    strictEqual(r.headers.get('x-robots-tag'), 'noindex, nofollow')
+    strictEqual(r.headers.get('cache-control'), 'no-store')
+    const uk = await h.api('GET', '/shared/' + link.token, { lang: 'uk' })
+    ok(/[А-Яа-яІіЇїЄє]/.test(text(uk.body.result)), 'the interpretation follows the request language')
+  })
+
+  test('the link opens one reading only, and other readings of the owner stay private', async () => {
+    const other = await h.api('POST', '/spreads', { token: owner.token, body: { spreadId: 'one', question: 'secret', cards: [{ id: 7, reversed: false }] } })
+    const r = await h.api('GET', '/shared/' + link.token)
+    ok(!text(r.body).includes('secret'))
+    strictEqual((await h.api('GET', '/shared/' + other.body.id)).status, 404, 'a reading id is not a link')
+  })
+
+  test('revoking stops the link at once; sharing again makes a new link', async () => {
+    strictEqual((await h.api('DELETE', '/spreads/' + spreadId + '/share', { token: stranger.token })).status, 404, 'a stranger cannot revoke it')
+    strictEqual((await h.api('GET', '/shared/' + link.token)).status, 200)
+    strictEqual((await h.api('DELETE', '/spreads/' + spreadId + '/share', { token: owner.token })).status, 204)
+    strictEqual((await h.api('GET', '/shared/' + link.token)).status, 404)
+    const again = await h.api('POST', '/spreads/' + spreadId + '/share', { token: owner.token })
+    ok(again.body.token !== link.token, 'the old link stays dead')
+    strictEqual((await h.api('GET', '/shared/' + link.token)).status, 404)
+    strictEqual((await h.api('GET', '/shared/' + again.body.token)).status, 200)
+    link = again.body
+  })
+
+  test('deleting the reading deletes its link', async () => {
+    strictEqual((await h.api('DELETE', '/spreads/' + spreadId, { token: owner.token })).status, 204)
+    strictEqual((await h.api('GET', '/shared/' + link.token)).status, 404)
+  })
+
+  test('the public route is rate limited per address (runs last in this group)', async () => {
+    let blocked = 0
+    for (let i = 0; i < 70 && !blocked; i++) {
+      const r = await h.api('GET', '/shared/' + String(i).padStart(43, 'q'))
+      if (r.status === 429) blocked = i + 1
+      else strictEqual(r.status, 404)
+    }
+    ok(blocked > 0 && blocked <= 61, 'a 429 appeared within 61 requests, got ' + blocked)
+  })
+})
+
 describe('email verification and password reset', () => {
   const tokenIn = (mail: { text: string }) => /token=([\w-]+)/.exec(mail.text)?.[1] ?? ''
   const lastMailTo = (email: string) => [...h.outbox].reverse().find((m) => m.to === email)
