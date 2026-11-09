@@ -385,6 +385,7 @@
   .v-landing .brand-moon { position: static; width: 26px; height: 28px; }
   .v-landing .brand-name { position: static; }
   .v-landing .wordmark { left: 50%; top: 4px; transform: translateX(-50%); }
+  .v-landing .topbar:has(.account) .wordmark { display: none; } /* чіп акаунта в куті закрив би назву по центру */
 
   .v-landing .hero { margin-top: 36px; display: block; }
   .v-landing .hero h1, .v-landing .lead { position: static; }
@@ -414,20 +415,25 @@
 }
 
 /* ---------- акаунт залогіненого користувача (замість кнопок входу) ---------- */
+/* Стоїть у куті поруч із перемикачем мови (i18n/lang-switch.css) і поділяє з ним висоту, відступ зверху та вигляд рамки;
+   розміри в пікселях, як у перемикача, а не в масштабних одиницях сцени: інакше на великому екрані чіп розростався й налізав на нього */
 .v-landing .account {
-  position: absolute;
-  right: calc(var(--u) * 64);
-  top: calc(var(--u) * 13);
+  position: fixed;
+  z-index: 40;
+  top: 12px;
+  right: calc(14px + 90px + 10px); /* відступ перемикача + його ширина + проміжок */
+  box-sizing: border-box;
   display: flex;
   align-items: center;
-  gap: calc(var(--u) * 8);
-  height: calc(var(--u) * 36);
-  padding: 0 calc(var(--u) * 14) 0 calc(var(--u) * 4);
+  gap: 8px;
+  height: 36px;
+  padding: 0 14px 0 3px;
   border-radius: 999px;
-  border: 1px solid rgba(228, 190, 128, 0.5);
-  background: rgba(8, 20, 36, 0.55);
+  border: 1px solid rgba(228, 190, 128, 0.45);
+  background: rgba(8, 18, 32, 0.72);
+  backdrop-filter: blur(6px);
   color: #efe6d4;
-  font: 500 calc(var(--u) * 14.5) / 1 'Source Sans 3', 'Segoe UI', sans-serif;
+  font: 500 14px/1 'Source Sans 3', 'Segoe UI', sans-serif;
   text-decoration: none;
   white-space: nowrap;
 }
@@ -435,16 +441,16 @@
 .v-landing .account-avatar {
   display: grid;
   place-items: center;
-  width: calc(var(--u) * 28);
-  height: calc(var(--u) * 28);
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   background: linear-gradient(180deg, #f0cf94, #d3a768);
   color: #21160a;
   font-weight: 700;
-  font-size: calc(var(--u) * 12);
+  font-size: 12px;
 }
 .v-landing .account-name {
-  max-width: calc(var(--u) * 160);
+  max-width: 160px;
   overflow: hidden;
   text-overflow: ellipsis;
 }

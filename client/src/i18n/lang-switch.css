@@ -4,6 +4,10 @@
   right: 14px;
   z-index: 40;
   display: flex;
+  box-sizing: border-box;
+  /* розміри фіксовані: поруч у куті стоїть чіп акаунта (landing.css), його положення рахується від цієї ширини (2 * 40 + 2 + 6 + 2) */
+  width: 90px;
+  height: 36px;
   gap: 2px;
   padding: 3px;
   border-radius: 999px;
@@ -12,8 +16,8 @@
   backdrop-filter: blur(6px);
 }
 .lang-switch button {
-  min-width: 34px;
-  padding: 5px 9px;
+  flex: 1;
+  padding: 0;
   border: 0;
   border-radius: 999px;
   background: transparent;
