@@ -17,6 +17,10 @@ const DYNAMIC = [
   'Tarot', 'Dream Journal', 'Astrology', 'AI Assistant', // функції лендінга
   'Save', 'Add dream', // підписи кнопок модалок
   'Conjunction', 'Sextile', 'Square', 'Trine', 'Opposition', // типи аспектів у діалозі натальної карти (ASPECT_LABELS)
+  'Today', 'Week', 'Month', // вкладки прогнозу (TABS у Forecast.jsx)
+  'Harmonious', 'Tense', 'Mixed', // оцінка сумісності (effectOf у CompatibilityDialog.jsx)
+  // перший аргумент t() розбирається по ", {", а в цьому тексті власні «, {x}», тож літерал у коді не видно
+  'Based on all {n} aspects between your charts: {h} harmonious, {x} tense.',
 ]
 // однакові в усіх мовах: окремого перекладу не потребують
 const SAME = new Set(['MYSTIQ', 'DD/MM/YYYY', 'MM/DD/YYYY', 'YYYY-MM-DD', 'LOSTIQ', '$0', '$9.99', '$19.99', 'Pro', 'Premium'])

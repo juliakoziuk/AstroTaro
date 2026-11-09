@@ -42,7 +42,6 @@ export default {
   Help: 'Допомога',
   Back: 'Назад',
   Navigation: 'Навігація',
-  'Toggle theme': 'Перемкнути тему',
   'All screens (G)': 'Усі екрани (G)',
   'All screens': 'Усі екрани',
   Screens: 'Екрани',
@@ -380,7 +379,6 @@ export default {
   'Reveal my reading': 'Показати розклад',
   'Shuffling the deck…': 'Тасую колоду…',
   // екран «Reading history» і розклад «Так/Ні»
-  'History': 'Історія',
   'Reading history': 'Історія розкладів',
   '{n} readings': 'Розкладів: {n}',
   'All readings': 'Усі розклади',
@@ -390,7 +388,6 @@ export default {
   'No': 'Ні',
   'Not yet': 'Ще не час',
   'Yes, delete': 'Так, видалити',
-  'Cancel': 'Скасувати',
   'Remove from saved': 'Прибрати зі збережених',
   'Save reading': 'Зберегти розклад',
   'Delete reading': 'Видалити розклад',

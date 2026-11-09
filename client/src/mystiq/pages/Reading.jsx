@@ -1,6 +1,6 @@
 import { useMystiq } from '../storeCore.js'
 import { cardById, SPREADS } from '../tarotData.js'
-import { composeReading } from './TarotStudio.jsx'
+import { composeReading } from './composeReading.js'
 import TarotCard from '../TarotCard.jsx'
 import { PageHead } from '../ui.jsx'
 import { go } from '../useHashRoute.js'

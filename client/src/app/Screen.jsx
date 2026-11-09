@@ -81,7 +81,7 @@ function Text({ t }) {
     }
     fit()
     document.fonts?.ready.then(fit) // шрифт міг завантажитись пізніше
-  }, [t.s, t.fs, t.maxw])
+  }, [t.s, t.fs, t.maxw, t.g])
   return (
     <Tag
       ref={ref}

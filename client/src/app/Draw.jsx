@@ -63,7 +63,7 @@ function Blank() {
 
 export default function Draw() {
   const lang = useLang()
-  const setup = useMemo(readSetup, [])
+  const setup = useMemo(() => readSetup(), [])
   const [spread, setSpread] = useState(null)
   const [names, setNames] = useState([])
   const [mode, setMode] = useState('deck') // 'deck' — тягнути з колоди, 'own' — ввести карти зі своєї колоди

@@ -25,9 +25,8 @@ export function wrap(text, max, lines) {
  */
 export function balancedWrap(text, lines, cap = Infinity) {
   const s = String(text)
-  let rows = wrap(s, Math.max(1, s.length), 1)
   for (let n = 1; n <= lines; n++) {
-    rows = wrap(s, Math.ceil(s.length / n) + 6, 99) // +6: слова не різатимемо, тож лишаємо запас
+    const rows = wrap(s, Math.ceil(s.length / n) + 6, 99) // +6: слова не різатимемо, тож лишаємо запас
     if (rows.length <= n && Math.max(...rows.map((r) => r.length)) <= cap) return rows
   }
   return wrap(s, Math.ceil(s.length / lines) + 6, lines)
