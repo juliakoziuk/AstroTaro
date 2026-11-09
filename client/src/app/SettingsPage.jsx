@@ -6,11 +6,12 @@ import { go, navProps } from './router.js'
 import { SettingsPanel } from './live/settings-panel.jsx'
 import NavLinks from './NavLinks.jsx'
 import ThemeToggle from './ThemeToggle.jsx'
-import { AccessIcon, HelpIcon, SettingsIcon, MoonIcon, SunIcon, FeatherIcon, LayersIcon } from './icons.jsx'
+import { AccessIcon, HelpIcon, SettingsIcon, MoonIcon, SunIcon, FeatherIcon, LayersIcon, SparkleIcon } from './icons.jsx'
 import scene from './art/draw-scene.webp'
 import './settings-page.css'
 
-const TABS = [['General', SettingsIcon], ['Notifications', SunIcon], ['Appearance', MoonIcon], ['Language', FeatherIcon], ['Privacy & Security', AccessIcon], ['Data & Storage', LayersIcon], ['About', HelpIcon]]
+const TABS = [['General', SettingsIcon], ['Notifications', SunIcon], ['Appearance', MoonIcon], ['Language', FeatherIcon], ['Privacy & Security', AccessIcon], ['Data & Storage', LayersIcon], ['Billing', SparkleIcon], ['About', HelpIcon]]
+const ABOUT_TAB = TABS.findIndex(([label]) => label === 'About') // «Допомога» в меню відкриває «About», а не номер, що колись зсунеться
 
 export default function SettingsPage() {
   const lang = useLang()
@@ -41,7 +42,7 @@ export default function SettingsPage() {
   return <div className="v-app settings-page" style={{ '--settings-scene': `url(${scene})` }}>
     <aside className="settings-sidebar">
       <a {...navProps('/dashboard')} className="settings-brand"><span aria-hidden="true">☾</span>MYSTIQ</a>
-      <NavLinks activeClass="active" onHelp={() => setTab(6)} />
+      <NavLinks activeClass="active" onHelp={() => setTab(ABOUT_TAB)} />
       <ThemeToggle className="settings-theme-toggle" onChange={chooseTheme} disabled={saving || !data} />
     </aside>
     <main className="settings-main">

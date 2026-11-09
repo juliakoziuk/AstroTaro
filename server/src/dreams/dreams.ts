@@ -1,3 +1,4 @@
+import { UsageModule, UsageService } from '../plans/usage'
 import { Body, Controller, Delete, Get, HttpCode, Injectable, Module, Param, ParseUUIDPipe, Patch, Post, Query, Res, UseGuards } from '@nestjs/common'
 import { Response } from 'express'
 import { Op } from 'sequelize'
@@ -55,7 +56,7 @@ export class DreamsService extends OwnedService<Dream> {
 @UseGuards(JwtAuthGuard)
 @Controller('dreams')
 export class DreamsController {
-  constructor(private s: DreamsService) {}
+  constructor(private s: DreamsService, private usage: UsageService, @InjectModel(Dream) private dreams: typeof Dream) {}
 
   @ApiOperation({
     summary: 'Список записів користувача',
@@ -85,7 +86,7 @@ export class DreamsController {
   }
 
   @ApiOperation({ summary: 'Створити запис' }) @ApiCreatedResponse({ type: Dream })
-  @Post() async create(@CurrentUser() u, @Body() dto: CreateDreamDto) { return this.s.present(await this.s.create(u.id, { ...dto })) }
+  @Post() async create(@CurrentUser() u, @Body() dto: CreateDreamDto) { return this.s.present(await this.usage.accept(u.id, 'dream', 'quick', (transaction) => this.dreams.create({ ...dto, userId: u.id } as any, { transaction }))) }
   @ApiOperation({ summary: 'Один запис за id' }) @ApiOkResponse({ type: Dream }) @ApiOwnedNotFound()
   @Get(':id') async get(@CurrentUser() u, @Param('id', ParseUUIDPipe) id: string) { return this.s.present(await this.s.get(u.id, id)) }
   @ApiOperation({ summary: 'Змінити запис (лише передані поля)' }) @ApiOkResponse({ type: Dream }) @ApiOwnedNotFound()
@@ -95,7 +96,7 @@ export class DreamsController {
 }
 
 @Module({
-  imports: [SequelizeModule.forFeature([Dream])],
+  imports: [UsageModule, SequelizeModule.forFeature([Dream])],
   controllers: [DreamsController],
   providers: [DreamsService],
 })

@@ -1,3 +1,4 @@
+import { UsageModule, UsageService } from '../plans/usage'
 import { Body, Controller, ForbiddenException, Get, Logger, Module, Post, UseGuards } from '@nestjs/common'
 import { InjectModel, SequelizeModule } from '@nestjs/sequelize'
 import { ApiCreatedResponse, ApiForbiddenResponse, ApiOkResponse, ApiOperation, ApiProperty, ApiTags } from '@nestjs/swagger'
@@ -40,6 +41,7 @@ export class CompanionController {
   private log = new Logger('Companion')
 
   constructor(
+    private usage: UsageService,
     @InjectModel(Message) private messages: typeof Message,
     @InjectModel(User) private users: typeof User,
     @InjectModel(Dream) private dreams: typeof Dream,
@@ -92,6 +94,7 @@ export class CompanionController {
     const user = await this.users.findByPk(u.id)
     const settings = withDefaults(user.settings)
     if (!settings.companion) throw new ForbiddenException(msg(currentLocale(), 'companionOff'))
+    await this.usage.accept(u.id, 'ai_message')
     const persist = settings.autosave
     const sentValues = { userId: u.id, persona: dto.persona, role: 'user', text: dto.text }
     const sent = persist ? await this.messages.create(sentValues as any) : { ...sentValues, id: randomUUID(), createdAt: new Date() }
@@ -115,5 +118,5 @@ export class CompanionController {
   }
 }
 
-@Module({ imports: [SequelizeModule.forFeature([Message, User, Dream, Spread, JournalEntry])], controllers: [CompanionController] })
+@Module({ imports: [UsageModule, SequelizeModule.forFeature([Message, User, Dream, Spread, JournalEntry])], controllers: [CompanionController] })
 export class CompanionModule {}

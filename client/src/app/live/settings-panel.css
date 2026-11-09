@@ -35,3 +35,31 @@
 .v-app .settings-about h3 { margin: 0; letter-spacing: .1em; font: calc(var(--u) * 32) Georgia, serif; }
 .v-app .settings-about p { margin: calc(var(--u) * 10) 0; color: #b9c2cd; }
 @media (prefers-reduced-motion: reduce) { .v-app .settings-switch i { transition: none; } }
+
+/* вкладка Billing (BillingPanel.jsx) */
+.v-app .billing { display: grid; gap: calc(var(--u) * 14); }
+.v-app .billing .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.v-app .billing-card { position: relative; display: grid; gap: calc(var(--u) * 6); padding: calc(var(--u) * 20) calc(var(--u) * 24); border: 1px solid #d6aa6873; border-radius: calc(var(--u) * 20); background: #0f2236; }
+.v-app .billing-card h3 { margin: 0; font: 600 calc(var(--u) * 34) 'Crimson Text', Georgia, serif; color: #f3e4bf; }
+.v-app .billing-price, .v-app .billing-line { margin: 0; color: #b9c2cd; font-size: calc(var(--u) * 19); }
+.v-app .billing-badge { position: absolute; top: calc(var(--u) * 20); right: calc(var(--u) * 24); padding: calc(var(--u) * 5) calc(var(--u) * 14); border-radius: 999px; font-size: calc(var(--u) * 16); font-weight: 600; border: 1px solid currentColor; }
+.v-app .billing-badge.free { color: #b9c2cd; }
+.v-app .billing-badge.active { color: #a8dca0; }
+.v-app .billing-badge.ending { color: #f0c47c; }
+.v-app .billing-badge.problem { color: #ff9c8f; }
+.v-app .billing-badge.demo { color: #9fc4ff; }
+.v-app .billing-warning { padding: calc(var(--u) * 14) calc(var(--u) * 18); border: 1px solid #a86450; border-radius: calc(var(--u) * 16); background: #2a1612; color: #ffd1c6; }
+.v-app .billing-warning p { margin: 0; }
+.v-app .billing-title { margin: calc(var(--u) * 12) 0 0; font: 600 calc(var(--u) * 26) 'Crimson Text', Georgia, serif; color: #f3e4bf; }
+.v-app .billing-meter { display: grid; gap: calc(var(--u) * 6); }
+.v-app .billing-meter-head { display: flex; justify-content: space-between; gap: calc(var(--u) * 12); color: #d9d6cd; font-size: calc(var(--u) * 19); }
+.v-app .billing-bar { height: calc(var(--u) * 12); border-radius: 999px; background: #1b2e44; overflow: hidden; }
+.v-app .billing-bar i { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, #bc8643, #e9bc71); }
+.v-app .billing-meter.full .billing-bar i { background: linear-gradient(90deg, #c0563f, #ff9c8f); }
+.v-app .billing-meter small { color: #9aa6b4; font-size: calc(var(--u) * 15); }
+.v-app .billing-hint { margin: 0; color: #ffb9a8; font-size: calc(var(--u) * 16); }
+.v-app .billing-includes { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(calc(var(--u) * 260), 1fr)); gap: calc(var(--u) * 8) calc(var(--u) * 18); }
+.v-app .billing-includes li { display: flex; gap: calc(var(--u) * 10); color: #d9d6cd; font-size: calc(var(--u) * 18); }
+.v-app .billing-includes li.no { color: #7f8b99; text-decoration: line-through; text-decoration-color: #4f5d6d; }
+.v-app .billing-includes li.yes span[aria-hidden] { color: #a8dca0; }
+.v-app .billing-actions { display: flex; flex-wrap: wrap; gap: calc(var(--u) * 12); margin-top: calc(var(--u) * 8); }

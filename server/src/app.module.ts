@@ -1,3 +1,4 @@
+import { UsageEvent } from './plans/usage.model'
 import { Module } from '@nestjs/common'
 import { ConfigModule, ConfigService } from '@nestjs/config'
 import { SequelizeModule } from '@nestjs/sequelize'
@@ -34,7 +35,7 @@ import { User } from './users/user.model'
         username: cfg.get('DB_USER'),
         password: cfg.get('DB_PASS'),
         database: cfg.get('DB_NAME'),
-        models: [User, Dream, JournalEntry, Spread, Message, Report],
+        models: [User, Dream, JournalEntry, Spread, Message, Report, UsageEvent],
         // Схема в продакшені змінюється лише міграціями (npm run migrate). Автосинхронізація з моделей, що додає
         // колонки й змінює таблиці, вмикається явно для локальної розробки: DB_SYNC=true у .env.
         autoLoadModels: true, // реєструє моделі з forFeature; саму схему це не змінює

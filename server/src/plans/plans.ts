@@ -1,3 +1,4 @@
+import { limitsOf } from './limits'
 import { Body, Controller, ForbiddenException, Get, Module, Post, UseGuards } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { InjectModel, SequelizeModule } from '@nestjs/sequelize'
@@ -21,20 +22,20 @@ const at = (t: T2, l: Locale) => t[LOCALES.indexOf(l)]
 const PLAN_TEXT: { id: PlanId; price: number; name: T2; tagline: T2; features: T2[]; cta: T2 }[] = [
   {
     id: 'free', price: 0, name: ['Free', 'Безкоштовний'], tagline: ['Basic access', 'Базовий доступ'], cta: ['Get Started', 'Почати'],
-    features: [['Limited readings', 'Обмежена кількість розкладів'], ['Basic insights', 'Базові інсайти'], ['Daily tarot card', 'Щоденна карта таро']],
+    features: [["5 readings a month · Quick readings","5 розкладів на місяць · Швидкі розклади"],["10 dreams","10 снів"],["10 AI messages a day","10 повідомлень ШІ на день"]],
   },
   {
     id: 'pro', price: 5, name: ['Pro', 'Pro'], tagline: ['Most popular', 'Найпопулярніший'], cta: ['Upgrade', 'Оновити'],
-    features: [['Unlimited readings', 'Необмежені розклади'], ['Full astrology', 'Повна астрологія'], ['Dream analysis', 'Аналіз снів'], ['AI Companion', 'AI-компаньйон']],
+    features: [["Unlimited readings and dreams","Необмежені розклади та сни"],["50 AI messages a day","50 повідомлень ШІ на день"],["Detailed readings","Детальні розклади"],["Full astrology: forecast, compatibility, reports","Повна астрологія: прогноз, сумісність, звіти"]],
   },
   {
     id: 'premium', price: 10, name: ['Premium', 'Premium'], tagline: ['For deep explorers', 'Для глибоких дослідників'], cta: ['Choose', 'Обрати'],
-    features: [['Everything in Pro', 'Усе з Pro'], ['Priority access', 'Пріоритетний доступ'], ['Advanced reports', 'Розширені звіти'], ['Early features', 'Ранній доступ до новинок']],
+    features: [["Everything in Pro","Усе з Pro"],["200 AI messages a day","200 повідомлень ШІ на день"],["Depth readings","Глибинні розклади"],["Unlimited readings and dreams","Необмежені розклади та сни"]],
   },
 ]
 
 export const plans = (locale: Locale) =>
-  PLAN_TEXT.map((p) => ({ id: p.id, price: p.price, name: at(p.name, locale), tagline: at(p.tagline, locale), features: p.features.map((f) => at(f, locale)), cta: at(p.cta, locale) }))
+  PLAN_TEXT.map((p) => ({ id: p.id, price: p.price, limits: limitsOf(p.id), name: at(p.name, locale), tagline: at(p.tagline, locale), features: p.features.map((f) => at(f, locale)), cta: at(p.cta, locale) }))
 
 /** Без підключеної оплати платний тариф не можна вмикати самому: безкоштовний — завжди, платні — лише в демо-режимі. */
 export const canChoosePlan = (plan: PlanId, demoBilling: boolean) => plan === 'free' || demoBilling

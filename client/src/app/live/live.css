@@ -382,3 +382,9 @@
 }
 .v-app .manage button:disabled { opacity: 0.6; cursor: default; }
 .v-app .manage button:focus-visible { outline: calc(var(--u) * 2) solid #fff; outline-offset: calc(var(--u) * 2); }
+
+/* тарифи: плашка «Ваш тариф» на кнопці поточного тарифу (pricing.Over у simple.jsx) */
+.v-app .yourplan {
+  display: grid; place-items: center; box-sizing: border-box; background: #0d2034; color: #f3e4bf; border: calc(var(--u) * 2) solid #d9ac63;
+  font: 600 calc(var(--u) * 24) 'Source Sans 3', 'Segoe UI', sans-serif; letter-spacing: 0.02em;
+}

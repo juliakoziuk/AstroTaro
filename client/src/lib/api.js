@@ -30,7 +30,14 @@ export async function api(method, path, body) {
     signOut()
     onUnauthorized()
   }
-  if (!res.ok) throw new Error([].concat(data?.message ?? 'Щось пішло не так').join(', '))
+  if (!res.ok) {
+    // код (наприклад PLAN_LIMIT) і тіло відповіді лишаються на помилці: екран може запропонувати тарифи, а не лише показати текст
+    const error = new Error([].concat(data?.message ?? 'Щось пішло не так').join(', '))
+    error.status = res.status
+    error.code = data?.code
+    error.data = data
+    throw error
+  }
   return data
 }
 

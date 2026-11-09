@@ -1,3 +1,4 @@
+import { UsageModule, UsageService } from '../plans/usage'
 import { BadRequestException, Body, Controller, Delete, Get, HttpCode, HttpException, HttpStatus, Injectable, Module, NotFoundException, Param, ParseUUIDPipe, Patch, Post, Query, Req, Res, UseGuards } from '@nestjs/common'
 import { InjectModel, SequelizeModule } from '@nestjs/sequelize'
 import { Type } from 'class-transformer'
@@ -48,7 +49,7 @@ export class SpreadsService extends OwnedService<Spread> {
 @UseGuards(JwtAuthGuard)
 @Controller('spreads')
 export class SpreadsController {
-  constructor(private s: SpreadsService) {}
+  constructor(private s: SpreadsService, private usage: UsageService) {}
 
   @ApiOperation({ summary: 'Список записів користувача' }) @ApiOkResponse({ type: [Spread] })
   @ApiQuery({ name: 'saved', required: false, description: 'true — лише збережені розклади' })
@@ -62,6 +63,7 @@ export class SpreadsController {
     } catch {
       throw new BadRequestException(msg(currentLocale(), 'badCards'))
     }
+    await this.usage.accept(u.id, 'reading', dto.mode ?? 'quick')
     const row = await this.s.create(u.id, { ...dto, cards })
     await attachNarrative(row, currentLocale())
     return presentSpread(row, currentLocale())
@@ -116,7 +118,7 @@ export class SharedController {
 }
 
 @Module({
-  imports: [SequelizeModule.forFeature([Spread])],
+  imports: [UsageModule, SequelizeModule.forFeature([Spread])],
   controllers: [SpreadsController, SharedController],
   providers: [SpreadsService],
 })

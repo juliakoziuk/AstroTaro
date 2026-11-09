@@ -1,3 +1,4 @@
+import { UsageModule, UsageService } from '../plans/usage'
 import { BadRequestException, Body, Controller, Get, Module, Post, UseGuards } from '@nestjs/common'
 import { InjectModel, SequelizeModule } from '@nestjs/sequelize'
 import { ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiProperty, ApiPropertyOptional, ApiTags } from '@nestjs/swagger'
@@ -22,7 +23,7 @@ class PickedCardDto {
 export class DrawDto {
   @ApiProperty({ enum: SPREAD_IDS, example: 'three' }) @IsIn(SPREAD_IDS) spreadId: string
   @ApiProperty({ enum: DECKS, example: 'Classic Tarot' }) @IsIn(DECKS) deck: string
-  @ApiProperty({ enum: MODES, example: 'quick' }) @IsIn(MODES as unknown as string[]) mode: Mode
+  @ApiProperty({ enum: MODES, example: 'quick' }) @IsOptional() @IsIn(MODES as unknown as string[]) mode: Mode = 'quick'
   @ApiPropertyOptional({ maxLength: 500 }) @IsOptional() @IsString() @MaxLength(500) question?: string
   @ApiPropertyOptional({ type: [PickedCardDto], description: 'Карти, які людина витягнула сама: по одній різній на кожну позицію. Без цього поля карти обирає сервер.' })
   @IsOptional() @IsArray() @ArrayMaxSize(12) @ValidateNested({ each: true }) @Type(() => PickedCardDto) cards?: PickedCardDto[]
@@ -31,7 +32,7 @@ export class DrawDto {
 @ApiTags('tarot')
 @Controller('tarot')
 export class TarotController {
-  constructor(@InjectModel(Spread) private spreads: typeof Spread, @InjectModel(User) private users: typeof User) {}
+  constructor(@InjectModel(Spread) private spreads: typeof Spread, @InjectModel(User) private users: typeof User, private usage: UsageService) {}
 
   @ApiOperation({ summary: 'Типи розкладів і назви позицій (публічно)' })
   @ApiOkResponse({ description: '[{ id, name, positions[] }]' })
@@ -70,6 +71,7 @@ export class TarotController {
       throw new BadRequestException(msg(currentLocale(), 'badCards'))
     }
     const user = await this.users.findByPk(u.id)
+    await this.usage.accept(u.id, 'reading', dto.mode ?? 'quick')
     const persist = user.settings?.autosave !== false
     const values = {
       userId: u.id,
@@ -85,5 +87,5 @@ export class TarotController {
   }
 }
 
-@Module({ imports: [SequelizeModule.forFeature([Spread, User])], controllers: [TarotController] })
+@Module({ imports: [UsageModule, SequelizeModule.forFeature([Spread, User])], controllers: [TarotController] })
 export class TarotModule {}

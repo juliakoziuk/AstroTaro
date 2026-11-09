@@ -18,6 +18,8 @@ const DYNAMIC = [
   'Save', 'Add dream', // підписи кнопок модалок
   'Conjunction', 'Sextile', 'Square', 'Trine', 'Opposition', // типи аспектів у діалозі натальної карти (ASPECT_LABELS)
   'Today', 'Week', 'Month', // вкладки прогнозу (TABS у Forecast.jsx)
+  'Billing', 'Free', 'Pro', 'Premium', // вкладка й назви тарифів (BillingPanel.jsx, settings-panel.jsx)
+  'Quick readings', 'Detailed readings', 'Depth readings', 'Forecast for today', 'Forecast for the week', 'Forecast for the month', // MODE_NAMES і RANGE_NAMES у BillingPanel.jsx
   'Harmonious', 'Tense', 'Mixed', // оцінка сумісності (effectOf у CompatibilityDialog.jsx)
   // перший аргумент t() розбирається по ", {", а в цьому тексті власні «, {x}», тож літерал у коді не видно
   'Based on all {n} aspects between your charts: {h} harmonious, {x} tense.',

@@ -3,9 +3,10 @@ import { del, get, patch, post } from '../../lib/api.js'
 import { logOut } from './common.js'
 import { LANGS, langFromSetting, setLang, t } from '../../i18n/index.js'
 import { setTheme, themeFromSetting } from '../../lib/theme.js'
+import { BillingPanel } from './BillingPanel.jsx'
 import './settings-panel.css'
 
-const TABS = ['General', 'Notifications', 'Appearance', 'Language', 'Privacy & Security', 'Data & Storage', 'About']
+const TABS = ['General', 'Notifications', 'Appearance', 'Language', 'Privacy & Security', 'Data & Storage', 'Billing', 'About']
 
 function Switch({ label, hint, checked, disabled, onChange }) {
   return <div className="settings-row"><div><h3>{label}</h3>{hint && <p>{hint}</p>}</div><button type="button" className="settings-switch" role="switch" aria-label={label} aria-checked={!!checked} disabled={disabled} onClick={() => onChange(!checked)}><i /></button></div>
@@ -100,7 +101,8 @@ export function SettingsPanel({ ctx, tab }) {
         <p className="settings-note">{t('Exports include your profile, preferences, dreams, journal, readings, reports and conversations. Keep the file private.')}</p>
         {confirm && <div className="settings-confirm" role="alertdialog" aria-label={t('Confirm action')}><p>{confirm === 'chats' ? t('Delete all saved conversations? This cannot be undone.') : confirm === 'reset' ? t('Reset appearance, language and general preferences? Your records and AI permissions will be kept.') : t('Clear temporary selections and drafts in this tab? Your account records will be kept.')}</p><button type="button" disabled={busy} onClick={() => setConfirm(null)}>{t('Cancel')}</button><button type="button" disabled={busy} onClick={confirmAction}>{t('Confirm action')}</button></div>}
       </>}
-      {tab === 6 && <>
+      {tab === 6 && <BillingPanel ctx={ctx} />}
+      {tab === 7 && <>
         <div className="settings-about"><span aria-hidden="true">☾</span><h3>MYSTIQ</h3><p>{t('Your personal space for insight and balance')}</p></div>
         <p>{t('Tarot, dream journaling, astrology and an AI Companion in one space.')}</p>
         <p className="settings-note">{t('AI interpretations are for reflection and may be inaccurate.')}</p>

@@ -81,3 +81,52 @@ describe('manage subscription', () => {
     expect(calls.map((c) => c.key)).toEqual(['POST /billing/portal'])
   })
 })
+
+describe('pricing reflects the state of the subscription', () => {
+  const withState = (extra) => ({ data: { plans: PLANS, current: 'free', subscribed: false, ...extra }, go: vi.fn(), say: vi.fn() })
+
+  test('the button of the current plan only says so: no checkout, no plan change', async () => {
+    setToken('tok')
+    const calls = mockApi({})
+    const c = withState({ current: 'pro' })
+    await pricing.actions.Upgrade(c)
+    expect(c.say).toHaveBeenCalledWith('This is your current plan.')
+    expect(calls).toHaveLength(0)
+    expect(c.go).not.toHaveBeenCalled()
+  })
+
+  test('a free user pressing Free is told it is the current plan', async () => {
+    setToken('tok')
+    const calls = mockApi({})
+    const c = withState({ current: 'free' })
+    await pricing.actions['Get Started'](c)
+    expect(c.say).toHaveBeenCalledWith('This is your current plan.')
+    expect(calls).toHaveLength(0)
+  })
+
+  test('a subscriber changing to another plan or to Free goes to the portal, never to checkout', async () => {
+    setToken('tok')
+    for (const label of ['Choose', 'Get Started']) {
+      const calls = mockApi({ 'POST /billing/portal': [201, { url: 'about:blank#portal' }] })
+      await pricing.actions[label](withState({ current: 'pro', subscribed: true }))
+      expect(calls.map((x) => x.key)).toEqual(['POST /billing/portal'])
+    }
+  })
+
+  test('a free user keeps the normal paths: checkout for a paid plan', async () => {
+    setToken('tok')
+    const calls = mockApi({ 'POST /billing/checkout': [201, { url: 'about:blank#pay' }] })
+    await pricing.actions.Choose(withState({ current: 'free' }))
+    expect(calls.map((x) => x.key)).toEqual(['POST /billing/checkout'])
+    expect(calls[0].body).toEqual({ plan: 'premium' })
+  })
+
+  test('the badge "Your plan" covers the button of the current plan only', async () => {
+    const { render, screen } = await import('@testing-library/react')
+    const first = render(pricing.Over({ ctx: withState({ current: 'pro' }) }))
+    expect(screen.getAllByText('Your plan')).toHaveLength(1)
+    first.unmount()
+    const guest = render(pricing.Over({ ctx: withState({ current: null }) }))
+    expect(guest.container.textContent).toBe('')
+  })
+})

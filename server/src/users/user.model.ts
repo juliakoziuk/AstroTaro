@@ -72,6 +72,10 @@ export class User extends Model {
   @Column({ type: DataType.DATE })
   declare billingEventAt: Date | null
 
+  @Column({ type: DataType.STRING(32) }) declare subscriptionStatus: string | null
+  @Column({ type: DataType.BOOLEAN, allowNull: false, defaultValue: false }) declare cancelAtPeriodEnd: boolean
+  @Column({ type: DataType.DATE }) declare currentPeriodEnd: Date | null
+
   @Column({ type: DataType.STRING, allowNull: false, defaultValue: 'free' })
   declare plan: string
 

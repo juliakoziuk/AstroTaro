@@ -59,6 +59,12 @@ const PLAN_TEXTS = [
 const CTA = { 'Get Started': 0, Upgrade: 1, Choose: 2 }
 
 const MANAGE = [602, 850, 330, 52, 26] // під картками тарифів, по центру
+// кнопки тарифів на плиті (як у hits макета): поточний тариф закриваємо плашкою «Ваш тариф» точно по кнопці
+const CTA_RECTS = [
+  [504, 735, 234, 54, 27],
+  [803, 734, 238, 56, 28],
+  [1107, 735, 225, 54, 27],
+]
 
 async function openPortal() {
   const { url } = await post('/billing/portal')
@@ -93,7 +99,8 @@ export const pricing = {
     if (hashParam('checkout') === 'success') confirmPayment()
     if (hashParam('checkout') === 'cancelled') say(t('Payment was cancelled. Nothing was charged.'))
     if (hashParam('checkout')) window.history.replaceState(window.history.state, '', '#/pricing') // щоб оновлення сторінки не повторювало
-    const subscribed = getToken() ? await get('/profile').then((p) => !!p.subscribed, () => false) : false
+    const billing = getToken() ? await get('/billing').catch(() => null) : null
+    const subscribed = !!billing?.options?.canManage // підписка, якою керують лише в порталі Stripe
     const values = {}
     plans.forEach((p, i) => {
       values[`p${i}.name`] = p.name
@@ -101,15 +108,20 @@ export const pricing = {
       values[`p${i}.price`] = `$${p.price}`
       p.features.forEach((f, j) => (values[`p${i}.f${j}`] = f))
     })
-    return { values, data: { plans, subscribed } }
+    return { values, data: { plans, subscribed, current: billing?.plan ?? null } }
   },
   Over({ ctx }) {
-    // підписку змінюють чи скасовують у порталі Stripe: звичайний запит тарифу її не змінює
-    if (!ctx.data?.subscribed) return null
+    const index = ctx.data?.plans?.findIndex((p) => p.id === ctx.data.current) ?? -1
     return (
-      <Ov at={MANAGE} className="manage">
-        <button type="button" onClick={() => ctx.run(openPortal)}>{t('Manage subscription')}</button>
-      </Ov>
+      <>
+        {index >= 0 && <Ov at={CTA_RECTS[index]} className="yourplan ov-none">{t('Your plan')}</Ov>}
+        {/* підписку змінюють чи скасовують у порталі Stripe: звичайний запит тарифу її не змінює */}
+        {ctx.data?.subscribed && (
+          <Ov at={MANAGE} className="manage">
+            <button type="button" onClick={() => ctx.run(openPortal)}>{t('Manage subscription')}</button>
+          </Ov>
+        )}
+      </>
     )
   },
   actions: Object.fromEntries(
@@ -119,6 +131,9 @@ export const pricing = {
           if (!getToken()) return ctx.go('/register')
           const plan = ctx.data?.plans[i]
           if (!plan) throw new Error(t('Data is still loading'))
+          if (plan.id === ctx.data.current) return ctx.say(t('This is your current plan.'))
+          // з активною підпискою змінити чи скасувати тариф можна лише в порталі Stripe (checkout відповів би 409)
+          if (ctx.data.subscribed) return openPortal()
           if (plan.price > 0) {
             // платний тариф: сервер створює сесію оплати Stripe й повертає адресу; тариф вмикається вебхуком після оплати.
             // Без підключеної оплати в демо-режимі сервер вмикає тариф одразу й адреси не дає.
@@ -163,19 +178,24 @@ const SPREAD_NAMES = ['Daily Card', 'Three Cards', 'Relationship', 'Career', 'Li
 // Карти не обирає сервер: розклад, колода й режим запам'ятовуються, а людина сама тягне карти на екрані /draw
 function startReading(ctx, spreadId) {
   if (!spreadId) throw new Error(t('Data is still loading'))
-  session.set('draw', JSON.stringify({ spreadId, deck: ctx.ui.sel.deck, mode: ctx.ui.radio.mode ?? 'quick' }))
+  const mode = ctx.ui.radio.mode ?? 'quick'
+  // режими поза тарифом не пропускаємо на екран /draw: сервер однаково відмовив би, а тут можна сказати чому й що робити
+  const allowed = ctx.data?.limits?.readingModes
+  if (allowed && !allowed.includes(mode)) throw new Error(mode === 'depth' ? t('Depth readings are included in Premium.') : t('Detailed readings are included in Pro and Premium.'))
+  session.set('draw', JSON.stringify({ spreadId, deck: ctx.ui.sel.deck, mode }))
   ctx.go('/draw')
 }
 
 export const tarot = {
   bind: SPREAD_NAMES.map((find, i) => ({ find, key: `spread${i}` })),
   async load() {
-    const [all, decks] = await Promise.all([get('/tarot/spreads'), get('/tarot/decks')])
+    // ліміти тарифу потрібні лише для підказки про режим; якщо запит не вдався, пускаємо далі й рішення лишається за сервером
+    const [all, decks, billing] = await Promise.all([get('/tarot/spreads'), get('/tarot/decks'), getToken() ? get('/billing').catch(() => null) : null])
     // у плиті шість рядків: «Власний розклад» (Custom) стоїть лише в старих записах історії, на його місці — «Так/Ні»
     const spreads = all.filter((x) => x.id !== 'custom')
     return {
       values: Object.fromEntries(spreads.map((s, i) => [`spread${i}`, s.name])),
-      data: { spreads },
+      data: { spreads, limits: billing?.limits ?? null },
       ui: { options: { deck: decks.decks } },
     }
   },

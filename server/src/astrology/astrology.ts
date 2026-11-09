@@ -1,3 +1,5 @@
+import { limitsOf } from '../plans/limits'
+import { planLimit } from '../plans/usage'
 import { BadRequestException, Body, Controller, ForbiddenException, Get, Module, Post, Query, UseGuards } from '@nestjs/common'
 import { InjectModel, SequelizeModule } from '@nestjs/sequelize'
 import { ApiCreatedResponse, ApiForbiddenResponse, ApiOkResponse, ApiOperation, ApiProperty, ApiPropertyOptional, ApiTags } from '@nestjs/swagger'
@@ -104,6 +106,7 @@ export class AstrologyController {
   async compatibility(@CurrentUser() u: { id: string }, @Body() dto: CompatibilityDto) {
     const user = await this.users.findByPk(u.id)
     const locale = currentLocale()
+    if (!limitsOf(user.plan).compatibility) planLimit(user, 'compatibility')
     const today = new Date().toISOString().slice(0, 10)
     for (const date of [dto.birthDate, dto.firstBirthDate]) {
       if (date && (Number(date.slice(0, 4)) < MIN_BIRTH_YEAR || date > today)) throw new BadRequestException(msg(locale, 'badPartnerBirth'))
@@ -132,7 +135,9 @@ export class AstrologyController {
     if (!birth) throw new ForbiddenException(msg(locale, 'reportNeedsBirth'))
     // день рахуємо від дати, яку надіслав клієнт (його місцевий «сьогодні»), інакше від сьогодні за UTC
     if (date !== undefined && (!DATE_ONLY.test(date) || Number.isNaN(Date.parse(date)))) throw new BadRequestException(msg(locale, 'badDate'))
-    return buildForecast(natalChart(birth).planets, date ?? new Date().toISOString().slice(0, 10), locale)
+    const forecast = buildForecast(natalChart(birth).planets, date ?? new Date().toISOString().slice(0, 10), locale)
+    const locked = (['week', 'month'] as const).filter((range) => !limitsOf(user.plan).forecastRanges.includes(range))
+    return { ...forecast, ...Object.fromEntries(locked.map((range) => [range, null])), locked }
   }
 
   @ApiOperation({ summary: 'Мої астрологічні звіти' })
@@ -148,7 +153,7 @@ export class AstrologyController {
   @Post('reports')
   async create(@CurrentUser() u: { id: string }) {
     const user = await this.users.findByPk(u.id)
-    if (user.plan === 'free') throw new ForbiddenException(msg(currentLocale(), 'reportNeedsPro'))
+    if (!limitsOf(user.plan).fullReports) throw new ForbiddenException(msg(currentLocale(), 'reportNeedsPro'))
     const birth = birthOf(user)
     if (!birth) throw new ForbiddenException(msg(currentLocale(), 'reportNeedsBirth'))
     return this.reports.create({ userId: u.id, ...buildReport(natalChart(birth), currentLocale()) } as any)

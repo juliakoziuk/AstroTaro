@@ -1,4 +1,7 @@
-import { BadRequestException, Body, ConflictException, Controller, ForbiddenException, Headers, HttpCode, Logger, Module, OnModuleInit, Post, RawBodyRequest, Req, ServiceUnavailableException, UseGuards, BadGatewayException } from '@nestjs/common'
+import { UsageModule, UsageService } from '../plans/usage'
+import { limitsOf, planOf, remainingOf, usageWindows } from '../plans/limits'
+import { plans } from '../plans/plans'
+import { BadRequestException, Body, ConflictException, Controller, ForbiddenException, Get, Headers, HttpCode, Logger, Module, OnModuleInit, Post, RawBodyRequest, Req, ServiceUnavailableException, UseGuards, BadGatewayException } from '@nestjs/common'
 import { InjectModel, SequelizeModule } from '@nestjs/sequelize'
 import { ApiBadRequestResponse, ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiProperty, ApiTags } from '@nestjs/swagger'
 import { IsIn } from 'class-validator'
@@ -50,7 +53,23 @@ export class BillingController implements OnModuleInit {
     }
   }
 
-  constructor(@InjectModel(User) private users: typeof User) {}
+  constructor(@InjectModel(User) private users: typeof User, private usage: UsageService) {}
+
+  @Get()
+  @UseGuards(JwtAuthGuard)
+  async details(@CurrentUser() u: { id: string }) {
+    const user = await this.users.findByPk(u.id)
+    const plan = planOf(user.plan), limits = limitsOf(plan), usage = await this.usage.usageOf(u.id)
+    const info = plans(currentLocale()).find((p) => p.id === plan)!
+    const windows = usageWindows()
+    return {
+      plan, planName: info.name, price: info.price, interval: 'month',
+      subscription: user.stripeSubscriptionId ? { status: user.subscriptionStatus, cancelAtPeriodEnd: user.cancelAtPeriodEnd, currentPeriodEnd: user.currentPeriodEnd } : null,
+      limits, usage, remaining: remainingOf(limits, usage),
+      resets: { readings: windows.readings.toISOString(), aiMessages: windows.aiMessages.toISOString() },
+      options: { canUpgradeTo: plan === 'free' ? ['pro', 'premium'] : plan === 'pro' ? ['premium'] : [], canManage: !!(user.stripeCustomerId && user.stripeSubscriptionId), needsPaymentFix: ['past_due', 'unpaid'].includes(user.subscriptionStatus ?? '') },
+    }
+  }
 
   private priceOf(cfg: StripeConfig, plan: PaidPlan) {
     return cfg.prices[plan]
@@ -179,20 +198,21 @@ export class BillingController implements OnModuleInit {
           this.log.error(`DUPLICATE subscription for user=${id}: ${obj.subscription} was paid while ${user.stripeSubscriptionId} is active. Kept the active one; cancel and refund ${obj.subscription} in Stripe`)
           return
         }
-        await user.update({ plan, stripeCustomerId: obj.customer ?? null, stripeSubscriptionId: obj.subscription ?? null, billingEventAt: at })
+        await user.update({ plan, subscriptionStatus: 'active', stripeCustomerId: obj.customer ?? null, stripeSubscriptionId: obj.subscription ?? null, billingEventAt: at })
         this.log.log(`Plan "${plan}" turned on for user=${id} (subscription ${obj.subscription})`)
         return
       }
       case 'customer.subscription.deleted':
         await this.endSubscription(String(obj.id ?? ''), at, notNewer)
         return
+      case 'customer.subscription.created':
       case 'customer.subscription.updated': {
         const id = String(obj.id ?? '')
         if (ENDED.includes(obj.status)) return this.endSubscription(id, at, notNewer)
         const price = obj.items?.data?.[0]?.price?.id
         const plan = PAID.find((p) => cfg.prices[p] && cfg.prices[p] === price)
-        if (plan && obj.status === 'active') {
-          const [changed] = await this.users.update({ plan, billingEventAt: at }, { where: { stripeSubscriptionId: id, ...notNewer } })
+        if (id) {
+          const [changed] = await this.users.update({ ...(plan && obj.status === 'active' ? { plan } : {}), subscriptionStatus: obj.status ?? null, cancelAtPeriodEnd: !!obj.cancel_at_period_end, currentPeriodEnd: typeof (obj.current_period_end ?? obj.items?.data?.[0]?.current_period_end) === 'number' ? new Date((obj.current_period_end ?? obj.items.data[0].current_period_end) * 1000) : null, billingEventAt: at }, { where: { stripeSubscriptionId: id, ...notNewer } })
           this.log.log(changed ? `Subscription ${id} moved to plan "${plan}"` : `customer.subscription.updated: no user has subscription ${id}, or the event is older than the last one applied`)
         }
         return
@@ -203,11 +223,11 @@ export class BillingController implements OnModuleInit {
 
   private async endSubscription(subscriptionId: string, at: Date, notNewer: object) {
     if (!subscriptionId) return
-    const [changed] = await this.users.update({ plan: 'free', stripeSubscriptionId: null, billingEventAt: at }, { where: { stripeSubscriptionId: subscriptionId, ...notNewer } })
+    const [changed] = await this.users.update({ plan: 'free', stripeSubscriptionId: null, subscriptionStatus: null, cancelAtPeriodEnd: false, currentPeriodEnd: null, billingEventAt: at }, { where: { stripeSubscriptionId: subscriptionId, ...notNewer } })
     this.log.log(changed ? `Subscription ${subscriptionId} ended: the plan is back to free` : `Subscription ${subscriptionId} ended: no user has it (or the event is old), nothing changed`)
   }
 }
 
-@Module({ imports: [SequelizeModule.forFeature([User])], controllers: [BillingController] })
+@Module({ imports: [UsageModule, SequelizeModule.forFeature([User])], controllers: [BillingController] })
 export class BillingModule {}
 

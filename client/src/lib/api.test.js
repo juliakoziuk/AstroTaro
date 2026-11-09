@@ -63,3 +63,19 @@ test('a response that is not JSON still produces a message', async () => {
   globalThis.fetch = async () => ({ ok: false, status: 502, json: async () => { throw new SyntaxError('bad') } })
   await rejects(get('/x'), { message: 'Щось пішло не так' })
 })
+
+test('an error keeps the status, the code and the whole body, so a screen can react to a plan limit', async () => {
+  globalThis.fetch = reply(403, { statusCode: 403, code: 'PLAN_LIMIT', limit: 'readingsPerMonth', plan: 'free', message: 'You have used all 5 readings' })
+  await rejects(get('/tarot/readings'), (e) => {
+    strictEqual(e.message, 'You have used all 5 readings')
+    strictEqual(e.status, 403)
+    strictEqual(e.code, 'PLAN_LIMIT')
+    strictEqual(e.data.limit, 'readingsPerMonth')
+    return true
+  })
+})
+
+test('an error without a code has an undefined code', async () => {
+  globalThis.fetch = reply(500, { message: 'boom' })
+  await rejects(get('/x'), (e) => e.code === undefined && e.status === 500)
+})

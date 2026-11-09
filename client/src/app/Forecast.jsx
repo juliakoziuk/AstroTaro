@@ -181,13 +181,19 @@ export default function ForecastCard({ active = false }) {
             {TABS.map(([id, label]) => (
               <button key={id} type="button" role="tab" aria-selected={tab === id} className={tab === id ? 'on' : ''} onClick={() => setTab(id)}>
                 {t(label)}
-                <small>{id === 'today' ? dayLabel(f.date, lang) : `${dayLabel(f[id].from, lang)} – ${dayLabel(f[id].to, lang)}`}</small>
+                <small>{id === 'today' ? dayLabel(f.date, lang) : f[id] ? `${dayLabel(f[id].from, lang)} – ${dayLabel(f[id].to, lang)}` : `🔒 ${t('Pro')}`}</small>
               </button>
             ))}
           </div>
           {tab === 'today' && <Today day={f.day} />}
-          {tab === 'week' && <Period p={f.week} lang={lang} />}
-          {tab === 'month' && <Period p={f.month} lang={lang} long />}
+          {/* на безкоштовному тарифі сервер віддає тиждень і місяць як null (і список locked): замість порожнього екрана — підказка */}
+          {tab !== 'today' && !f[tab] && (
+            <p className="muted">
+              {t('Week and month forecasts are part of the Pro plan.')} <a className="more" {...navProps('/pricing')}>{t('See plans')}</a>
+            </p>
+          )}
+          {tab === 'week' && f.week && <Period p={f.week} lang={lang} />}
+          {tab === 'month' && f.month && <Period p={f.month} lang={lang} long />}
         </>
       )}
     </section>

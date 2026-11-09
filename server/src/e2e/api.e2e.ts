@@ -659,6 +659,48 @@ describe('paid plans through Stripe', () => {
     strictEqual((await h.api('GET', '/profile', { token: w.token })).body.subscribed, false)
   })
 
+  test('subscription details from Stripe are stored: status, cancelling at the period end, renewal date (both field places)', async () => {
+    const w = await h.register('Details')
+    const overview = async () => (await h.api('GET', '/billing', { token: w.token })).body
+    const at = Math.floor(Date.now() / 1000)
+    const stamped = (event: object, created: number) => ({ ...event, created })
+    await hook(stamped(completed(w.id, { subscription: 'sub_det_1', customer: 'cus_det' }), at))
+    let b = await overview()
+    strictEqual(b.subscription.status, 'active', 'a paid checkout means an active subscription')
+    strictEqual(b.options.canManage, true)
+
+    // нові версії API Stripe (2025-06-30.basil) віддають дату поновлення в елементі підписки, старі — в самій підписці
+    const inItem = Math.floor(Date.now() / 1000) + 30 * 86400
+    const created = { type: 'customer.subscription.created', data: { object: { id: 'sub_det_1', status: 'active', cancel_at_period_end: false, items: { data: [{ price: { id: PRICES.pro }, current_period_end: inItem }] } } } }
+    strictEqual(await hook(stamped(created, at + 1)), 200)
+    b = await overview()
+    strictEqual(b.subscription.currentPeriodEnd, new Date(inItem * 1000).toISOString(), 'the date inside items.data[0]')
+    strictEqual(b.subscription.cancelAtPeriodEnd, false)
+
+    const onTop = inItem + 86400
+    const canceling = { type: 'customer.subscription.updated', data: { object: { id: 'sub_det_1', status: 'active', cancel_at_period_end: true, current_period_end: onTop, items: { data: [{ price: { id: PRICES.pro } }] } } } }
+    strictEqual(await hook(stamped(canceling, at + 2)), 200)
+    b = await overview()
+    strictEqual(b.subscription.cancelAtPeriodEnd, true)
+    strictEqual(b.subscription.currentPeriodEnd, new Date(onTop * 1000).toISOString(), 'the date on the subscription itself')
+    strictEqual(b.plan, 'pro', 'still pro until the period ends')
+
+    const late = { type: 'customer.subscription.updated', data: { object: { id: 'sub_det_1', status: 'past_due', cancel_at_period_end: false, current_period_end: onTop, items: { data: [{ price: { id: PRICES.pro } }] } } } }
+    strictEqual(await hook(stamped(late, at + 3)), 200)
+    b = await overview()
+    strictEqual(b.options.needsPaymentFix, true)
+    strictEqual(b.plan, 'pro', 'past_due only warns')
+
+    strictEqual(await hook(stamped({ type: 'customer.subscription.updated', data: { object: { id: 'sub_det_1', status: 'active', cancel_at_period_end: true, current_period_end: onTop, items: { data: [{ price: { id: PRICES.pro } }] } } } }, at + 1)), 200)
+    strictEqual((await overview()).options.needsPaymentFix, true, 'an older event does not undo the newer past_due state')
+
+    strictEqual(await hook(stamped({ type: 'customer.subscription.deleted', data: { object: { id: 'sub_det_1' } } }, at + 4)), 200)
+    b = await overview()
+    strictEqual(b.plan, 'free')
+    strictEqual(b.subscription, null)
+    deepStrictEqual(b.options, { canUpgradeTo: ['pro', 'premium'], canManage: false, needsPaymentFix: false })
+  })
+
   test('a subscription belongs to one user: another user is not affected', async () => {
     strictEqual(await planOf(v), 'free')
     strictEqual(await hook({ type: 'customer.subscription.deleted', data: { object: { id: 'sub_unknown' } } }), 200)
@@ -776,6 +818,194 @@ describe('tarot and companion flows', () => {
     ok(chat.body.reply.text.length > 0)
     await h.api('PATCH', '/settings', { token: u.token, body: { companion: false } })
     strictEqual((await h.api('POST', '/companion/chat', { token: u.token, body: { persona: 'Mystic Guide', text: 'Hello?' } })).status, 403)
+  })
+})
+
+describe('plan limits and the billing overview', () => {
+  type User = Awaited<ReturnType<Harness['register']>>
+  const draw = (u: User, mode = 'quick') => h.api('POST', '/tarot/readings', { token: u.token, body: { spreadId: 'three', deck: 'Classic Tarot', mode } })
+  const cards = [{ id: 0, reversed: false }, { id: 1, reversed: true }, { id: 2, reversed: false }]
+  const dream = (u: User, n: number) => h.api('POST', '/dreams', { token: u.token, body: { title: 'Dream ' + n, text: 'text ' + n } })
+  const chat = (u: User) => h.api('POST', '/companion/chat', { token: u.token, body: { persona: 'Mystic Guide', text: 'What does this week hold?' } })
+  const billing = async (u: User) => (await h.api('GET', '/billing', { token: u.token })).body
+  const withPlan = async (u: User, plan: string) => void (await h.users.update({ plan }, { where: { id: u.id } }))
+  const isLimit = (r: { status: number; body: any }, limit: string) => {
+    strictEqual(r.status, 403, text(r.body))
+    strictEqual(r.body.code, 'PLAN_LIMIT')
+    strictEqual(r.body.limit, limit)
+    ok(typeof r.body.message === 'string' && r.body.message.length > 10, 'a message that says what to do')
+  }
+  // ліміт реєстрацій діє на всю адресу (10 за годину): перед кожним новим користувачем обнуляємо лічильники
+  const fresh = (name: string) => (h.resetLimits(), h.register(name))
+  let free: User, pro: User, premium: User
+  before(async () => {
+    free = await fresh('Free user')
+    pro = await fresh('Pro user')
+    premium = await fresh('Premium user')
+    await withPlan(pro, 'pro')
+    await withPlan(premium, 'premium')
+  })
+
+  test('the public plan list carries the limits', async () => {
+    const list = (await h.api('GET', '/plans')).body
+    strictEqual(list[0].limits.readingsPerMonth, 5)
+    strictEqual(list[1].limits.readingsPerMonth, null)
+    deepStrictEqual(list[2].limits.readingModes, ['quick', 'detailed', 'depth'])
+  })
+
+  test('free: the sixth reading of the month is refused with PLAN_LIMIT, in the request language, and the overview shows it', async () => {
+    const u = await fresh('Reader')
+    for (let i = 1; i <= 5; i++) strictEqual((await draw(u)).status, 201, 'reading ' + i)
+    const sixth = await draw(u)
+    isLimit(sixth, 'readingsPerMonth')
+    ok(/5/.test(sixth.body.message) && /Upgrade to Pro/.test(sixth.body.message), sixth.body.message)
+    const uk = await h.api('POST', '/tarot/readings', { token: u.token, body: { spreadId: 'three', deck: 'Classic Tarot', mode: 'quick' }, lang: 'uk' })
+    ok(/[А-Яа-яІіЇїЄє]/.test(uk.body.message), uk.body.message)
+    const b = await billing(u)
+    strictEqual(b.usage.readingsThisMonth, 5, 'a refused attempt is not counted')
+    strictEqual(b.remaining.readings, 0)
+  })
+
+  test('free: detailed and depth readings are not available, and a refused mode costs nothing', async () => {
+    const u = await fresh('Moods')
+    isLimit(await draw(u, 'detailed'), 'readingMode')
+    isLimit(await draw(u, 'depth'), 'readingMode')
+    strictEqual((await billing(u)).usage.readingsThisMonth, 0)
+    strictEqual((await draw(u, 'quick')).status, 201)
+  })
+
+  test('pro has detailed but not depth; premium has depth; neither has a monthly cap', async () => {
+    strictEqual((await draw(pro, 'detailed')).status, 201)
+    isLimit(await draw(pro, 'depth'), 'readingMode')
+    strictEqual((await draw(premium, 'depth')).status, 201)
+    for (let i = 0; i < 6; i++) strictEqual((await draw(pro)).status, 201, 'pro reading ' + i)
+  })
+
+  test('turning autosave off does not get around the reading limit', async () => {
+    const u = await fresh('No autosave')
+    await h.api('PATCH', '/settings', { token: u.token, body: { autosave: false } })
+    for (let i = 0; i < 5; i++) {
+      const r = await draw(u)
+      strictEqual(r.status, 201)
+      strictEqual(r.body.temporary, true)
+    }
+    isLimit(await draw(u), 'readingsPerMonth')
+  })
+
+  test('POST /spreads counts as a reading too, and a bad request is not counted', async () => {
+    const u = await fresh('Importer')
+    const bad = await h.api('POST', '/spreads', { token: u.token, body: { spreadId: 'three', cards: [{ id: 5, reversed: false }, { id: 5, reversed: false }, { id: 6, reversed: false }] } })
+    strictEqual(bad.status, 400)
+    strictEqual((await billing(u)).usage.readingsThisMonth, 0, 'a request that created nothing used nothing')
+    for (let i = 0; i < 5; i++) strictEqual((await h.api('POST', '/spreads', { token: u.token, body: { spreadId: 'three', cards } })).status, 201)
+    isLimit(await h.api('POST', '/spreads', { token: u.token, body: { spreadId: 'three', cards } }), 'readingsPerMonth')
+    // просмотр, збереження й видалення старих розкладів ліміт не чіпають
+    const list = await h.api('GET', '/spreads', { token: u.token })
+    strictEqual(list.status, 200)
+    strictEqual((await h.api('PATCH', '/spreads/' + list.body[0].id, { token: u.token, body: { saved: true } })).status, 200)
+  })
+
+  test('free: the eleventh dream is refused, deleting one frees a place, pro has no cap', async () => {
+    const u = await fresh('Dreamer')
+    const ids: string[] = []
+    for (let i = 1; i <= 10; i++) {
+      const r = await dream(u, i)
+      strictEqual(r.status, 201)
+      ids.push(r.body.id)
+    }
+    isLimit(await dream(u, 11), 'dreamsTotal')
+    strictEqual((await h.api('DELETE', '/dreams/' + ids[0], { token: u.token })).status, 204)
+    strictEqual((await dream(u, 12)).status, 201)
+    for (let i = 1; i <= 12; i++) strictEqual((await dream(pro, i)).status, 201)
+  })
+
+  test('free: the eleventh AI message of the day is refused', async () => {
+    const u = await fresh('Chatter')
+    for (let i = 1; i <= 10; i++) strictEqual((await chat(u)).status, 201, 'message ' + i)
+    isLimit(await chat(u), 'aiMessagesPerDay')
+    const b = await billing(u)
+    strictEqual(b.usage.aiMessagesToday, 10)
+    strictEqual(b.remaining.aiMessages, 0)
+    strictEqual((await chat(pro)).status, 201)
+  })
+
+  test('compatibility is for pro and premium; the forecast of a free user has no week and month', async () => {
+    for (const u of [free, pro]) await h.api('PATCH', '/profile', { token: u.token, body: { birthDate: '1990-05-05' } })
+    isLimit(await h.api('POST', '/astrology/compatibility', { token: free.token, body: { birthDate: '1992-03-03' } }), 'compatibility')
+    strictEqual((await h.api('POST', '/astrology/compatibility', { token: pro.token, body: { birthDate: '1992-03-03' } })).status, 201)
+
+    const f = (await h.api('GET', '/astrology/forecast?date=2026-06-15', { token: free.token })).body
+    ok(f.day, 'today is included')
+    strictEqual(f.week, null)
+    strictEqual(f.month, null)
+    deepStrictEqual(f.locked, ['week', 'month'])
+    const p = (await h.api('GET', '/astrology/forecast?date=2026-06-15', { token: pro.token })).body
+    ok(p.week && p.month)
+    deepStrictEqual(p.locked, [])
+  })
+
+  test('full reports stay for pro and above', async () => {
+    const r = await h.api('POST', '/astrology/reports', { token: free.token })
+    strictEqual(r.status, 403)
+    strictEqual((await h.api('POST', '/astrology/reports', { token: pro.token })).status, 201)
+  })
+
+  test('the plan always comes from the database, never from the request', async () => {
+    const u = await fresh('Cheater')
+    strictEqual((await h.api('POST', '/tarot/readings', { token: u.token, body: { spreadId: 'three', deck: 'Classic Tarot', mode: 'depth', plan: 'premium' } })).status, 400, 'an unknown field is refused')
+    isLimit(await draw(u, 'depth'), 'readingMode')
+  })
+
+  test('after a downgrade the data stays and only new things are blocked', async () => {
+    const u = await fresh('Downgraded')
+    await withPlan(u, 'pro')
+    for (let i = 1; i <= 12; i++) strictEqual((await dream(u, i)).status, 201)
+    await withPlan(u, 'free')
+    strictEqual((await h.api('GET', '/dreams', { token: u.token })).body.length, 12, 'nothing is hidden or deleted')
+    isLimit(await dream(u, 13), 'dreamsTotal')
+    strictEqual((await h.api('GET', '/profile/export', { token: u.token })).status, 200, 'export stays available')
+  })
+
+  test('GET /billing for a free user', async () => {
+    const u = await fresh('Overview')
+    const b = await billing(u)
+    strictEqual(b.plan, 'free')
+    strictEqual(b.planName, 'Free')
+    strictEqual(b.price, 0)
+    strictEqual(b.subscription, null)
+    strictEqual(b.limits.dreamsTotal, 10)
+    deepStrictEqual(b.usage, { readingsThisMonth: 0, dreamsTotal: 0, aiMessagesToday: 0 })
+    deepStrictEqual(b.remaining, { readings: 5, dreams: 10, aiMessages: 10 })
+    deepStrictEqual(b.options, { canUpgradeTo: ['pro', 'premium'], canManage: false, needsPaymentFix: false })
+    ok(new Date(b.resets.readings).getUTCDate() === 1 && new Date(b.resets.aiMessages).getUTCHours() === 0, 'resets at the start of the next month and day (UTC)')
+    strictEqual((await h.api('GET', '/billing')).status, 401)
+  })
+
+  test('GET /billing for subscribers: active, canceling, payment problem, and a demo-activated paid plan', async () => {
+    const u = await fresh('Subscriber')
+    const end = new Date('2026-12-09T10:00:00.000Z')
+    await h.users.update({ plan: 'pro', stripeCustomerId: 'cus_bill', stripeSubscriptionId: 'sub_bill', subscriptionStatus: 'active', cancelAtPeriodEnd: false, currentPeriodEnd: end }, { where: { id: u.id } })
+    let b = await billing(u)
+    strictEqual(b.plan, 'pro')
+    strictEqual(b.price, 5)
+    deepStrictEqual(b.subscription, { status: 'active', cancelAtPeriodEnd: false, currentPeriodEnd: end.toISOString() })
+    deepStrictEqual(b.options, { canUpgradeTo: ['premium'], canManage: true, needsPaymentFix: false })
+    deepStrictEqual(b.remaining, { readings: null, dreams: null, aiMessages: 50 })
+
+    await h.users.update({ cancelAtPeriodEnd: true }, { where: { id: u.id } })
+    b = await billing(u)
+    strictEqual(b.subscription.cancelAtPeriodEnd, true)
+    strictEqual(b.options.needsPaymentFix, false)
+
+    await h.users.update({ subscriptionStatus: 'past_due' }, { where: { id: u.id } })
+    b = await billing(u)
+    strictEqual(b.options.needsPaymentFix, true)
+    strictEqual(b.plan, 'pro', 'a late payment alone does not take the plan away')
+
+    await h.users.update({ plan: 'premium', stripeCustomerId: null, stripeSubscriptionId: null, subscriptionStatus: null, cancelAtPeriodEnd: false, currentPeriodEnd: null }, { where: { id: u.id } })
+    b = await billing(u)
+    strictEqual(b.subscription, null, 'no Stripe subscription: a demo plan')
+    deepStrictEqual(b.options, { canUpgradeTo: [], canManage: false, needsPaymentFix: false })
   })
 })
 

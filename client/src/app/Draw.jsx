@@ -73,6 +73,7 @@ export default function Draw() {
   const [question, setQuestion] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
+  const [limit, setLimit] = useState(false) // помилка — вичерпаний ліміт тарифу: поруч пропонуємо тарифи
   const [shuffling, setShuffling] = useState(false)
   const [round, setRound] = useState(0) // нова колода — нова анімація розкладання карт
   const timer = useRef(0)
@@ -132,6 +133,7 @@ export default function Draw() {
   const reveal = async () => {
     setBusy(true)
     setError('')
+    setLimit(false)
     try {
       const body = { spreadId: setup.spreadId, deck: setup.deck, mode: setup.mode, question: question.trim(), cards: cards.map((c) => ({ id: c.id, reversed: c.reversed })) }
       const reading = await post('/tarot/readings', body)
@@ -140,6 +142,7 @@ export default function Draw() {
       go('/reading')
     } catch (e) {
       setError(e.message)
+      setLimit(e.code === 'PLAN_LIMIT')
       setBusy(false)
     }
   }
@@ -263,7 +266,7 @@ export default function Draw() {
 
           {error && (
             <p className="err" role="alert">
-              {error}
+              {error} {limit && <a className="more" {...navProps('/pricing')}>{t('See plans')}</a>}
             </p>
           )}
           <button className="go" disabled={!complete || busy} onClick={reveal}>
