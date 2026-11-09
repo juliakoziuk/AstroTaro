@@ -3,7 +3,7 @@ import { pricing } from './simple.jsx'
 import { setToken } from '../../lib/api.js'
 import { mockApi } from '../../test/setup.js'
 
-const PLANS = [{ id: 'free', name: 'Free', price: 0 }, { id: 'pro', name: 'Pro', price: 9.99 }, { id: 'premium', name: 'Premium', price: 19.99 }]
+const PLANS = [{ id: 'free', name: 'Free', price: 0 }, { id: 'pro', name: 'Pro', price: 5 }, { id: 'premium', name: 'Premium', price: 10 }]
 const ctx = () => ({ data: { plans: PLANS }, go: vi.fn(), say: vi.fn() })
 
 describe('pricing buttons', () => {

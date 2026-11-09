@@ -23,11 +23,11 @@ const PLAN_TEXT: { id: PlanId; price: number; name: T2; tagline: T2; features: T
     features: [['Limited readings', 'Обмежена кількість розкладів'], ['Basic insights', 'Базові інсайти'], ['Daily tarot card', 'Щоденна карта таро']],
   },
   {
-    id: 'pro', price: 9.99, name: ['Pro', 'Pro'], tagline: ['Most popular', 'Найпопулярніший'], cta: ['Upgrade', 'Оновити'],
+    id: 'pro', price: 5, name: ['Pro', 'Pro'], tagline: ['Most popular', 'Найпопулярніший'], cta: ['Upgrade', 'Оновити'],
     features: [['Unlimited readings', 'Необмежені розклади'], ['Full astrology', 'Повна астрологія'], ['Dream analysis', 'Аналіз снів'], ['AI Companion', 'AI-компаньйон']],
   },
   {
-    id: 'premium', price: 19.99, name: ['Premium', 'Premium'], tagline: ['For deep explorers', 'Для глибоких дослідників'], cta: ['Choose', 'Обрати'],
+    id: 'premium', price: 10, name: ['Premium', 'Premium'], tagline: ['For deep explorers', 'Для глибоких дослідників'], cta: ['Choose', 'Обрати'],
     features: [['Everything in Pro', 'Усе з Pro'], ['Priority access', 'Пріоритетний доступ'], ['Advanced reports', 'Розширені звіти'], ['Early features', 'Ранній доступ до новинок']],
   },
 ]

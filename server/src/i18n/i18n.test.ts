@@ -90,7 +90,7 @@ test('plans keep their ids and translate the text', () => {
   const uk = plans('uk')
   deepStrictEqual(uk.map((p) => p.id), ['free', 'pro', 'premium'])
   ok(cyrillic.test(uk[1].tagline) && uk[1].features.every((f) => cyrillic.test(f)))
-  strictEqual(uk[1].price, 9.99)
+  strictEqual(uk[1].price, 5)
 })
 
 test('server messages and validation errors are localized', () => {

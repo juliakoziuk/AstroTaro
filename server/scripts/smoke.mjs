@@ -25,7 +25,7 @@ check('register', r.status === 201)
 token = r.data.token
 
 r = await call('GET', '/plans')
-check('plans public: 3 tariffs', r.data.length === 3 && r.data[1].price === 9.99)
+check('plans public: 3 tariffs', r.data.length === 3 && r.data[1].price === 5)
 r = await call('GET', '/tarot/spreads')
 check('tarot spreads public', r.data.length === 7)
 r = await call('GET', '/companion/personas')
@@ -113,7 +113,7 @@ check('geo: too short query rejected', r.status === 400)
 const cyr = /[А-Яа-яІіЇїЄєҐґ]/
 lang = 'uk'
 r = await call('GET', '/plans')
-check('uk: plans translated, ids and prices kept', cyr.test(r.data[1].tagline) && r.data[1].id === 'pro' && r.data[1].price === 9.99, JSON.stringify(r.data[1]))
+check('uk: plans translated, ids and prices kept', cyr.test(r.data[1].tagline) && r.data[1].id === 'pro' && r.data[1].price === 5, JSON.stringify(r.data[1]))
 r = await call('GET', '/tarot/spreads')
 check('uk: spread positions', r.data.find((x) => x.id === 'three').positions[0] === 'Минуле')
 r = await call('GET', '/dreams')

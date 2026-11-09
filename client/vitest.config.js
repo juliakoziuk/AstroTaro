@@ -9,5 +9,8 @@ export default defineConfig({
     include: ['src/**/*.ui.test.{js,jsx}'],
     setupFiles: ['./src/test/setup.js'],
     css: false,
+    // екрани тягнуть важкі картинки (plate-*.webp, svg): перший імпорт під навантаженням легко перевищує типові 5 с
+    testTimeout: 20000,
+    hookTimeout: 20000,
   },
 })
