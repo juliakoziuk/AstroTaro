@@ -9,6 +9,7 @@
     "run:backend": "npm --prefix server run start:dev",
     "build": "npm --prefix client run build",
     "lint": "npm --prefix client run lint",
-    "test": "npm --prefix client test && npm --prefix server test"
+    "test": "npm --prefix client test && npm --prefix server test",
+    "test:e2e": "npm --prefix server run test:e2e"
   }
 }

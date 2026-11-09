@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "test": "node --test src/lib/auth.test.js src/app/resolve.test.js src/app/avatar.test.js src/app/nav.test.js src/i18n/i18n.test.js src/lib/theme.test.js src/lib/account.test.js scripts/lib/card-files.test.mjs",
+    "test": "node --test src/lib/auth.test.js src/app/resolve.test.js src/app/avatar.test.js src/app/nav.test.js src/i18n/i18n.test.js src/lib/theme.test.js src/lib/account.test.js src/lib/api.test.js scripts/lib/card-files.test.mjs && vitest run",
     "preview": "vite preview",
     "landing:plate": "node scripts/build-plate.mjs && node scripts/trace-landing.mjs",
     "landing:diff": "node scripts/landing-diff.mjs",
@@ -23,7 +23,8 @@
     "app:build": "node scripts/app/build.mjs",
     "app:diff": "node scripts/app/diff.mjs",
     "app:test": "node scripts/app/interact.mjs",
-    "app:fonts": "node scripts/app/rank.mjs"
+    "app:fonts": "node scripts/app/rank.mjs",
+    "test:ui": "vitest run"
   },
   "dependencies": {
     "react": "^19.2.8",
@@ -32,6 +33,8 @@
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@neplex/vectorizer": "^0.1.0",
+    "@testing-library/react": "^16.3.3",
+    "@testing-library/user-event": "^14.6.8",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.7",
     "@vitejs/plugin-react": "^6.1.1",
@@ -39,9 +42,11 @@
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.6",
     "globals": "^17.12.0",
+    "jsdom": "^29.1.1",
     "pixelmatch": "^8.0.0",
     "puppeteer-core": "^25.16.0",
     "sharp": "^0.35.5",
-    "vite": "^8.3.0"
+    "vite": "^8.3.0",
+    "vitest": "^5.1.0"
   }
 }

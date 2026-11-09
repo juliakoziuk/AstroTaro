@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import './login.css'
 import { useMediaQuery } from '../lib/useMediaQuery.js'
 import { go, navProps } from '../app/router.js'
@@ -56,9 +56,12 @@ export default function Login() {
 
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
+  const sending = useRef(false) // кнопка блокується лише після перемальовування, а другий клік може прийти раніше
 
   const submit = async (e) => {
     e.preventDefault()
+    if (sending.current) return
+    sending.current = true
     const f = new FormData(e.currentTarget)
     setBusy(true)
     setError('')
@@ -70,6 +73,7 @@ export default function Login() {
     } catch (err) {
       setError(err.message)
     } finally {
+      sending.current = false
       setBusy(false)
     }
   }

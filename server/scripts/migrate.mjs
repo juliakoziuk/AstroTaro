@@ -1,4 +1,4 @@
-// Міграції бази: node --env-file=.env scripts/migrate.mjs [--status]  (npm run migrate / npm run migrate:status)
+// Міграції бази: node --env-file=.env scripts/migrate.mjs [--status] [--create]  (npm run migrate / npm run migrate:status)
 // Виконує файли migrations/*.sql за іменем, кожен у своїй транзакції, і записує виконані в таблицю schema_migrations.
 // Уже виконаний файл не повторюється й не повинен змінюватися: зміну схеми додавайте новим файлом (0003_….sql).
 import { readdir, readFile } from 'node:fs/promises'
@@ -9,13 +9,31 @@ import pg from 'pg'
 const dir = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'migrations')
 const statusOnly = process.argv.includes('--status')
 
-const client = new pg.Client({
+const connection = (database) => ({
   host: process.env.DB_HOST ?? 'localhost',
   port: Number(process.env.DB_PORT ?? 5432),
   user: process.env.DB_USER,
   password: process.env.DB_PASS,
-  database: process.env.DB_NAME,
+  database,
 })
+
+// --create: спершу створити саму базу, якщо її ще немає (для тестової бази й чистого встановлення)
+if (process.argv.includes('--create')) {
+  const admin = new pg.Client(connection('postgres'))
+  await admin.connect()
+  try {
+    const name = process.env.DB_NAME
+    const exists = await admin.query('SELECT 1 FROM pg_database WHERE datname = $1', [name])
+    if (!exists.rowCount) {
+      await admin.query(`CREATE DATABASE "${name.replaceAll('"', '""')}"`)
+      console.log(`  created database ${name}`)
+    }
+  } finally {
+    await admin.end()
+  }
+}
+
+const client = new pg.Client(connection(process.env.DB_NAME))
 await client.connect()
 try {
   // один виконавець за раз: два одночасні запуски (наприклад, дві репліки) не застосують файл двічі
