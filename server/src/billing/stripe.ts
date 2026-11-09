@@ -20,6 +20,13 @@ export function encodeForm(params: Record<string, Param>): string {
   return pairs.map(([k, v]) => `${encodeURIComponent(k).replace(/%5B/g, '[').replace(/%5D/g, ']')}=${encodeURIComponent(v)}`).join('&')
 }
 
+/**
+ * Мови, які приймає параметр locale сесії Checkout (довідка Stripe). Української там немає: надіслати «uk» означає отримати 400
+ * «Invalid locale» і не потрапити на оплату, тож для решти мов просимо «auto» (Stripe сам обере мову з браузера).
+ */
+export const STRIPE_LOCALES = ['auto', 'bg', 'cs', 'da', 'de', 'el', 'en', 'en-GB', 'es', 'es-419', 'et', 'fi', 'fil', 'fr', 'fr-CA', 'hr', 'hu', 'id', 'it', 'ja', 'ko', 'lt', 'lv', 'ms', 'mt', 'nb', 'nl', 'pl', 'pt', 'pt-BR', 'ro', 'ru', 'sk', 'sl', 'sv', 'th', 'tr', 'vi', 'zh', 'zh-HK', 'zh-TW']
+export const stripeLocale = (appLocale: string) => (STRIPE_LOCALES.includes(appLocale) ? appLocale : 'auto')
+
 export const SIGNATURE_TOLERANCE_SECONDS = 300
 
 /**

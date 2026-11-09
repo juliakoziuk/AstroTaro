@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import { deepStrictEqual, rejects, strictEqual } from 'node:assert/strict'
-import { encodeForm, signStripePayload, stripeConfig, stripePost, verifyStripeSignature } from './stripe'
+import { encodeForm, signStripePayload, stripeConfig, stripeLocale, stripePost, verifyStripeSignature } from './stripe'
 
 const SECRET = 'whsec_unit'
 const BODY = '{"type":"checkout.session.completed","data":{"object":{"id":"cs_1"}}}'
@@ -61,4 +61,10 @@ test('stripePost sends the key and the form, and turns a Stripe error into a Str
   const declined = async () => new Response(JSON.stringify({ error: { message: 'Card declined' } }), { status: 402 })
   await rejects(stripePost(cfg, '/v1/x', {}, declined as typeof fetch), { message: 'Card declined', status: 402 })
   await rejects(stripePost(stripeConfig({}), '/v1/x', {}), { status: 503 })
+})
+
+test('Stripe has no Ukrainian checkout language: we ask for auto instead of a locale it would reject', () => {
+  strictEqual(stripeLocale('en'), 'en')
+  strictEqual(stripeLocale('uk'), 'auto')
+  strictEqual(stripeLocale('xx'), 'auto')
 })

@@ -5,7 +5,7 @@ import { createHmac } from 'node:crypto'
 import { deepStrictEqual, ok, strictEqual } from 'node:assert/strict'
 import { createServer, Server } from 'node:http'
 import { AddressInfo } from 'node:net'
-import { signStripePayload } from '../billing/stripe'
+import { signStripePayload, STRIPE_LOCALES } from '../billing/stripe'
 import { Harness, startHarness } from './harness'
 
 let h: Harness
@@ -440,8 +440,14 @@ describe('paid plans through Stripe', () => {
       let body = ''
       req.on('data', (c) => (body += c))
       req.on('end', () => {
-        seen.push({ path: req.url ?? '', auth: req.headers.authorization, form: new URLSearchParams(body) })
+        const form = new URLSearchParams(body)
+        seen.push({ path: req.url ?? '', auth: req.headers.authorization, form })
         res.setHeader('Content-Type', 'application/json')
+        // як справжній Stripe: невідома мова — 400 (саме так українська «uk» ламала оплату)
+        if (form.has('locale') && !STRIPE_LOCALES.includes(form.get('locale')!)) {
+          res.statusCode = 400
+          return res.end(JSON.stringify({ error: { message: 'Invalid locale: must be one of ' + STRIPE_LOCALES.join(', ') } }))
+        }
         if (failNext) {
           failNext = false
           res.statusCode = 402
@@ -493,7 +499,7 @@ describe('paid plans through Stripe', () => {
     strictEqual(f.get('customer_email'), u.email)
     strictEqual(f.get('metadata[plan]'), 'pro')
     strictEqual(f.get('subscription_data[metadata][userId]'), u.id)
-    strictEqual(f.get('locale'), 'uk')
+    strictEqual(f.get('locale'), 'auto', 'Stripe has no Ukrainian: a Ukrainian interface still reaches the payment page')
     ok(f.get('success_url')?.includes('#/pricing?checkout=success'))
     strictEqual(await planOf(u), 'free', 'paying is confirmed by the webhook, not by this answer')
   })

@@ -9,7 +9,7 @@ import { flagOn } from '../common/flags'
 import { currentLocale } from '../i18n/locale'
 import { msg } from '../i18n/messages'
 import { User } from '../users/user.model'
-import { stripeConfig, StripeConfig, stripePost, verifyStripeSignature } from './stripe'
+import { stripeConfig, StripeConfig, stripeLocale, stripePost, verifyStripeSignature } from './stripe'
 
 const PAID = ['pro', 'premium'] as const
 type PaidPlan = (typeof PAID)[number]
@@ -66,7 +66,7 @@ export class BillingController {
         cancel_url: `${appUrl()}/app.html#/pricing?checkout=cancelled`,
         client_reference_id: user.id,
         ...(user.stripeCustomerId ? { customer: user.stripeCustomerId } : { customer_email: user.email }),
-        locale: currentLocale(),
+        locale: stripeLocale(currentLocale()),
         metadata: { userId: user.id, plan: dto.plan },
         subscription_data: { metadata: { userId: user.id, plan: dto.plan } },
       })
