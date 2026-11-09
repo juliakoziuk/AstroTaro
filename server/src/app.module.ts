@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config'
 import { SequelizeModule } from '@nestjs/sequelize'
 import { AstrologyModule, Report } from './astrology/astrology'
 import { AuthModule } from './auth/auth.module'
+import { flagOn } from './common/flags'
 import { CompanionModule } from './companion/companion'
 import { CosmosModule } from './cosmos/cosmos'
 import { DashboardModule } from './dashboard/dashboard.module'
@@ -32,10 +33,10 @@ import { User } from './users/user.model'
         password: cfg.get('DB_PASS'),
         database: cfg.get('DB_NAME'),
         models: [User, Dream, JournalEntry, Spread, Message, Report],
-        // Поки що схема створюється з моделей; перед продакшеном замінити на міграції.
-        autoLoadModels: true,
-        synchronize: true,
-        // alter: додає нові колонки до вже створених таблиць
+        // Схема в продакшені змінюється лише міграціями (npm run migrate). Автосинхронізація з моделей, що додає
+        // колонки й змінює таблиці, вмикається явно для локальної розробки: DB_SYNC=true у .env.
+        autoLoadModels: true, // реєструє моделі з forFeature; саму схему це не змінює
+        synchronize: flagOn(cfg.get('DB_SYNC')),
         sync: { alter: true },
         logging: false,
       }),

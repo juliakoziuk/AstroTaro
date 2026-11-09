@@ -6,7 +6,9 @@
     "start:dev": "tsc -p tsconfig.json && node dist/main.js",
     "build": "tsc -p tsconfig.json",
     "test": "tsc -p tsconfig.json && node --test \"dist/**/*.test.js\"",
-    "start": "node dist/main"
+    "start": "node dist/main",
+    "migrate": "node --env-file=.env scripts/migrate.mjs",
+    "migrate:status": "node --env-file=.env scripts/migrate.mjs --status"
   },
   "dependencies": {
     "@nestjs/common": "^12.3.2",
@@ -21,6 +23,7 @@
     "bcryptjs": "^3.0.3",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.15.1",
+    "helmet": "^8.3.0",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "pg": "^8.23.1",

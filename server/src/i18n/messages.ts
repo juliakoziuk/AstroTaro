@@ -33,6 +33,14 @@ const MESSAGES = {
     en: '{name}: request limit reached (set your own key in .env)',
     uk: '{name}: вичерпано ліміт запитів (задайте власний ключ у .env)',
   },
+  tooManyAttempts: {
+    en: 'Too many attempts. Try again in {minutes} min.',
+    uk: 'Забагато спроб. Спробуйте ще раз за {minutes} хв.',
+  },
+  paymentUnavailable: {
+    en: 'Paid plans cannot be activated yet: online payment is not connected',
+    uk: 'Платні тарифи поки недоступні: онлайн-оплату ще не підключено',
+  },
   unknown: { en: 'Something went wrong', uk: 'Щось пішло не так',  },
 } satisfies Record<string, Text>
 
@@ -48,6 +56,7 @@ const VALIDATION: Record<string, Text> = {
   isNotEmpty: { en: '{p} must not be empty', uk: '{p}: не може бути порожнім',  },
   minLength: { en: '{p} must be at least {0} characters', uk: '{p}: щонайменше {0} символів',  },
   maxLength: { en: '{p} must be at most {0} characters', uk: '{p}: щонайбільше {0} символів',  },
+  maxBytes: { en: '{p} must be at most {0} bytes (non-Latin letters take 2 bytes each)', uk: '{p}: щонайбільше {0} байтів (кирилиця займає по 2 байти на літеру)',  },
   isIn: { en: '{p} has an unsupported value', uk: '{p}: недопустиме значення',  },
   isInt: { en: '{p} must be a whole number', uk: '{p}: потрібне ціле число',  },
   isBoolean: { en: '{p} must be true or false', uk: '{p}: потрібне значення так/ні',  },

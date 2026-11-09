@@ -4,6 +4,7 @@ import { ApiOkResponse, ApiOperation, ApiPropertyOptional, ApiTags } from '@nest
 import { IsBoolean, IsDateString, IsIn, IsLatitude, IsLongitude, IsOptional, IsString, Length, Matches, MaxLength, MinLength } from 'class-validator'
 import { CurrentUser, JwtAuthGuard } from '../auth/jwt-auth.guard'
 import { ApiAuthed } from '../common/api-docs'
+import { jsonbMerge } from '../common/jsonb'
 import { Dream } from '../dreams/dream.model'
 import { Report } from '../astrology/astrology'
 import { Spread } from '../spreads/spread.model'
@@ -92,10 +93,9 @@ export class ProfileController {
   @ApiOkResponse({ description: 'Усі налаштування після зміни' })
   @Patch('settings')
   async updateSettings(@CurrentUser() u: { id: string }, @Body() dto: UpdateSettingsDto) {
-    const user = await this.users.findByPk(u.id)
-    user.settings = { ...withDefaults(user.settings), ...dto }
-    await user.save()
-    return user.settings
+    // злиття робить база, а не код: одночасні запити не затирають зміни один одного
+    await this.users.update({ settings: jsonbMerge(this.users.sequelize, 'settings', dto) }, { where: { id: u.id } })
+    return withDefaults((await this.users.findByPk(u.id)).settings)
   }
 
   @ApiOperation({ summary: 'Експорт усіх власних даних без пароля й токенів' })

@@ -1,10 +1,13 @@
-import { Body, Controller, Get, Module, Post, UseGuards } from '@nestjs/common'
+import { Body, Controller, ForbiddenException, Get, Module, Post, UseGuards } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
 import { InjectModel, SequelizeModule } from '@nestjs/sequelize'
 import { ApiBody, ApiOkResponse, ApiOperation, ApiProperty, ApiTags } from '@nestjs/swagger'
 import { IsIn } from 'class-validator'
 import { CurrentUser, JwtAuthGuard } from '../auth/jwt-auth.guard'
 import { ApiAuthed } from '../common/api-docs'
+import { flagOn } from '../common/flags'
 import { currentLocale, Locale, LOCALES } from '../i18n/locale'
+import { msg } from '../i18n/messages'
 import { User } from '../users/user.model'
 
 export const PLAN_IDS = ['free', 'pro', 'premium'] as const
@@ -32,6 +35,9 @@ const PLAN_TEXT: { id: PlanId; price: number; name: T2; tagline: T2; features: T
 export const plans = (locale: Locale) =>
   PLAN_TEXT.map((p) => ({ id: p.id, price: p.price, name: at(p.name, locale), tagline: at(p.tagline, locale), features: p.features.map((f) => at(f, locale)), cta: at(p.cta, locale) }))
 
+/** Без підключеної оплати платний тариф не можна вмикати самому: безкоштовний — завжди, платні — лише в демо-режимі. */
+export const canChoosePlan = (plan: PlanId, demoBilling: boolean) => plan === 'free' || demoBilling
+
 export class PlanDto {
   @ApiProperty({ enum: PLAN_IDS }) @IsIn(PLAN_IDS as unknown as string[]) plan: PlanId
 }
@@ -39,7 +45,10 @@ export class PlanDto {
 @ApiTags('plans')
 @Controller()
 export class PlansController {
-  constructor(@InjectModel(User) private users: typeof User) {}
+  constructor(
+    @InjectModel(User) private users: typeof User,
+    private config: ConfigService,
+  ) {}
 
   @ApiOperation({ summary: 'Тарифи (публічно), мовою з заголовка Accept-Language' })
   @ApiOkResponse({ description: 'Список тарифів з цінами й можливостями' })
@@ -48,13 +57,17 @@ export class PlansController {
     return plans(currentLocale())
   }
 
-  @ApiOperation({ summary: 'Обрати тариф', description: 'Платіжної системи поки немає: тариф просто записується користувачу.' })
+  @ApiOperation({
+    summary: 'Обрати тариф',
+    description: 'Платіжної системи поки немає, тож безкоштовний тариф обирається вільно, а платні — лише в демо-режимі (ALLOW_DEMO_BILLING=true у .env, для розробки).',
+  })
   @ApiBody({ type: PlanDto })
   @ApiOkResponse({ description: 'Поточний тариф' })
   @ApiAuthed()
   @UseGuards(JwtAuthGuard)
   @Post('billing/plan')
   async choose(@CurrentUser() u: { id: string }, @Body() dto: PlanDto) {
+    if (!canChoosePlan(dto.plan, flagOn(this.config.get('ALLOW_DEMO_BILLING')))) throw new ForbiddenException(msg(currentLocale(), 'paymentUnavailable'))
     await this.users.update({ plan: dto.plan }, { where: { id: u.id } })
     return { plan: dto.plan }
   }

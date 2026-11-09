@@ -7,6 +7,7 @@ import { User } from '../users/user.model'
 import { AuthController } from './auth.controller'
 import { AuthService } from './auth.service'
 import { JwtStrategy } from './jwt.strategy'
+import { AuthThrottle } from './rate-limit'
 
 @Module({
   imports: [
@@ -21,6 +22,6 @@ import { JwtStrategy } from './jwt.strategy'
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy],
+  providers: [AuthService, JwtStrategy, AuthThrottle],
 })
 export class AuthModule {}

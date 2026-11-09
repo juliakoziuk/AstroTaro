@@ -42,3 +42,37 @@ jobs:
       - run: npm ci --legacy-peer-deps
       # tsc + node --test: юніт-тести чистої логіки, база даних не потрібна
       - run: npm test
+
+  migrations:
+    name: Migrations on an empty PostgreSQL
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: AstroTarot
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 3s --health-timeout 3s --health-retries 20
+    defaults:
+      run:
+        working-directory: server
+    env:
+      DB_HOST: localhost
+      DB_USER: postgres
+      DB_PASS: postgres
+      DB_NAME: AstroTarot
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: server/package-lock.json
+      - run: npm ci --legacy-peer-deps
+      - run: node scripts/migrate.mjs
+      # повторний запуск нічого не застосовує: міграції можна запускати на кожному деплої
+      - run: node scripts/migrate.mjs | grep -q 'Nothing to apply'

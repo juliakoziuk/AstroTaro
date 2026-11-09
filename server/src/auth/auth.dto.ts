@@ -1,5 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
 import { IsBoolean, IsEmail, IsOptional, IsString, MaxLength, MinLength } from 'class-validator'
+import { MaxBytes } from './max-bytes'
 
 export class RegisterDto {
   @ApiProperty({ example: 'Юля', maxLength: 80 })
@@ -10,8 +11,8 @@ export class RegisterDto {
   @IsEmail()
   email: string
 
-  @ApiProperty({ example: 'secret123', minLength: 8, maxLength: 128 })
-  @IsString() @MinLength(8) @MaxLength(128)
+  @ApiProperty({ example: 'secret123', minLength: 8, description: 'Від 8 символів і не більше 72 байтів у UTF-8 (кирилиця — 2 байти на літеру): bcrypt не бачить решти' })
+  @IsString() @MinLength(8) @MaxBytes(72)
   password: string
 }
 
@@ -21,7 +22,7 @@ export class LoginDto {
   email: string
 
   @ApiProperty({ example: 'secret123' })
-  @IsString()
+  @IsString() @MaxLength(128) // старі акаунти могли мати довший пароль, але безмежний рядок хешувати не потрібно
   password: string
 
   @ApiPropertyOptional({ description: 'Запам’ятати мене: токен діє довше (30 днів замість JWT_EXPIRES)' })

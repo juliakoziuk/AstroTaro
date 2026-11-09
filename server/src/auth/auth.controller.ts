@@ -1,21 +1,27 @@
-import { Body, Controller, Get, Patch, Post, UseGuards } from '@nestjs/common'
+import { Body, Controller, Get, Patch, Post, Req, UnauthorizedException, UseGuards } from '@nestjs/common'
+import { Request } from 'express'
 import { ApiBadRequestResponse, ApiConflictResponse, ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger'
 import { ApiAuthed } from '../common/api-docs'
 import { AuthResponse, ConsentDto, LoginDto, PublicUser, RegisterDto } from './auth.dto'
 import { AuthService } from './auth.service'
 import { CurrentUser, JwtAuthGuard } from './jwt-auth.guard'
+import { AuthThrottle } from './rate-limit'
 
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
-  constructor(private auth: AuthService) {}
+  constructor(
+    private auth: AuthService,
+    private throttle: AuthThrottle,
+  ) {}
 
   @ApiOperation({ summary: 'Реєстрація', description: 'Створює користувача й одразу повертає токен.' })
   @ApiCreatedResponse({ type: AuthResponse })
   @ApiConflictResponse({ description: 'Цей email уже зареєстровано' })
   @ApiBadRequestResponse({ description: 'Невалідні поля (email, пароль коротший за 8 символів тощо)' })
   @Post('register')
-  register(@Body() dto: RegisterDto) {
+  register(@Body() dto: RegisterDto, @Req() req: Request) {
+    this.throttle.beforeRegister(req.ip ?? '')
     return this.auth.register(dto)
   }
 
@@ -23,8 +29,17 @@ export class AuthController {
   @ApiCreatedResponse({ type: AuthResponse })
   @ApiUnauthorizedResponse({ description: 'Невірний email або пароль' })
   @Post('login')
-  login(@Body() dto: LoginDto) {
-    return this.auth.login(dto)
+  async login(@Body() dto: LoginDto, @Req() req: Request) {
+    const ip = req.ip ?? ''
+    this.throttle.beforeLogin(ip, dto.email)
+    try {
+      const result = await this.auth.login(dto)
+      this.throttle.loginSucceeded(ip, dto.email)
+      return result
+    } catch (e) {
+      if (e instanceof UnauthorizedException) this.throttle.loginFailed(ip, dto.email)
+      throw e
+    }
   }
 
   @ApiOperation({ summary: 'Поточний користувач' })

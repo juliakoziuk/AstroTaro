@@ -2,6 +2,7 @@ import 'reflect-metadata'
 import { BadRequestException, ValidationError, ValidationPipe } from '@nestjs/common'
 import { NestFactory } from '@nestjs/core'
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
+import helmet from 'helmet'
 import { NextFunction, Request, Response } from 'express'
 import { AppModule } from './app.module'
 import { currentLocale, parseLocale, runWithLocale } from './i18n/locale'
@@ -18,6 +19,9 @@ function localizedErrors(errors: ValidationError[], locale = currentLocale()): s
 async function bootstrap() {
   const app = await NestFactory.create(AppModule)
   app.setGlobalPrefix('api')
+  // Заголовки безпеки (nosniff, HSTS, без X-Powered-By тощо). CSP вимкнена: API віддає JSON, а її типові правила ламають Swagger UI.
+  // Клієнт живе на іншому origin, тож ресурси API мають бути доступними з нього.
+  app.use(helmet({ contentSecurityPolicy: false, crossOriginResourcePolicy: { policy: 'cross-origin' } }))
   // мова запиту (заголовок Accept-Language) доступна всьому коду запиту через currentLocale()
   app.use((req: Request, _res: Response, next: NextFunction) => runWithLocale(parseLocale(req.headers['accept-language']), next))
   app.useGlobalPipes(

@@ -2,6 +2,7 @@ import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/co
 import { JwtService } from '@nestjs/jwt'
 import { InjectModel } from '@nestjs/sequelize'
 import * as bcrypt from 'bcryptjs'
+import { jsonbMerge } from '../common/jsonb'
 import { currentLocale } from '../i18n/locale'
 import { msg } from '../i18n/messages'
 import { User } from '../users/user.model'
@@ -42,10 +43,10 @@ export class AuthService {
   }
 
   async setConsent(id: string, dto: ConsentDto) {
+    // злиття робить база, а не код: одночасні запити не затирають зміни один одного
+    await this.users.update({ consent: jsonbMerge(this.users.sequelize, 'consent', dto) }, { where: { id } })
     const user = await this.users.findByPk(id)
     if (!user) throw new UnauthorizedException()
-    user.consent = { ...user.consent, ...dto }
-    await user.save()
     return publicUser(user)
   }
 }
