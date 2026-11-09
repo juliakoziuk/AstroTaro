@@ -57,6 +57,7 @@ export class ProfileController {
       name: u.name,
       email: u.email,
       plan: u.plan,
+      subscribed: !!u.stripeSubscriptionId, // є активна платна підписка: керувати нею можна лише в порталі Stripe
       birthDate: u.birthDate,
       birthTime: u.birthTime,
       birthPlace: u.birthPlace,

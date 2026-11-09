@@ -406,7 +406,7 @@ describe('sharing a reading by a public link', () => {
 describe('paid plans through Stripe', () => {
   const SECRET = 'whsec_test_secret'
   const PRICES = { pro: 'price_pro_1', premium: 'price_premium_1' }
-  type Seen = { path: string; auth: string | undefined; form: URLSearchParams }
+  type Seen = { path: string; auth: string | undefined; idem: string | undefined; form: URLSearchParams }
   let seen: Seen[] = []
   let failNext = false
   let fake: Server
@@ -441,7 +441,7 @@ describe('paid plans through Stripe', () => {
       req.on('data', (c) => (body += c))
       req.on('end', () => {
         const form = new URLSearchParams(body)
-        seen.push({ path: req.url ?? '', auth: req.headers.authorization, form })
+        seen.push({ path: req.url ?? '', auth: req.headers.authorization, idem: req.headers['idempotency-key'] as string | undefined, form })
         res.setHeader('Content-Type', 'application/json')
         // як справжній Stripe: невідома мова — 400 (саме так українська «uk» ламала оплату)
         if (form.has('locale') && !STRIPE_LOCALES.includes(form.get('locale')!)) {
@@ -566,6 +566,97 @@ describe('paid plans through Stripe', () => {
     strictEqual(await planOf(u), 'free')
     strictEqual((await h.api('POST', '/billing/checkout', { token: u.token, body: { plan: 'pro' } })).status, 201, 'after the end a new subscription is possible')
     strictEqual((await h.api('POST', '/billing/plan', { token: u.token, body: { plan: 'free' } })).status, 201)
+  })
+
+  test('a half-configured Stripe refuses payments: no charge without a webhook secret, and no silent demo either', async () => {
+    const w = await h.register('Half configured')
+    process.env.ALLOW_DEMO_BILLING = 'true' // даже з ним: часткове налаштування не означає «демо»
+    try {
+      delete process.env.STRIPE_WEBHOOK_SECRET
+      seen = []
+      strictEqual((await h.api('POST', '/billing/checkout', { token: w.token, body: { plan: 'pro' } })).status, 503, 'without the webhook secret the plan could never turn on after paying')
+      strictEqual(seen.length, 0, 'Stripe was not even called')
+      configure()
+      process.env.STRIPE_PRICE_PRO = 'prod_123'
+      strictEqual((await h.api('POST', '/billing/checkout', { token: w.token, body: { plan: 'pro' } })).status, 503, 'a product id instead of a price id')
+      strictEqual(await planOf(w), 'free', 'nothing was activated for free')
+    } finally {
+      configure()
+      process.env.ALLOW_DEMO_BILLING = 'false'
+    }
+  })
+
+  test('with Stripe configured the demo switch is ignored, also on the plain plan endpoint', async () => {
+    const w = await h.register('Demo bypass')
+    process.env.ALLOW_DEMO_BILLING = 'true'
+    try {
+      strictEqual((await h.api('POST', '/billing/plan', { token: w.token, body: { plan: 'premium' } })).status, 403)
+      strictEqual(await planOf(w), 'free')
+    } finally {
+      process.env.ALLOW_DEMO_BILLING = 'false'
+    }
+  })
+
+  test('the demo switch works only when nothing about Stripe is configured, and says so explicitly', async () => {
+    const w = await h.register('Demo user')
+    for (const k of ENV) delete process.env[k]
+    process.env.ALLOW_DEMO_BILLING = 'true'
+    try {
+      const r = await h.api('POST', '/billing/checkout', { token: w.token, body: { plan: 'pro' } })
+      strictEqual(r.status, 201)
+      deepStrictEqual(r.body, { activated: true, plan: 'pro' }, 'an explicit demo answer, never a bare success')
+      strictEqual(await planOf(w), 'pro')
+    } finally {
+      configure()
+      process.env.ALLOW_DEMO_BILLING = 'false'
+    }
+  })
+
+  test('repeated clicks and a second tab reuse one Stripe session (same idempotency key)', async () => {
+    const w = await h.register('Double click')
+    seen = []
+    await Promise.all([h.api('POST', '/billing/checkout', { token: w.token, body: { plan: 'pro' } }), h.api('POST', '/billing/checkout', { token: w.token, body: { plan: 'pro' } })])
+    strictEqual(seen.length, 2)
+    ok(seen[0].idem && seen[0].idem === seen[1].idem, 'the same key: ' + seen[0].idem + ' / ' + seen[1].idem)
+    seen = []
+    await h.api('POST', '/billing/checkout', { token: w.token, body: { plan: 'premium' } })
+    ok(seen[0].idem !== undefined, 'a different plan is a different request')
+  })
+
+  test('an old or repeated event cannot undo a newer one (out of order delivery)', async () => {
+    const w = await h.register('Ordering')
+    const at = Math.floor(Date.now() / 1000)
+    const stamped = (event: object, created: number) => ({ ...event, created })
+    const first = stamped(completed(w.id, { subscription: 'sub_order_1', customer: 'cus_order' }), at - 100)
+    strictEqual(await hook(first), 200)
+    strictEqual(await planOf(w), 'pro')
+    strictEqual(await hook(stamped({ type: 'customer.subscription.deleted', data: { object: { id: 'sub_order_1' } } }, at - 50)), 200)
+    strictEqual(await planOf(w), 'free')
+    strictEqual(await hook(first), 200, 'Stripe re-delivers the old event')
+    strictEqual(await planOf(w), 'free', 'the cancelled subscription was not brought back')
+    // новіша покупка після скасування працює
+    strictEqual(await hook(stamped(completed(w.id, { subscription: 'sub_order_2', customer: 'cus_order' }), at)), 200)
+    strictEqual(await planOf(w), 'pro')
+    // запізніле оновлення зі старішим часом нічого не міняє
+    const old = { type: 'customer.subscription.updated', data: { object: { id: 'sub_order_2', status: 'active', items: { data: [{ price: { id: PRICES.premium } }] } } } }
+    strictEqual(await hook(stamped(old, at - 10)), 200)
+    strictEqual(await planOf(w), 'pro', 'an older update is ignored')
+    strictEqual(await hook(stamped(old, at + 10)), 200)
+    strictEqual(await planOf(w), 'premium', 'a newer one is applied')
+  })
+
+  test('a second paid subscription does not replace the active one, and the profile says the user is subscribed', async () => {
+    const w = await h.register('Duplicate')
+    strictEqual((await h.api('GET', '/profile', { token: w.token })).body.subscribed, false)
+    await hook(completed(w.id, { subscription: 'sub_dup_1', customer: 'cus_dup' }))
+    strictEqual((await h.api('GET', '/profile', { token: w.token })).body.subscribed, true)
+    await hook(completed(w.id, { subscription: 'sub_dup_2', customer: 'cus_dup' }, { plan: 'premium' }))
+    strictEqual(await planOf(w), 'pro', 'the first subscription stays, the duplicate must be refunded by hand (it is logged as an error)')
+    await hook({ type: 'customer.subscription.deleted', data: { object: { id: 'sub_dup_2' } } })
+    strictEqual(await planOf(w), 'pro', 'cancelling the unknown duplicate does not touch the active plan')
+    await hook({ type: 'customer.subscription.deleted', data: { object: { id: 'sub_dup_1' } } })
+    strictEqual(await planOf(w), 'free')
+    strictEqual((await h.api('GET', '/profile', { token: w.token })).body.subscribed, false)
   })
 
   test('a subscription belongs to one user: another user is not affected', async () => {

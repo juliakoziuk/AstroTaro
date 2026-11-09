@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import { deepStrictEqual, rejects, strictEqual } from 'node:assert/strict'
-import { encodeForm, signStripePayload, stripeConfig, stripeLocale, stripePost, stripeProblems, verifyStripeSignature } from './stripe'
+import { encodeForm, signStripePayload, stripeConfig, stripeLocale, stripeMode, stripePost, stripeProblems, verifyStripeSignature } from './stripe'
 
 const SECRET = 'whsec_unit'
 const BODY = '{"type":"checkout.session.completed","data":{"object":{"id":"cs_1"}}}'
@@ -77,4 +77,17 @@ test('the configuration check names what is wrong, never the secret itself', () 
   strictEqual(/product id/.test(text) && /STRIPE_PRICE_PREMIUM is empty/.test(text) && /STRIPE_WEBHOOK_SECRET is empty/.test(text), true, text)
   strictEqual(text.includes('SUPERSECRET'), false)
   strictEqual(stripeProblems(stripeConfig({})).length, 4)
+})
+
+test('Stripe mode: nothing set is off (demo possible), everything set is ready, anything in between is broken', () => {
+  const all = { STRIPE_SECRET_KEY: 'sk_test_a', STRIPE_PRICE_PRO: 'price_1', STRIPE_PRICE_PREMIUM: 'price_2', STRIPE_WEBHOOK_SECRET: 'whsec_x' }
+  strictEqual(stripeMode(stripeConfig({})), 'off')
+  strictEqual(stripeMode(stripeConfig({ STRIPE_SECRET_KEY: '', STRIPE_PRICE_PRO: '' })), 'off', 'empty lines in .env count as not set')
+  strictEqual(stripeMode(stripeConfig(all)), 'ready')
+  for (const missing of Object.keys(all)) {
+    const partial = { ...all } as Record<string, string | undefined>
+    delete partial[missing]
+    strictEqual(stripeMode(stripeConfig(partial)), 'broken', `${missing} missing`)
+  }
+  strictEqual(stripeMode(stripeConfig({ ...all, STRIPE_PRICE_PRO: 'prod_1' })), 'broken', 'a product id is not a price id')
 })

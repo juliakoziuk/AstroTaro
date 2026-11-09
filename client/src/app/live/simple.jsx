@@ -58,6 +58,27 @@ const PLAN_TEXTS = [
 ]
 const CTA = { 'Get Started': 0, Upgrade: 1, Choose: 2 }
 
+const MANAGE = [602, 850, 330, 52, 26] // під картками тарифів, по центру
+
+async function openPortal() {
+  const { url } = await post('/billing/portal')
+  if (!url) throw new Error(t('The payment page could not be opened. Try again in a moment.'))
+  window.location.assign(url)
+}
+
+const CONFIRM_TRIES = 12
+const CONFIRM_EVERY_MS = 2500
+/** Після повернення зі Stripe чекає, поки вебхук ввімкне платний тариф, і чесно каже, що відбулося. */
+async function confirmPayment() {
+  say(t('Back from the payment page. Waiting for the confirmation…'))
+  for (let i = 0; i < CONFIRM_TRIES; i++) {
+    await new Promise((r) => setTimeout(r, CONFIRM_EVERY_MS))
+    const plan = await get('/profile').then((p) => p.plan, () => 'free')
+    if (plan !== 'free') return say(t('Payment confirmed: your plan is {name}.', { name: plan }))
+  }
+  say(t('The payment is not confirmed yet. If you paid, check again in a minute; if not, nothing was charged.'))
+}
+
 export const pricing = {
   bind: PLAN_TEXTS.flatMap(([name, tagline, price, features], i) => [
     { find: name, key: `p${i}.name` },
@@ -67,9 +88,12 @@ export const pricing = {
   ]),
   async load() {
     const plans = await get('/plans')
-    // повернення зі сторінки оплати: тариф вмикає вебхук, тож він може з'явитися з невеликою затримкою
-    if (hashParam('checkout') === 'success') say(t('Payment received. Your plan turns on in a moment.'))
+    // повернення зі сторінки оплати: адреса з ?checkout=success нічого не доводить, а тариф вмикає вебхук і з затримкою,
+    // тож не кажемо «оплачено», а чекаємо, поки сервер справді покаже платний тариф
+    if (hashParam('checkout') === 'success') confirmPayment()
     if (hashParam('checkout') === 'cancelled') say(t('Payment was cancelled. Nothing was charged.'))
+    if (hashParam('checkout')) window.history.replaceState(window.history.state, '', '#/pricing') // щоб оновлення сторінки не повторювало
+    const subscribed = getToken() ? await get('/profile').then((p) => !!p.subscribed, () => false) : false
     const values = {}
     plans.forEach((p, i) => {
       values[`p${i}.name`] = p.name
@@ -77,7 +101,16 @@ export const pricing = {
       values[`p${i}.price`] = `$${p.price}`
       p.features.forEach((f, j) => (values[`p${i}.f${j}`] = f))
     })
-    return { values, data: { plans } }
+    return { values, data: { plans, subscribed } }
+  },
+  Over({ ctx }) {
+    // підписку змінюють чи скасовують у порталі Stripe: звичайний запит тарифу її не змінює
+    if (!ctx.data?.subscribed) return null
+    return (
+      <Ov at={MANAGE} className="manage">
+        <button type="button" onClick={() => ctx.run(openPortal)}>{t('Manage subscription')}</button>
+      </Ov>
+    )
   },
   actions: Object.fromEntries(
       Object.entries(CTA).map(([label, i]) => [
@@ -89,11 +122,14 @@ export const pricing = {
           if (plan.price > 0) {
             // платний тариф: сервер створює сесію оплати Stripe й повертає адресу; тариф вмикається вебхуком після оплати.
             // Без підключеної оплати в демо-режимі сервер вмикає тариф одразу й адреси не дає.
-            const { url } = await post('/billing/checkout', { plan: plan.id })
-            if (url) return window.location.assign(url)
-            // без url сервер увімкнув тариф без оплати (демо): кажемо про це прямо, а не вдаємо, що заплатили
-            ctx.say(t('Demo mode: {name} was switched on without payment, because Stripe is not set up on the server.', { name: plan.name }))
-            return ctx.go('/dashboard')
+            const res = await post('/billing/checkout', { plan: plan.id })
+            if (res?.url) return window.location.assign(res.url)
+            // без url іти на головну можна лише коли сервер прямо підтвердив демо-активацію (без оплати); будь-яка інша відповідь — помилка
+            if (res?.activated === true && res?.plan === plan.id) {
+              ctx.say(t('Demo mode: {name} was switched on without payment, because Stripe is not set up on the server.', { name: plan.name }))
+              return ctx.go('/dashboard')
+            }
+            throw new Error(t('The payment page could not be opened. Try again in a moment.'))
           } else {
             await post('/billing/plan', { plan: plan.id })
           }

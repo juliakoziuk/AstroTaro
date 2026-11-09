@@ -68,6 +68,10 @@ export class User extends Model {
   @Column({ type: DataType.STRING(64) })
   declare stripeSubscriptionId: string | null
 
+  // Час (за годинником Stripe) останньої застосованої події оплати: старіші події ігноруються
+  @Column({ type: DataType.DATE })
+  declare billingEventAt: Date | null
+
   @Column({ type: DataType.STRING, allowNull: false, defaultValue: 'free' })
   declare plan: string
 

@@ -3,13 +3,14 @@ import { InjectModel, SequelizeModule } from '@nestjs/sequelize'
 import { ApiBadRequestResponse, ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiProperty, ApiTags } from '@nestjs/swagger'
 import { IsIn } from 'class-validator'
 import { Request } from 'express'
+import { Op } from 'sequelize'
 import { CurrentUser, JwtAuthGuard } from '../auth/jwt-auth.guard'
 import { ApiAuthed } from '../common/api-docs'
 import { flagOn } from '../common/flags'
 import { currentLocale } from '../i18n/locale'
 import { msg } from '../i18n/messages'
 import { User } from '../users/user.model'
-import { stripeConfig, StripeConfig, stripeLocale, stripePost, stripeProblems, verifyStripeSignature } from './stripe'
+import { stripeConfig, StripeConfig, stripeLocale, stripeMode, stripePost, stripeProblems, verifyStripeSignature } from './stripe'
 
 const PAID = ['pro', 'premium'] as const
 type PaidPlan = (typeof PAID)[number]
@@ -37,14 +38,16 @@ export class BillingController implements OnModuleInit {
   /** Під час старту одним повідомленням: чи налаштовано Stripe, чого бракує, і що тоді станеться з платними тарифами. */
   onModuleInit() {
     const cfg = stripeConfig()
-    const problems = stripeProblems(cfg)
+    const mode = stripeMode(cfg)
     const demo = flagOn(process.env.ALLOW_DEMO_BILLING)
-    if (!problems.length) {
+    if (mode === 'ready') {
       this.log.log(`Stripe is configured (${cfg.secretKey!.includes('_live_') ? 'LIVE mode' : 'test mode'}), prices for pro and premium and the webhook secret are set. API: ${cfg.apiBase}`)
-      return
+      if (demo) this.log.warn('ALLOW_DEMO_BILLING=true is ignored while Stripe is configured: paid plans are only bought through Stripe')
+    } else if (mode === 'broken') {
+      this.log.error(`Stripe is configured only PARTLY, so paid plans are refused (no demo fallback either):\n  - ${stripeProblems(cfg).join('\n  - ')}`)
+    } else {
+      this.log.warn(demo ? 'Stripe is not configured (nothing in .env): ALLOW_DEMO_BILLING=true, so paid plans are switched on WITHOUT payment' : 'Stripe is not configured: paid plans cannot be bought')
     }
-    this.log.warn(`Stripe is NOT fully configured:\n  - ${problems.join('\n  - ')}`)
-    this.log.warn(demo ? 'ALLOW_DEMO_BILLING=true: paid plans are activated WITHOUT payment until the secret key and both prices are valid' : 'Paid plans cannot be bought until Stripe is configured')
   }
 
   constructor(@InjectModel(User) private users: typeof User) {}
@@ -65,18 +68,27 @@ export class BillingController implements OnModuleInit {
     const cfg = stripeConfig()
     const user = await this.users.findByPk(u.id)
     if (user.stripeSubscriptionId) throw new ConflictException(msg(currentLocale(), 'billingAlreadySubscribed'))
-    const price = this.priceOf(cfg, dto.plan)
-    this.log.log(`Checkout requested: user=${user.id} plan=${dto.plan} (secret key set: ${!!cfg.secretKey}, price set: ${!!price}, demo billing: ${flagOn(process.env.ALLOW_DEMO_BILLING)})`)
-    if (!cfg.secretKey || !price) {
+    const mode = stripeMode(cfg)
+    const price = this.priceOf(cfg, dto.plan)!
+    this.log.log(`Checkout requested: user=${user.id} plan=${dto.plan} (Stripe: ${mode}, demo billing: ${flagOn(process.env.ALLOW_DEMO_BILLING)})`)
+    if (mode === 'off') {
       if (!flagOn(process.env.ALLOW_DEMO_BILLING)) {
-        this.log.warn(`Checkout refused: Stripe is not configured and demo billing is off`)
+        this.log.warn('Checkout refused: Stripe is not configured and demo billing is off')
         throw new ForbiddenException(msg(currentLocale(), 'paymentUnavailable'))
       }
-      this.log.warn(`DEMO: Stripe is not configured (${stripeProblems(cfg).join('; ')}), so the plan "${dto.plan}" was activated for user ${user.id} WITHOUT payment`)
+      this.log.warn(`DEMO: Stripe is not configured, so the plan "${dto.plan}" was activated for user ${user.id} WITHOUT payment`)
       await user.update({ plan: dto.plan })
       return { activated: true, plan: dto.plan }
     }
+    if (mode === 'broken') {
+      // платіж без секрету вебхука чи з хибною ціною: людина заплатила б, а тариф не ввімкнувся б
+      this.log.error(`Checkout refused: Stripe is configured only partly:\n  - ${stripeProblems(cfg).join('\n  - ')}`)
+      throw new ServiceUnavailableException(msg(currentLocale(), 'paymentUnavailable'))
+    }
     try {
+      // той самий ключ для того самого користувача, тарифу й мови протягом 10 хвилин: повторні кліки чи друга вкладка
+      // отримують ту саму сесію Stripe, а не нову (інакше можна було б оформити дві підписки)
+      const idempotencyKey = `checkout-${user.id}-${dto.plan}-${stripeLocale(currentLocale())}-${Math.floor(Date.now() / 600_000)}`
       const session = await stripePost<{ url: string }>(cfg, '/v1/checkout/sessions', {
         mode: 'subscription',
         line_items: [{ price, quantity: 1 }],
@@ -87,7 +99,7 @@ export class BillingController implements OnModuleInit {
         locale: stripeLocale(currentLocale()),
         metadata: { userId: user.id, plan: dto.plan },
         subscription_data: { metadata: { userId: user.id, plan: dto.plan } },
-      })
+      }, undefined, idempotencyKey)
       this.log.log(`Stripe Checkout session created for user=${user.id} plan=${dto.plan}: redirecting to Stripe`)
       return { url: session.url }
     } catch (e) {
@@ -128,7 +140,7 @@ export class BillingController implements OnModuleInit {
       this.log.warn(`Webhook refused (400): ${refuse}`)
       throw new BadRequestException('Invalid signature')
     }
-    let event: { type?: string; data?: { object?: any } }
+    let event: { type?: string; created?: number; data?: { object?: any } }
     try {
       event = JSON.parse(raw.toString('utf8'))
     } catch {
@@ -139,9 +151,16 @@ export class BillingController implements OnModuleInit {
     return { received: true }
   }
 
-  /** Події повторюються й можуть прийти не по порядку: кожна просто виставляє стан, тож повтор нічого не псує. Невідомий користувач чи подія — без помилки, щоб Stripe не повторював її вічно. */
-  private async handle(event: { type?: string; data?: { object?: any } }, cfg: StripeConfig) {
+  /**
+   * Події повторюються й можуть прийти не по порядку. Тому кожна застосовується, лише якщо вона не старіша за останню вже
+   * застосовану для цього користувача (billingEventAt, час події за годинником Stripe): повторна доставка давнього
+   * checkout.session.completed після скасування підписки тариф не воскресить. Невідомий користувач чи подія — без помилки,
+   * щоб Stripe не повторював її вічно.
+   */
+  private async handle(event: { type?: string; created?: number; data?: { object?: any } }, cfg: StripeConfig) {
     const obj = event.data?.object ?? {}
+    const at = new Date(typeof event.created === 'number' ? event.created * 1000 : Date.now())
+    const notNewer = { [Op.or]: [{ billingEventAt: null }, { billingEventAt: { [Op.lte]: at } }] }
     switch (event.type) {
       case 'checkout.session.completed': {
         const plan = PAID.find((p) => p === obj.metadata?.plan)
@@ -150,29 +169,42 @@ export class BillingController implements OnModuleInit {
           this.log.warn(`checkout.session.completed ignored: mode=${obj.mode} payment_status=${obj.payment_status} plan=${obj.metadata?.plan} client_reference_id valid=${UUID.test(id)}`)
           return
         }
-        const [changed] = await this.users.update({ plan, stripeCustomerId: obj.customer ?? null, stripeSubscriptionId: obj.subscription ?? null }, { where: { id } })
-        this.log.log(changed ? `Plan "${plan}" turned on for user=${id} (subscription ${obj.subscription})` : `checkout.session.completed: no user with id ${id}, nothing changed`)
+        const user = await this.users.findOne({ where: { id, ...notNewer } })
+        if (!user) {
+          this.log.warn(`checkout.session.completed ignored: no user ${id}, or a newer billing event was already applied`)
+          return
+        }
+        if (user.stripeSubscriptionId && obj.subscription && user.stripeSubscriptionId !== obj.subscription) {
+          // друга оплата за вже діючою підпискою (дві вкладки, повтор): другу не підміняємо, її треба скасувати й повернути вручну
+          this.log.error(`DUPLICATE subscription for user=${id}: ${obj.subscription} was paid while ${user.stripeSubscriptionId} is active. Kept the active one; cancel and refund ${obj.subscription} in Stripe`)
+          return
+        }
+        await user.update({ plan, stripeCustomerId: obj.customer ?? null, stripeSubscriptionId: obj.subscription ?? null, billingEventAt: at })
+        this.log.log(`Plan "${plan}" turned on for user=${id} (subscription ${obj.subscription})`)
         return
       }
       case 'customer.subscription.deleted':
-        await this.endSubscription(String(obj.id ?? ''))
+        await this.endSubscription(String(obj.id ?? ''), at, notNewer)
         return
       case 'customer.subscription.updated': {
         const id = String(obj.id ?? '')
-        if (ENDED.includes(obj.status)) return this.endSubscription(id)
+        if (ENDED.includes(obj.status)) return this.endSubscription(id, at, notNewer)
         const price = obj.items?.data?.[0]?.price?.id
         const plan = PAID.find((p) => cfg.prices[p] && cfg.prices[p] === price)
-        if (plan && obj.status === 'active') await this.users.update({ plan }, { where: { stripeSubscriptionId: id } })
+        if (plan && obj.status === 'active') {
+          const [changed] = await this.users.update({ plan, billingEventAt: at }, { where: { stripeSubscriptionId: id, ...notNewer } })
+          this.log.log(changed ? `Subscription ${id} moved to plan "${plan}"` : `customer.subscription.updated: no user has subscription ${id}, or the event is older than the last one applied`)
+        }
         return
       }
       default:
     }
   }
 
-  private async endSubscription(subscriptionId: string) {
+  private async endSubscription(subscriptionId: string, at: Date, notNewer: object) {
     if (!subscriptionId) return
-    const [changed] = await this.users.update({ plan: 'free', stripeSubscriptionId: null }, { where: { stripeSubscriptionId: subscriptionId } })
-    this.log.log(changed ? `Subscription ${subscriptionId} ended: the plan is back to free` : `Subscription ${subscriptionId} ended: no user has it, nothing changed`)
+    const [changed] = await this.users.update({ plan: 'free', stripeSubscriptionId: null, billingEventAt: at }, { where: { stripeSubscriptionId: subscriptionId, ...notNewer } })
+    this.log.log(changed ? `Subscription ${subscriptionId} ended: the plan is back to free` : `Subscription ${subscriptionId} ended: no user has it (or the event is old), nothing changed`)
   }
 }
 

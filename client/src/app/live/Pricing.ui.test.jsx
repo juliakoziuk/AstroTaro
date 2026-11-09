@@ -34,6 +34,23 @@ describe('pricing buttons', () => {
     expect(c.go).toHaveBeenCalledWith('/dashboard')
   })
 
+  test('an answer with neither a payment url nor an explicit demo activation is an error, not a trip to the dashboard', async () => {
+    setToken('tok')
+    mockApi({ 'POST /billing/checkout': [201, {}] })
+    const c = ctx()
+    await expect(pricing.actions.Upgrade(c)).rejects.toThrow(/payment page could not be opened/)
+    expect(c.go).not.toHaveBeenCalled()
+    expect(c.say).not.toHaveBeenCalled()
+  })
+
+  test('a demo answer for another plan than the one requested is not trusted either', async () => {
+    setToken('tok')
+    mockApi({ 'POST /billing/checkout': [201, { activated: true, plan: 'premium' }] })
+    const c = ctx()
+    await expect(pricing.actions.Upgrade(c)).rejects.toThrow(/payment page could not be opened/)
+    expect(c.go).not.toHaveBeenCalled()
+  })
+
   test('the free plan uses the plain plan endpoint, not Stripe', async () => {
     setToken('tok')
     const calls = mockApi({ 'POST /billing/plan': [201, { plan: 'free' }] })
@@ -47,5 +64,20 @@ describe('pricing buttons', () => {
     setToken('tok')
     mockApi({ 'POST /billing/checkout': [403, { message: 'Paid plans cannot be activated yet: online payment is not connected' }] })
     await expect(pricing.actions.Upgrade(ctx())).rejects.toThrow(/online payment is not connected/)
+  })
+})
+
+describe('manage subscription', () => {
+  test('the button shows only for a subscriber and opens the Stripe portal', async () => {
+    const { render, screen } = await import('@testing-library/react')
+    const userEvent = (await import('@testing-library/user-event')).default
+    setToken('tok')
+    const calls = mockApi({ 'POST /billing/portal': [201, { url: 'about:blank#portal' }] })
+    const none = render(pricing.Over({ ctx: { data: { subscribed: false }, run: (fn) => fn() } }) ?? <p />)
+    expect(none.container.querySelector('button')).toBeNull()
+    none.unmount()
+    render(pricing.Over({ ctx: { data: { subscribed: true }, run: (fn) => fn() } }))
+    await userEvent.setup().click(screen.getByRole('button', { name: 'Manage subscription' }))
+    expect(calls.map((c) => c.key)).toEqual(['POST /billing/portal'])
   })
 })

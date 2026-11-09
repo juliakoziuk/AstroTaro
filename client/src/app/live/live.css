@@ -373,3 +373,12 @@
 }
 .v-app .search input::placeholder { color: #8f9bad; }
 .v-app .search input:focus-visible { outline: calc(var(--u) * 2) solid var(--gold); outline-offset: calc(var(--u) * 2); }
+
+/* тарифи: кнопка порталу Stripe для тих, хто вже підписаний (pricing.Over у simple.jsx) */
+.v-app .manage { display: grid; }
+.v-app .manage button {
+  height: 100%; border-radius: 999px; cursor: pointer; color: #1a1208; font: 600 calc(var(--u) * 20) 'Source Sans 3', 'Segoe UI', sans-serif;
+  border: 0; background: linear-gradient(180deg, #f0cf94, #d3a768);
+}
+.v-app .manage button:disabled { opacity: 0.6; cursor: default; }
+.v-app .manage button:focus-visible { outline: calc(var(--u) * 2) solid #fff; outline-offset: calc(var(--u) * 2); }

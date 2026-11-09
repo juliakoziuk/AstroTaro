@@ -71,6 +71,16 @@ export function stripeProblems(cfg: StripeConfig): string[] {
   return problems
 }
 
+/**
+ * Стан оплати за налаштуваннями: «off» — про Stripe в .env нічого немає (можливий демо-режим), «ready» — усе потрібне задано
+ * (ключ, обидві ціни й секрет вебхука), «broken» — задано частково або хибно. У «broken» платежі не приймаємо: людина заплатила б,
+ * а тариф не ввімкнувся б (наприклад без секрету вебхука), або ми тихо вмикали б тариф без оплати.
+ */
+export function stripeMode(cfg: StripeConfig): 'off' | 'ready' | 'broken' {
+  if (!cfg.secretKey && !cfg.webhookSecret && !cfg.prices.pro && !cfg.prices.premium) return 'off'
+  return stripeProblems(cfg).length ? 'broken' : 'ready'
+}
+
 export class StripeError extends Error {
   constructor(
     message: string,
@@ -95,11 +105,11 @@ export const stripeConfig = (env: NodeJS.ProcessEnv = process.env): StripeConfig
 })
 
 /** Один POST до Stripe API; повертає розібрану відповідь або кидає StripeError з повідомленням Stripe. */
-export async function stripePost<T = any>(config: StripeConfig, path: string, params: Record<string, Param>, fetchFn: typeof fetch = fetch): Promise<T> {
+export async function stripePost<T = any>(config: StripeConfig, path: string, params: Record<string, Param>, fetchFn: typeof fetch = fetch, idempotencyKey?: string): Promise<T> {
   if (!config.secretKey) throw new StripeError('Stripe is not configured', 503)
   const res = await fetchFn(`${config.apiBase}${path}`, {
     method: 'POST',
-    headers: { Authorization: `Bearer ${config.secretKey}`, 'Content-Type': 'application/x-www-form-urlencoded' },
+    headers: { Authorization: `Bearer ${config.secretKey}`, 'Content-Type': 'application/x-www-form-urlencoded', ...(idempotencyKey ? { 'Idempotency-Key': idempotencyKey } : {}) },
     body: encodeForm(params),
     signal: AbortSignal.timeout(15_000),
   })

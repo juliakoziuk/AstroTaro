@@ -8,6 +8,7 @@ import { ApiAuthed } from '../common/api-docs'
 import { flagOn } from '../common/flags'
 import { currentLocale, Locale, LOCALES } from '../i18n/locale'
 import { msg } from '../i18n/messages'
+import { stripeConfig, stripeMode } from '../billing/stripe'
 import { User } from '../users/user.model'
 
 export const PLAN_IDS = ['free', 'pro', 'premium'] as const
@@ -59,7 +60,7 @@ export class PlansController {
 
   @ApiOperation({
     summary: 'Обрати тариф',
-    description: 'Платіжної системи поки немає, тож безкоштовний тариф обирається вільно, а платні — лише в демо-режимі (ALLOW_DEMO_BILLING=true у .env, для розробки).',
+    description: 'Безкоштовний тариф обирається вільно. Платні купуються через /billing/checkout; без жодних налаштувань Stripe їх можна вмикати без оплати лише з ALLOW_DEMO_BILLING=true (для розробки).',
   })
   @ApiBody({ type: PlanDto })
   @ApiOkResponse({ description: 'Поточний тариф' })
@@ -68,7 +69,9 @@ export class PlansController {
   @Post('billing/plan')
   async choose(@CurrentUser() u: { id: string }, @Body() dto: PlanDto) {
     if ((await this.users.findByPk(u.id)).stripeSubscriptionId) throw new ForbiddenException(msg(currentLocale(), 'billingManageInPortal'))
-    if (!canChoosePlan(dto.plan, flagOn(this.config.get('ALLOW_DEMO_BILLING')))) throw new ForbiddenException(msg(currentLocale(), 'paymentUnavailable'))
+    // демо-режим лише поки про Stripe в .env немає нічого; інакше платний тариф купується тільки через Stripe
+    const demo = flagOn(this.config.get('ALLOW_DEMO_BILLING')) && stripeMode(stripeConfig()) === 'off'
+    if (!canChoosePlan(dto.plan, demo)) throw new ForbiddenException(msg(currentLocale(), 'paymentUnavailable'))
     await this.users.update({ plan: dto.plan }, { where: { id: u.id } })
     return { plan: dto.plan }
   }
