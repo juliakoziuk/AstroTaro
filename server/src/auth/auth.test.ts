@@ -61,6 +61,17 @@ test('one address cannot try more than 30 logins or create more than 10 accounts
   strictEqual(status(() => throttle.beforeRegister('5.5.5.5')), 0)
 })
 
+test('reset emails: 3 per address per hour (then silently none), 10 requests per source address (then 429)', () => {
+  const throttle = new AuthThrottle()
+  strictEqual(throttle.beforeForgot('7.7.7.7', 'A@b.co'), true)
+  strictEqual(throttle.beforeForgot('7.7.7.7', 'a@b.co'), true)
+  strictEqual(throttle.beforeForgot('7.7.7.7', 'a@b.co'), true)
+  strictEqual(throttle.beforeForgot('7.7.7.7', 'a@b.co'), false, 'the fourth is accepted but nothing is sent')
+  for (let i = 0; i < 6; i++) throttle.beforeForgot('7.7.7.7', `u${i}@b.co`)
+  strictEqual(status(() => throttle.beforeForgot('7.7.7.7', 'late@b.co')), 429)
+  strictEqual(status(() => throttle.beforeForgot('8.8.8.8', 'late@b.co')), 0)
+})
+
 test('the lock message is in the language of the request and says how long to wait', () => {
   const throttle = new AuthThrottle()
   for (let i = 0; i < 10; i++) throttle.beforeRegister('6.6.6.6')

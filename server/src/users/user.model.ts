@@ -45,6 +45,22 @@ export class User extends Model {
   @Column({ type: DataType.FLOAT })
   declare birthLon: number | null
 
+  // Одноразові токени з листів зберігаємо лише хешем; passwordChangedAt робить старі токени входу недійсними
+  @Column({ type: DataType.DATE })
+  declare emailVerifiedAt: Date | null
+
+  @Column({ type: DataType.STRING(64) })
+  declare emailVerifyHash: string | null
+
+  @Column({ type: DataType.STRING(64) })
+  declare passwordResetHash: string | null
+
+  @Column({ type: DataType.DATE })
+  declare passwordResetExpires: Date | null
+
+  @Column({ type: DataType.DATE })
+  declare passwordChangedAt: Date | null
+
   @Column({ type: DataType.STRING, allowNull: false, defaultValue: 'free' })
   declare plan: string
 

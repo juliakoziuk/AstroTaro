@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config'
 import { SequelizeModule } from '@nestjs/sequelize'
 import { AstrologyModule, Report } from './astrology/astrology'
 import { AuthModule } from './auth/auth.module'
+import { MailModule } from './mail/mail'
 import { flagOn } from './common/flags'
 import { CompanionModule } from './companion/companion'
 import { CosmosModule } from './cosmos/cosmos'
@@ -41,6 +42,7 @@ import { User } from './users/user.model'
         logging: false,
       }),
     }),
+    MailModule,
     AuthModule,
     DreamsModule,
     JournalModule,

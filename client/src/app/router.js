@@ -42,6 +42,9 @@ export const useRoute = () =>
     () => '/',
   )
 
+/** Параметр з адреси виду #/шлях?name=значення (наприклад токен із листа); порожній рядок, якщо його немає. */
+export const hashParam = (name) => new URLSearchParams(window.location.hash.split('?')[1] ?? '').get(name) ?? ''
+
 export function go(to, { replace = false } = {}) {
   const hash = '#' + clean(to)
   if (replace) window.history.replaceState({ depth }, '', hash)

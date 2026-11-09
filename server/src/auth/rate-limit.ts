@@ -71,6 +71,9 @@ export class AuthThrottle {
   private loginByIp = new RateLimiter(30, 15 * MINUTE)
   private loginFails = new RateLimiter(8, 15 * MINUTE)
   private registerByIp = new RateLimiter(10, 60 * MINUTE)
+  private forgotByIp = new RateLimiter(10, 60 * MINUTE)
+  private forgotByEmail = new RateLimiter(3, 60 * MINUTE)
+  private verifyByUser = new RateLimiter(3, 60 * MINUTE)
 
   private pair = (ip: string, email: string) => `${ip}|${email.trim().toLowerCase()}`
 
@@ -87,6 +90,27 @@ export class AuthThrottle {
 
   loginSucceeded(ip: string, email: string) {
     this.loginFails.reset(this.pair(ip, email))
+  }
+
+  /**
+   * Запит на скидання пароля: до 10 за годину з адреси (далі 429) і до 3 листів на одну пошту за годину.
+   * Для пошти ліміт мовчазний (false — листа не слати), щоб відповідь не показувала, що з цією поштою щось відбувається.
+   */
+  beforeForgot(ip: string, email: string): boolean {
+    const wait = this.forgotByIp.blockedFor(ip)
+    if (wait) throw tooMany(wait)
+    this.forgotByIp.record(ip)
+    const key = email.trim().toLowerCase()
+    if (this.forgotByEmail.blockedFor(key)) return false
+    this.forgotByEmail.record(key)
+    return true
+  }
+
+  /** Повторний лист підтвердження: до 3 за годину для користувача. */
+  beforeResendVerification(userId: string) {
+    const wait = this.verifyByUser.blockedFor(userId)
+    if (wait) throw tooMany(wait)
+    this.verifyByUser.record(userId)
   }
 
   beforeRegister(ip: string) {

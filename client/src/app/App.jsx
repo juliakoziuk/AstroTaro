@@ -5,6 +5,7 @@ import './base.css'
 import './theme.css'
 import Landing from '../landing/Landing.jsx'
 import Login from '../login/Login.jsx'
+import { ForgotPassword, ResetPassword, VerifyEmail } from '../login/AccountPages.jsx'
 import Shell from './Shell.jsx'
 import SettingsPage from './SettingsPage.jsx'
 import InsightReminder from './InsightReminder.jsx'
@@ -24,9 +25,9 @@ import { applyServerTheme } from '../lib/themeSync.js'
 // Один React-застосунок для всіх 13 екранів: лендінг, логін і 11 екранів за макетами. Перехід між ними — клієнтський
 // (hash-роутер, без перезавантаження); невідомий шлях веде на лендінг.
 // Без входу доступні лише ці екрани; решта веде на логін
-const PUBLIC = new Set(['/', '/login', '/register', '/pricing'])
+const PUBLIC = new Set(['/', '/login', '/register', '/pricing', '/forgot-password', '/reset-password', '/verify-email'])
 // Перемикач мови потрібен там, де людина ще не може зайти в налаштування
-const BEFORE_LOGIN = new Set(['landing', 'login', 'register'])
+const BEFORE_LOGIN = new Set(['landing', 'login', 'register', 'forgot-password', 'reset-password', 'verify-email'])
 // Екрани входу: залогінений користувач (є дійсний токен) одразу потрапляє на дашборд; лендінг лишається, але показує його акаунт
 const GUEST_ONLY = new Set(['login', 'register'])
 const THEMED = new Set(['app', 'today', 'draw', 'history'])
@@ -72,6 +73,9 @@ export default function App() {
       <div className="route" key={screen.path}>
         {!locked && !signedInGuest && screen.kind === 'landing' && <Landing />}
         {!locked && !signedInGuest && screen.kind === 'login' && <Login />}
+        {screen.id === 'forgot-password' && <ForgotPassword />}
+        {screen.id === 'reset-password' && <ResetPassword />}
+        {screen.id === 'verify-email' && <VerifyEmail />}
         {!locked && !signedInGuest && screen.kind === 'today' && <Today />}
         {!locked && !signedInGuest && screen.kind === 'draw' && <Draw />}
         {!locked && !signedInGuest && screen.kind === 'history' && <History />}

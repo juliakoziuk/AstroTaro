@@ -1,7 +1,10 @@
 import 'reflect-metadata'
 import { INestApplication } from '@nestjs/common'
 import { NestFactory } from '@nestjs/core'
+import { getModelToken } from '@nestjs/sequelize'
 import { AppModule } from '../app.module'
+import { MailService, Mail } from '../mail/mail'
+import { User } from '../users/user.model'
 import { configureApp } from '../app.setup'
 
 export interface Reply {
@@ -16,6 +19,10 @@ export interface Harness {
   api(method: string, path: string, opts?: { body?: unknown; token?: string; lang?: string }): Promise<Reply>
   /** Новий користувач із випадковою поштою; повертає токен, id і дані для входу. */
   register(name?: string): Promise<{ token: string; id: string; email: string; password: string }>
+  /** Листи, які «надіслав» сервер (у тестах вони не йдуть у мережу). */
+  outbox: Mail[]
+  /** Пряма модель користувачів: для перевірок, яких не видно через API (що лежить у базі). */
+  users: typeof User
   close(): Promise<void>
 }
 
@@ -52,5 +59,5 @@ export async function startHarness(): Promise<Harness> {
     return { token: r.body.token, id: r.body.user.id, email, password }
   }
 
-  return { app, api, register, close: () => app.close() }
+  return { app, api, register, outbox: app.get(MailService).outbox, users: app.get(getModelToken(User)), close: () => app.close() }
 }

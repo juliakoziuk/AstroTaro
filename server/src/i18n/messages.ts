@@ -41,6 +41,21 @@ const MESSAGES = {
     en: 'Paid plans cannot be activated yet: online payment is not connected',
     uk: 'Платні тарифи поки недоступні: онлайн-оплату ще не підключено',
   },
+  badToken: {
+    en: 'This link is invalid or has expired. Request a new one.',
+    uk: 'Посилання недійсне або прострочене. Запросіть нове.',
+  },
+  alreadyVerified: { en: 'This email is already confirmed', uk: 'Пошту вже підтверджено' },
+  resetMailSubject: { en: 'Reset your MYSTIQ password', uk: 'Скидання пароля MYSTIQ' },
+  resetMailBody: {
+    en: 'Hello, {name}!\n\nSomeone asked to reset the password of your MYSTIQ account. To choose a new one, open this link within one hour:\n\n{link}\n\nIf it was not you, ignore this email: your password stays as it is.',
+    uk: 'Вітаємо, {name}!\n\nХтось попросив скинути пароль вашого акаунта MYSTIQ. Щоб обрати новий, відкрийте це посилання протягом години:\n\n{link}\n\nЯкщо це були не ви, просто проігноруйте лист: пароль лишиться як був.',
+  },
+  verifyMailSubject: { en: 'Confirm your email for MYSTIQ', uk: 'Підтвердіть пошту для MYSTIQ' },
+  verifyMailBody: {
+    en: 'Welcome, {name}!\n\nConfirm that this is your email by opening the link (valid for 3 days):\n\n{link}',
+    uk: 'Вітаємо, {name}!\n\nПідтвердіть, що ця пошта ваша, відкривши посилання (діє 3 дні):\n\n{link}',
+  },
   unknown: { en: 'Something went wrong', uk: 'Щось пішло не так',  },
 } satisfies Record<string, Text>
 

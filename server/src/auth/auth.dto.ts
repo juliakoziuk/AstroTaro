@@ -30,6 +30,28 @@ export class LoginDto {
   remember?: boolean
 }
 
+export class ForgotPasswordDto {
+  @ApiProperty({ example: 'yulia@example.com' })
+  @IsEmail()
+  email: string
+}
+
+export class ResetPasswordDto {
+  @ApiProperty({ description: 'Токен із посилання в листі' })
+  @IsString() @MinLength(20) @MaxLength(200)
+  token: string
+
+  @ApiProperty({ example: 'new-secret-123', minLength: 8, description: 'Ті самі правила, що й при реєстрації: від 8 символів і не більше 72 байтів' })
+  @IsString() @MinLength(8) @MaxBytes(72)
+  password: string
+}
+
+export class VerifyEmailDto {
+  @ApiProperty({ description: 'Токен із посилання в листі' })
+  @IsString() @MinLength(20) @MaxLength(200)
+  token: string
+}
+
 export class ConsentDto {
   @ApiPropertyOptional({ description: 'Дозволити AI аналізувати сни' }) @IsOptional() @IsBoolean() dreams?: boolean
   @ApiPropertyOptional({ description: 'Дозволити AI аналізувати щоденник' }) @IsOptional() @IsBoolean() journal?: boolean
@@ -48,6 +70,7 @@ export class PublicUser {
   @ApiProperty({ example: 'yulia@example.com' }) email: string
   @ApiProperty({ example: 'Юля' }) name: string
   @ApiProperty({ type: ConsentState }) consent: ConsentState
+  @ApiProperty({ description: 'Пошту підтверджено за посиланням з листа' }) emailVerified: boolean
 }
 
 export class AuthResponse {

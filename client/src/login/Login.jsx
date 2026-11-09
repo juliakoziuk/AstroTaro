@@ -132,8 +132,7 @@ export default function Login() {
               <span className="box" aria-hidden="true" />
               <span className="t remember-text">{t('Remember me')}</span>
             </label>
-            {/* екрана відновлення пароля в макетах немає: посилання без переходу */}
-            <a className="t forgot" role="link" aria-disabled="true" tabIndex={-1}>{t('Forgot password?')}</a>
+            <a className="t forgot" {...navProps('/forgot-password')}>{t('Forgot password?')}</a>
 
             {error && <p className="t form-error" role="alert">{error}</p>}
 

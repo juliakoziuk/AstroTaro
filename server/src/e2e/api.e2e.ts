@@ -238,6 +238,85 @@ describe('plans and consent', () => {
   })
 })
 
+describe('email verification and password reset', () => {
+  const tokenIn = (mail: { text: string }) => /token=([\w-]+)/.exec(mail.text)?.[1] ?? ''
+  const lastMailTo = (email: string) => [...h.outbox].reverse().find((m) => m.to === email)
+  const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
+  let u: Awaited<ReturnType<Harness['register']>>
+  before(async () => {
+    u = await h.register('Олена')
+  })
+
+  test('registration sends a confirmation email; the link confirms the address once', async () => {
+    const mail = lastMailTo(u.email)
+    ok(mail, 'a confirmation email was sent')
+    ok(/#\/verify-email\?token=/.test(mail.text), mail.text)
+    strictEqual((await h.api('GET', '/auth/me', { token: u.token })).body.emailVerified, false)
+    const token = tokenIn(mail)
+    ok(!(await h.users.findByPk(u.id)).emailVerifyHash?.includes(token), 'the database holds a hash, never the token itself')
+
+    const done = await h.api('POST', '/auth/verify-email', { body: { token } })
+    strictEqual(done.status, 201)
+    strictEqual(done.body.emailVerified, true)
+    strictEqual((await h.api('GET', '/auth/me', { token: u.token })).body.emailVerified, true)
+    strictEqual((await h.api('POST', '/auth/verify-email', { body: { token } })).status, 400, 'the link works once')
+    strictEqual((await h.api('POST', '/auth/resend-verification', { token: u.token })).status, 400, 'nothing to resend once confirmed')
+    strictEqual((await h.api('POST', '/auth/verify-email', { body: { token: 'x'.repeat(43) } })).status, 400, 'an unknown token')
+    strictEqual((await h.api('POST', '/auth/resend-verification')).status, 401)
+  })
+
+  test('forgot-password answers the same for a known and an unknown address, and mails only the known one', async () => {
+    const before = h.outbox.length
+    const unknown = await h.api('POST', '/auth/forgot-password', { body: { email: 'nobody-at-all@example.com' } })
+    const known = await h.api('POST', '/auth/forgot-password', { body: { email: u.email.toUpperCase() }, lang: 'uk' })
+    strictEqual(unknown.status, 201)
+    strictEqual(known.status, 201)
+    deepStrictEqual(unknown.body, known.body, 'the response does not reveal whether the address exists')
+    strictEqual(h.outbox.length, before + 1)
+    const mail = lastMailTo(u.email)
+    ok(/Скидання пароля/.test(mail.subject) && /Олена/.test(mail.text), 'the email is in the language of the request')
+    ok(/#\/reset-password\?token=/.test(mail.text))
+    strictEqual((await h.api('POST', '/auth/forgot-password', { body: { email: 'not-an-email' } })).status, 400)
+  })
+
+  test('a new password needs a valid token and the same rules as registration', async () => {
+    const token = tokenIn(lastMailTo(u.email))
+    strictEqual((await h.api('POST', '/auth/reset-password', { body: { token, password: 'short' } })).status, 400)
+    strictEqual((await h.api('POST', '/auth/reset-password', { body: { token, password: 'я'.repeat(37) } })).status, 400, 'more than 72 bytes')
+    strictEqual((await h.api('POST', '/auth/reset-password', { body: { token: 'y'.repeat(43), password: 'a brand new password' } })).status, 400)
+    const reset = await h.api('POST', '/auth/reset-password', { body: { token, password: 'x' }, lang: 'uk' })
+    strictEqual(reset.status, 400)
+    ok(!(await h.users.findByPk(u.id)).passwordResetHash?.includes(token), 'the database holds a hash, never the token itself')
+  })
+
+  test('resetting the password: the link works once, the old password and old sessions stop working', async () => {
+    await sleep(1100) // токен входу несе час видачі з точністю до секунди
+    const token = tokenIn(lastMailTo(u.email))
+    const reset = await h.api('POST', '/auth/reset-password', { body: { token, password: 'a brand new password' } })
+    strictEqual(reset.status, 201, text(reset.body))
+    strictEqual((await h.api('POST', '/auth/reset-password', { body: { token, password: 'another new password' } })).status, 400, 'the link is single-use')
+    strictEqual((await h.api('POST', '/auth/login', { body: { email: u.email, password: u.password } })).status, 401, 'the old password no longer works')
+    const fresh = await h.api('POST', '/auth/login', { body: { email: u.email, password: 'a brand new password' } })
+    strictEqual(fresh.status, 201)
+    strictEqual((await h.api('GET', '/auth/me', { token: u.token })).status, 401, 'a session from before the reset is closed')
+    strictEqual((await h.api('GET', '/auth/me', { token: fresh.body.token })).status, 200, 'a session after the reset works')
+  })
+
+  test('an expired link is refused', async () => {
+    await h.api('POST', '/auth/forgot-password', { body: { email: u.email } })
+    const token = tokenIn(lastMailTo(u.email))
+    await h.users.update({ passwordResetExpires: new Date(Date.now() - 1000) }, { where: { id: u.id } })
+    strictEqual((await h.api('POST', '/auth/reset-password', { body: { token, password: 'yet another password' } })).status, 400)
+  })
+
+  test('a third request for one address in an hour is accepted but sends no more mail', async () => {
+    const mails = () => h.outbox.filter((m) => m.to === u.email && /reset/i.test(m.subject + m.text)).length
+    const start = mails()
+    for (let i = 0; i < 5; i++) strictEqual((await h.api('POST', '/auth/forgot-password', { body: { email: u.email } })).status, 201)
+    ok(mails() - start <= 2, 'at most 3 reset emails per address per hour in total, so at most 2 more here')
+  })
+})
+
 describe('tarot and companion flows', () => {
   let u: Awaited<ReturnType<Harness['register']>>
   before(async () => {
@@ -283,6 +362,16 @@ describe('brute force protection (runs last: it uses up the address limits)', ()
     // інший акаунт з тієї ж адреси не заблокований
     const other = await h.register()
     strictEqual((await h.api('POST', '/auth/login', { body: { email: other.email, password: other.password } })).status, 201)
+  })
+
+  test('one address cannot ask for an unlimited number of reset emails', async () => {
+    let blocked = 0
+    for (let i = 0; i < 12 && !blocked; i++) {
+      const r = await h.api('POST', '/auth/forgot-password', { body: { email: `nobody-${i}@example.com` } })
+      if (r.status === 429) blocked = i + 1
+      else strictEqual(r.status, 201)
+    }
+    ok(blocked > 0, 'a 429 appeared before 12 requests')
   })
 
   test('one address cannot register an unlimited number of accounts', async () => {
