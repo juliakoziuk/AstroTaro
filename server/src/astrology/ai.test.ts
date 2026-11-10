@@ -55,6 +55,27 @@ test('the facts do not change between calls: the same chart gives the same text,
   strictEqual(natalFacts(natalChart(FULL), 'en'), natalFacts(natalChart(FULL), 'en'))
 })
 
+test('the natal facts carry the book passages, and the prompt tells the model to retell them without naming the books', () => {
+  const chart = natalChart(FULL)
+  const facts = natalFacts(chart, 'en')
+  ok(/Source passages \(classical interpretations by Alan Leo/.test(facts) && /\[S1\] Sun in \w+/.test(facts))
+  ok(natalFacts(chart, 'en', []).includes('Source passages: none available'), 'without sources the model is told to say less')
+  const own = [{ label: 'Sun in Leo', passage: { id: 'x', source: 'leo-afa-1899', title: 'Alan Leo, Astrology for All', year: 1899, kind: 'sign' as const, planet: 'Sun', sign: 'Leo', words: 3, text: 'proud warm generous' } }]
+  ok(natalFacts(chart, 'en', own).includes('[S1] Sun in Leo — Alan Leo, Astrology for All, 1899:\n    "proud warm generous"'))
+  const long = [{ ...own[0], passage: { ...own[0].passage, text: Array.from({ length: 300 }, (_, i) => `w${i}`).join(' ') } }]
+  ok(!natalFacts(chart, 'en', long).includes('w150'), 'a long passage is cut, so the prompt stays small')
+  ok(/Alan Leo/.test(astroSystemPrompt('natal', 'en')) || /source passages/i.test(astroSystemPrompt('natal', 'en')))
+  ok(!/source passages/i.test(astroSystemPrompt('day', 'en')), 'forecasts have no sources')
+})
+
+test('the model is asked with the passages that were picked for the chart', async () => {
+  let body = ''
+  const fetchFn = async (_url: unknown, init?: RequestInit) => ((body = String(init?.body)), reply(prose(520))())
+  const own = [{ label: 'Sun in Leo', passage: { id: 'x', source: 'leo-afa-1899', title: 'T', year: 1899, kind: 'sign' as const, planet: 'Sun', sign: 'Leo', words: 3, text: 'unmistakable-marker' } }]
+  await aiNatalReport(natalChart(FULL), 'en', LLM_ENV, fetchFn as typeof fetch, own)
+  ok(body.includes('unmistakable-marker'))
+})
+
 test('the compatibility facts carry both charts, the scores and the aspects, and quote the names as data', () => {
   const a = natalChart(FULL)
   const b = natalChart({ birthDate: '1992-03-03' })

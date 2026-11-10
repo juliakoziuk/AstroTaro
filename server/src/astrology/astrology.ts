@@ -18,6 +18,7 @@ import { buildForecast } from './forecast'
 import { buildCompatibility } from './synastry'
 import { inSign, monthlyInsight, moonEventName, planetName, signName } from './text'
 import { aiCompatibility, aiForecast, aiNatalReport, positionsBlock } from './ai'
+import { natalSources, sourcesBlock } from './sources'
 
 @Table({ tableName: 'reports', indexes: [{ fields: ['userId', 'createdAt'] }] })
 export class Report extends Model {
@@ -165,9 +166,12 @@ export class AstrologyController {
     const chart = natalChart(birth)
     const locale = currentLocale()
     const built = buildReport(chart, locale)
-    // текст пише модель за розрахованими фактами, після нього йдуть самі положення (їх можна звірити); без моделі лишається шаблонний звіт
-    const ai = await aiNatalReport(chart, locale)
-    return this.reports.create({ userId: u.id, title: built.title, text: ai ? `${ai}\n\n${positionsBlock(chart, locale)}` : built.text } as any)
+    // текст пише модель за розрахованими фактами й класичними джерелами; після нього йдуть самі положення (їх можна звірити) і
+    // перелік джерел, складений кодом, а не моделлю. Без моделі лишається шаблонний звіт
+    const picks = natalSources(chart)
+    const ai = await aiNatalReport(chart, locale, process.env, undefined, picks)
+    const text = ai ? [ai, positionsBlock(chart, locale), sourcesBlock(picks, locale)].filter(Boolean).join('\n\n') : built.text
+    return this.reports.create({ userId: u.id, title: built.title, text } as any)
   }
 }
 
