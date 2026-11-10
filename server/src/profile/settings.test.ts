@@ -31,7 +31,7 @@ test('reset restores preferences while keeping records and AI consent', async ()
 
 test('the companion never queries private records without the corresponding consent', async () => {
   const denied = { findAll: async () => { throw new Error('queried without consent') }, findOne: async () => { throw new Error('queried without consent') } }
-  const controller = new CompanionController(null, null, denied as any, denied as any, denied as any)
+  const controller = new CompanionController(null, null, denied as any, denied as any, denied as any, null) // останній параметр: облік використання тарифу, у loadContext не потрібен
   const context = await (controller as any).loadContext({ id: 'owner', name: 'X', consent: { dreams: false, journal: false, spreads: false } }, new Date('2026-11-05'))
   deepStrictEqual(context.dreams, [])
   deepStrictEqual(context.moods, [])
@@ -48,7 +48,8 @@ test('with autosave off a tarot reading is presented without writing to the data
     },
   }
   const users = { findByPk: async () => ({ settings: { ...DEFAULT_SETTINGS, autosave: false } }) }
-  const controller = new TarotController(spreads as any, users as any)
+  const usage = { accept: async () => undefined } // облік використання тарифу: тут перевіряємо лише, що в базу нічого не пишеться
+  const controller = new TarotController(spreads as any, users as any, usage as any)
   const result = await controller.create({ id: 'owner' }, { spreadId: 'daily', deck: 'Classic Tarot', mode: 'quick', cards: [{ id: 19, reversed: false }] })
   strictEqual(result.temporary, true)
   strictEqual(writes, 0)

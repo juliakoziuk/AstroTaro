@@ -12,8 +12,10 @@ const LIMITS: Record<string, Limits> = {
   pro: { readingsPerMonth: 30, dreamsTotal: 50, aiMessagesPerDay: 25, readingModes: ['quick', 'detailed'], compatibility: true, forecastRanges: ['day', 'week', 'month'], fullReports: true },
   premium: { readingsPerMonth: null, dreamsTotal: null, aiMessagesPerDay: 200, readingModes: ['quick', 'detailed', 'depth'], compatibility: true, forecastRanges: ['day', 'week', 'month'], fullReports: true },
 }
-export const limitsOf = (plan: string): Limits => structuredClone(Object.hasOwn(LIMITS, plan) ? LIMITS[plan] : LIMITS.free)
-export const planOf = (plan: string) => Object.hasOwn(LIMITS, plan) ? plan : 'free'
+// власні ключі таблиці, а не успадковані («constructor», «toString»): Object.hasOwn потребує lib es2022, а ціль збірки — es2021
+const known = (plan: string) => Object.prototype.hasOwnProperty.call(LIMITS, plan)
+export const limitsOf = (plan: string): Limits => structuredClone(known(plan) ? LIMITS[plan] : LIMITS.free)
+export const planOf = (plan: string) => known(plan) ? plan : 'free'
 export type Usage = { readingsThisMonth: number; dreamsTotal: number; aiMessagesToday: number }
 export const remainingOf = (limits: Limits, usage: Usage) => {
   const left = (max: number | null, used: number) => max === null ? null : Math.max(0, max - used)
