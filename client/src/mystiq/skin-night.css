@@ -21,7 +21,6 @@
 [data-room='dreams'] { --glow: 120, 170, 240; }
 [data-room='astrology'] { --glow: 170, 150, 255; }
 [data-room='journal'] { --glow: 240, 190, 140; }
-[data-room='companion'] { --glow: 110, 210, 220; }
 [data-room='history'] { --glow: 217, 181, 106; }
 
 /* ---------- читабельність: розмір, інтерлінія, контраст ---------- */
@@ -92,9 +91,6 @@ p { max-width: none; }
 .mq-seg button { color: #d8d3c4; font-size: 15px; }
 .mq-seg button.is-on { background: var(--grad); color: #1a1408; font-weight: 500; }
 .mq-slot-empty { border-color: rgba(217, 181, 106, 0.4); color: #c8c1ad; }
-.mq-msg.ai { background: rgba(14, 27, 60, 0.9); border-color: var(--line-soft); font-size: 16.5px; color: #f6f1e4; }
-.mq-msg.me { color: #1a1408; font-weight: 500; }
-.mq-typing i { background: #d9b56a; }
 .mq-symbols span { color: #f3dfa8; }
 .mq-timeline::before { background: linear-gradient(180deg, #d9b56a, transparent); }
 .mq-event::before { border-color: #d9b56a; box-shadow: 0 0 12px rgba(217, 181, 106, 0.7); background: #0b1630; }

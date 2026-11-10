@@ -8,7 +8,6 @@ const TONES = {
   tarot: ["#f0b6c6", "#e8c77a", "#8fa4ee"],
   dreams: ["#9cc4ff", "#6f8fe0", "#f6e6b8"],
   journal: ["#f2cf8f", "#8fa4ee", "#f6e6b8"],
-  companion: ["#8fe0e8", "#e8c77a", "#8fa4ee"],
   history: ["#e8c77a", "#f0b6c6", "#6f8fe0"],
   clouds: ["#24427f", "#162a56", "#c9a45c"],
 }
@@ -100,20 +99,6 @@ function Journal({ c }) {
   )
 }
 
-function Companion({ c }) {
-  return (
-    <g transform="translate(150 190)">
-      <circle r="104" fill="url(#orb)" opacity="0.55" />
-      <circle r="74" fill="url(#orb)" filter="url(#glow)" />
-      <ellipse rx="112" ry="30" fill="none" stroke={c[0]} strokeWidth="1.4" transform="rotate(-24)" opacity="0.9" filter="url(#glow)" />
-      <ellipse rx="112" ry="30" fill="none" stroke={c[2]} strokeWidth="1.1" transform="rotate(28)" opacity="0.8" />
-      <circle cx="-54" cy="-54" r="16" fill="#fff" opacity="0.5" />
-      <circle cx="96" cy="-12" r="5" fill={c[0]} />
-      <circle cx="-88" cy="40" r="4" fill={c[2]} />
-    </g>
-  )
-}
-
 function History({ c }) {
   const pts = [[52, 330], [98, 262], [76, 196], [150, 150], [214, 190], [246, 118], [190, 62]]
   return (
@@ -143,7 +128,7 @@ function Clouds({ c }) {
   )
 }
 
-const ART = { clouds: Clouds, astrology: Wheel, tarot: Fan, dreams: Dream, journal: Journal, companion: Companion, history: History }
+const ART = { clouds: Clouds, astrology: Wheel, tarot: Fan, dreams: Dream, journal: Journal, history: History }
 
 export default function RoomArt({ room, className = '', wide = false }) {
   const id = useId()

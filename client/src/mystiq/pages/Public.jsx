@@ -43,7 +43,6 @@ const FEATURES = [
   { glyph: '✧', title: 'Таро', text: 'Досліджуй архетипи та нові погляди.', to: 'tarot' },
   { glyph: '☾', title: 'Щоденник снів', text: 'Збережи образи, з якими прокидаєшся.', to: 'dreams' },
   { glyph: '☼', title: 'Астрологія', text: 'Символічна карта неба для самоспостереження.', to: 'astrology' },
-  { glyph: '☄', title: 'AI-супутник', text: 'Роздуми через уважну розмову.', to: 'companion' },
 ]
 
 export function Landing() {
@@ -65,7 +64,7 @@ export function Landing() {
         <div className="p-moon p-moon--xl" aria-hidden="true">☾</div>
       </section>
 
-      <div className="p-grid p-grid-4" style={{ marginTop: 15 }}>
+      <div className="p-grid p-grid-3" style={{ marginTop: 15 }}>
         {FEATURES.map((f) => (
           <a key={f.title} href={`#/${f.to}`} className="p-card p-link">
             <div className="p-metric">{f.glyph}</div>
@@ -186,12 +185,12 @@ export function Register() {
 const PLANS = [
   {
     id: 'free', name: 'Free', price: '0', note: 'Щоб познайомитись',
-    items: ['Карта дня', 'Щоденник снів і настрою', 'Базова натальна карта', '10 повідомлень AI на тиждень'],
+    items: ['Карта дня', 'Щоденник снів і настрою', 'Базова натальна карта', '5 розкладів на місяць'],
     cta: 'Обрати',
   },
   {
     id: 'plus', name: 'Plus', price: '9,99', note: 'Найпопулярніший', featured: true,
-    items: ['Усі розклади Таро', 'Аналіз снів з пошуком образів', 'Місячні цикли й сумісність', 'AI-супутник без ліміту'],
+    items: ['Усі розклади Таро', 'Аналіз снів з пошуком образів', 'Місячні цикли й сумісність', 'Детальні розклади'],
     cta: 'Обрати',
   },
   {

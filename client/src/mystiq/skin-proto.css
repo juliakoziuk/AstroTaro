@@ -189,8 +189,6 @@ h1, h2, h3, h4 { font-family: var(--display); font-weight: 400; color: #f0e5cd; 
 .mq-spread-pick button strong { font-family: var(--display); font-weight: 400; font-size: 19px; }
 .mq-spread-pick button.is-on { background: linear-gradient(90deg, rgba(42, 77, 100, 0.62), rgba(17, 39, 57, 0.48)); border-color: var(--gold); box-shadow: none; }
 .mq-table { border-radius: 12px; background: rgba(3, 15, 26, 0.35); border-color: var(--line-soft); }
-.mq-msg.ai { background: #10283b; border-color: rgba(215, 181, 116, 0.17); font-size: 14.5px; line-height: 1.7; border-radius: 12px; }
-.mq-msg.me { background: rgba(215, 181, 116, 0.1); border: 1px solid rgba(215, 181, 116, 0.3); color: var(--text); border-radius: 12px; font-weight: 400; }
 .mq-product-art { height: 150px; display: grid; place-items: center; margin: 14px 14px 0; border: 1px solid rgba(215, 181, 116, 0.45); border-radius: 8px; background: radial-gradient(ellipse, rgba(215, 181, 116, 0.15), transparent 65%); font-size: 52px; color: var(--gold); }
 .mq-product-foot strong, .mq-stat-big { font-family: var(--display); color: var(--gold-hi); }
 .mq-compat { text-align: center; margin-top: 14px; }
@@ -209,6 +207,7 @@ h1, h2, h3, h4 { font-family: var(--display); font-weight: 400; color: #f0e5cd; 
 .p-landing { min-height: 340px; }
 .p-landing h1 { font-size: clamp(34px, 4.6vw, 56px); }
 .p-grid { display: grid; gap: 14px; margin-bottom: 15px; }
+.p-grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .p-grid-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 .p-grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .p-metric { font-family: var(--display); font-size: 24px; color: var(--gold-hi); margin: 8px 0 4px; }
@@ -237,7 +236,7 @@ h1, h2, h3, h4 { font-family: var(--display); font-weight: 400; color: #f0e5cd; 
 
 @media (max-width: 1050px) {
   .p-hero { grid-template-columns: 1fr; }
-  .p-grid-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .p-grid-3, .p-grid-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .p-moon { flex-basis: 115px; height: 115px; font-size: 62px; }
 }
 @media (max-width: 860px) {
@@ -252,7 +251,7 @@ h1, h2, h3, h4 { font-family: var(--display); font-weight: 400; color: #f0e5cd; 
   .p-moon, .p-moon--xl { flex-basis: 88px; height: 88px; font-size: 48px; }
 }
 @media (max-width: 420px) {
-  .p-grid-4 { grid-template-columns: 1fr; }
+  .p-grid-3, .p-grid-4 { grid-template-columns: 1fr; }
 }
 
 .p-hero-copy { max-width: 560px; }

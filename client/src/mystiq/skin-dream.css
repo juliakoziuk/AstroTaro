@@ -22,7 +22,6 @@
 [data-room='dreams'] { --glow: 120, 170, 255; }
 [data-room='astrology'] { --glow: 150, 130, 255; }
 [data-room='journal'] { --glow: 235, 150, 205; }
-[data-room='companion'] { --glow: 120, 205, 235; }
 [data-room='history'] { --glow: 255, 190, 140; }
 
 body {
@@ -126,8 +125,6 @@ h1, h2, h3, h4 { font-family: var(--display); font-weight: 400; letter-spacing: 
 .mq-spread-pick button.is-on { border-color: rgba(255, 255, 255, 0.6); background: rgba(176, 166, 255, 0.3); box-shadow: 0 0 30px -8px rgba(185, 168, 255, 0.8); }
 .mq-slot-label, .mq-reading .card-line b { font-family: var(--display); font-weight: 400; }
 .mq-seg button.is-on { background: rgba(176, 166, 255, 0.4); }
-.mq-msg.ai { background: rgba(255, 255, 255, 0.1); }
-.mq-typing i { background: #cbb8ff; }
 .mq-symbols span { color: #e4dcff; font-family: var(--display); }
 .mq-timeline::before { background: linear-gradient(180deg, #cbb8ff, transparent); }
 .mq-event::before { border-color: #cbb8ff; box-shadow: 0 0 12px rgba(203, 184, 255, 0.7); background: #26245c; }

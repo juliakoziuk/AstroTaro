@@ -222,7 +222,7 @@ h1, h2, h3, h4 { font-weight: 600; color: #fff; letter-spacing: -0.01em; }
 .mq-reading .card-line b { font-family: var(--ui); font-weight: 600; font-size: 17px; }
 .mq-table { border-radius: 26px; border: 1px solid var(--line-soft); background: radial-gradient(ellipse at 50% 0%, rgba(var(--glow), 0.16), transparent 70%), rgba(255, 255, 255, 0.02); }
 
-/* ---------- Dreams / Astrology / Journal / Companion / History ---------- */
+/* ---------- Dreams / Astrology / Journal / History ---------- */
 .mq-symbols span { font-family: var(--ui); font-weight: 500; color: #ffc6ec; }
 .mq-seg { border-radius: 999px; overflow: hidden; border-color: var(--line); }
 .mq-seg button.is-on { background: var(--grad); color: #fff; }
@@ -230,10 +230,6 @@ h1, h2, h3, h4 { font-weight: 600; color: #fff; letter-spacing: -0.01em; }
 .mq-ring strong { font-family: var(--ui); font-weight: 600; }
 .mq-mood-btn { border-radius: 999px; }
 .mq-mood-btn.is-on { background: rgba(var(--glow), 0.12); }
-.mq-msg.ai { font-family: var(--ui); font-size: 15.5px; line-height: 1.6; border: 1px solid var(--line-soft); background: rgba(255, 255, 255, 0.05); padding: 14px 18px; border-radius: 6px 20px 20px 20px; }
-.mq-msg.me { background: var(--grad); border: 0; color: #fff; border-radius: 20px 6px 20px 20px; }
-.mq-typing i { background: #ff7ad9; }
-.mq-composer { border-top: 0; padding-top: 6px; }
 .mq-consent input { transform: none; border-radius: 6px; border-color: var(--line); }
 .mq-consent input:checked { background: var(--grad); border-color: transparent; }
 .mq-timeline::before { background: linear-gradient(180deg, #ff7ad9, transparent); }
@@ -289,19 +285,6 @@ section:has(> .mq-entry) {
 .mq-entry .when { font-size: 12.5px; color: #ff9bdc; margin-bottom: 10px; }
 .mq-entry p:not(.when) { font-size: 14.5px; line-height: 1.6; font-weight: 400; color: #e4daf7; }
 
-/* Companion: розмова в панелі */
-.mq-chat > section[aria-label='Розмова'] {
-  border: 1px solid var(--line);
-  border-radius: 26px;
-  background: var(--panel);
-  padding: 24px 26px;
-  display: flex;
-  flex-direction: column;
-}
-.mq-thread { min-height: 360px; max-height: 52vh; }
-.mq-composer .mq-input { border-radius: 999px; padding: 13px 22px; }
-.mq-chat .mq-chips { margin-top: 14px; }
-.mq-chat .mq-plaque { position: sticky; top: 0; }
 .mq-consent label { font-size: 14px; }
 
 /* Tarot Studio */

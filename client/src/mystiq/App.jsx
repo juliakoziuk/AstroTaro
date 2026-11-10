@@ -13,7 +13,6 @@ import TarotStudio from './pages/TarotStudio.jsx'
 import DreamJournal from './pages/DreamJournal.jsx'
 import Astrology from './pages/Astrology.jsx'
 import InnerJournal from './pages/InnerJournal.jsx'
-import Companion from './pages/Companion.jsx'
 import History from './pages/History.jsx'
 import Reading from './pages/Reading.jsx'
 import Analysis from './pages/Analysis.jsx'
@@ -33,7 +32,6 @@ const ROUTES = [
   { id: 'astrology', label: 'Astrology', icon: 'astrology', Page: Astrology, nav: true },
   { id: 'compatibility', label: 'Compatibility', icon: 'astrology', Page: Compatibility, nav: true },
   { id: 'journal', label: 'Inner Journal', icon: 'journal', Page: InnerJournal, nav: true },
-  { id: 'companion', label: 'AI Companion', icon: 'companion', Page: Companion, nav: true },
   { id: 'history', label: 'My History', icon: 'history', Page: History, nav: true },
   { id: 'market', label: 'Mystic Market', icon: 'market', Page: Market, nav: true },
   { id: 'library', label: 'My Library', icon: 'journal', Page: Library, nav: true },

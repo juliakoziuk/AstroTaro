@@ -50,7 +50,7 @@ export default function Dashboard() {
         </section>
       </div>
 
-      <div className="p-grid p-grid-4">
+      <div className="p-grid p-grid-3">
         <div className="p-card">
           <div className="gold">☾ &nbsp; Фаза Місяця</div>
           <div className="p-metric">{moon.name}</div>
@@ -65,11 +65,6 @@ export default function Dashboard() {
           <div className="gold">✎ &nbsp; Щоденник</div>
           <div className="p-metric">{journal.length} записів</div>
           <p className="p-text">Твої роздуми цього місяця.</p>
-        </div>
-        <div className="p-card">
-          <div className="gold">☄ &nbsp; AI-супутник</div>
-          <div className="p-metric">Є що спитати</div>
-          <p className="p-text">Готовий, коли ти будеш.</p>
         </div>
       </div>
 
@@ -108,7 +103,6 @@ export default function Dashboard() {
             <button className="p-btn" onClick={() => go('tarot')}>✧ Новий розклад</button>
             <button className="p-btn" onClick={() => go('dreams')}>☾ Записати сон</button>
             <button className="p-btn" onClick={() => go('journal')}>✎ Нотатка</button>
-            <button className="p-btn" onClick={() => go('companion')}>☄ Спитати AI</button>
           </div>
         </section>
       </div>

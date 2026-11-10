@@ -13,7 +13,7 @@ const PRODUCTS = [
   { id: 'p2', glyph: '☾', kind: 'Колоди', room: 'dreams', title: 'Dream Oracle', note: '44 карти образів снів', price: 24 },
   { id: 'p3', glyph: '☼', kind: 'Курси', room: 'astrology', title: 'Астрологія для початківців', note: '6 уроків, 3 години', price: 39 },
   { id: 'p4', glyph: '✎', kind: 'Курси', room: 'journal', title: 'Щоденник як практика', note: 'Тижневий інтенсив', price: 19 },
-  { id: 'p5', glyph: '☄', kind: 'Послуги', room: 'companion', title: 'Розбір снів із ментором', note: '45 хвилин, відео', price: 49 },
+  { id: 'p5', glyph: '☄', kind: 'Послуги', room: 'dreams', title: 'Розбір снів із ментором', note: '45 хвилин, відео', price: 49 },
   { id: 'p6', glyph: '◇', kind: 'Послуги', room: 'history', title: 'Річний звіт про шлях', note: 'PDF з вашої історії', price: 15 },
 ]
 
@@ -82,7 +82,7 @@ export function Profile() {
   const [name, setName] = useState(user.name)
   const [email, setEmail] = useState(user.email)
   const [saved, setSaved] = useState(false)
-  const [prefs, setPrefs] = useState({ daily: true, moon: true, tips: false, share: false })
+  const [prefs, setPrefs] = useState({ daily: true, moon: true, tips: false })
   const set = (k) => (v) => setPrefs((p) => ({ ...p, [k]: v }))
 
   return (
@@ -125,7 +125,6 @@ export function Profile() {
           <Toggle label="Фази Місяця" hint="Нагадування про новий і повний місяць" on={prefs.moon} onChange={set('moon')} />
           <Toggle label="Поради та новини" on={prefs.tips} onChange={set('tips')} />
           <h2 style={{ marginTop: 22 }}>Приватність</h2>
-          <Toggle label="Дозволити AI бачити мої записи" hint="Лише за твоєю згодою, можна змінити будь-коли" on={prefs.share} onChange={set('share')} />
           <div className="mq-row" style={{ marginTop: 18 }}>
             <button className="mq-btn" onClick={() => go('pricing')}>Змінити план</button>
             <button className="mq-btn" onClick={() => go('landing')}>Вийти</button>

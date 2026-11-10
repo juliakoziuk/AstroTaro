@@ -95,8 +95,7 @@ export default function Analysis({ param }) {
           <h2>AI-інтерпретація</h2>
           <p className="mq-prose">{summary}</p>
           <div className="mq-row" style={{ marginTop: 16 }}>
-            <button className="mq-btn mq-btn--lit" onClick={() => go('companion')}>Обговорити з супутником</button>
-            <button className="mq-btn" onClick={() => go('journal')}>Записати думку</button>
+            <button className="mq-btn mq-btn--lit" onClick={() => go('journal')}>Записати думку</button>
           </div>
         </section>
       </div>
