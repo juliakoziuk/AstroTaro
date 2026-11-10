@@ -790,6 +790,7 @@ describe('email verification and password reset', () => {
 describe('tarot and companion flows', () => {
   let u: Awaited<ReturnType<Harness['register']>>
   before(async () => {
+    h.resetLimits()
     u = await h.register()
   })
 
