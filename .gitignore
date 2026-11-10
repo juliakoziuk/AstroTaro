@@ -25,3 +25,6 @@ dist-ssr
 
 # build artifacts
 *.tsbuildinfo
+
+# сирий розпізнаний текст книг для astrology-corpus (завантажується скриптом, див. server/data/astrology-corpus/README.md)
+server/data/astrology-sources/
