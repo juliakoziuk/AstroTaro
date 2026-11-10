@@ -7,7 +7,7 @@ import { mockApi } from '../../test/setup.js'
 
 const LIMITS = {
   free: { readingsPerMonth: 5, dreamsTotal: 10, aiMessagesPerDay: 10, readingModes: ['quick'], compatibility: false, forecastRanges: ['day'], fullReports: false },
-  pro: { readingsPerMonth: null, dreamsTotal: null, aiMessagesPerDay: 50, readingModes: ['quick', 'detailed'], compatibility: true, forecastRanges: ['day', 'week', 'month'], fullReports: true },
+  pro: { readingsPerMonth: 60, dreamsTotal: 200, aiMessagesPerDay: 40, readingModes: ['quick', 'detailed'], compatibility: true, forecastRanges: ['day', 'week', 'month'], fullReports: true },
   premium: { readingsPerMonth: null, dreamsTotal: null, aiMessagesPerDay: 200, readingModes: ['quick', 'detailed', 'depth'], compatibility: true, forecastRanges: ['day', 'week', 'month'], fullReports: true },
 }
 const PRICE = { free: 0, pro: 5, premium: 10 }
@@ -18,7 +18,7 @@ const overview = (plan = 'free', overrides = {}) => ({
   subscription: null,
   limits: LIMITS[plan],
   usage: { readingsThisMonth: 2, dreamsTotal: 3, aiMessagesToday: 1 },
-  remaining: { readings: LIMITS[plan].readingsPerMonth === null ? null : 3, dreams: LIMITS[plan].dreamsTotal === null ? null : 7, aiMessages: LIMITS[plan].aiMessagesPerDay - 1 },
+  remaining: { readings: LIMITS[plan].readingsPerMonth === null ? null : LIMITS[plan].readingsPerMonth - 2, dreams: LIMITS[plan].dreamsTotal === null ? null : LIMITS[plan].dreamsTotal - 3, aiMessages: LIMITS[plan].aiMessagesPerDay - 1 },
   resets: { readings: '2026-12-01T00:00:00.000Z', aiMessages: '2026-11-10T00:00:00.000Z' },
   options: { canUpgradeTo: plan === 'free' ? ['pro', 'premium'] : plan === 'pro' ? ['premium'] : [], canManage: false, needsPaymentFix: false },
   ...overrides,
@@ -75,15 +75,18 @@ describe('Billing tab: a free user', () => {
 })
 
 describe('Billing tab: subscribers', () => {
-  test('pro with an active subscription: unlimited meters have no bar, the renewal date and the portal button show', async () => {
+  test('pro with an active subscription: capped meters with their numbers, the renewal date and the portal button show', async () => {
     setToken('tok')
     const c = await show(overview('pro', { subscription: subscription(), options: { canUpgradeTo: ['premium'], canManage: true, needsPaymentFix: false } }))
     expect(await screen.findByRole('heading', { name: 'Pro', level: 3 })).toBeTruthy()
     expect(screen.getByText('$5 per month')).toBeTruthy()
     expect(screen.getByText('Active')).toBeTruthy()
     expect(screen.getByText(/^Renews on /)).toBeTruthy()
-    expect(screen.getAllByText('Unlimited')).toHaveLength(2)
-    expect(screen.getAllByRole('progressbar')).toHaveLength(1) // лише повідомлення ШІ мають ліміт
+    expect(screen.getAllByRole('progressbar')).toHaveLength(3) // Pro має щедрі, але ліміти: розклади, сни, повідомлення ШІ
+    expect(screen.getByText('2 of 60')).toBeTruthy()
+    expect(screen.getByText('3 of 200')).toBeTruthy()
+    expect(screen.getByText('1 of 40')).toBeTruthy()
+    expect(screen.queryByText('Unlimited')).toBeNull()
     expect(screen.queryByRole('button', { name: 'Upgrade' })).toBeNull()
 
     const calls = []
@@ -113,6 +116,8 @@ describe('Billing tab: subscribers', () => {
   test('premium has nothing more to upgrade to', async () => {
     await show(overview('premium', { subscription: subscription(), options: { canUpgradeTo: [], canManage: true, needsPaymentFix: false } }))
     await screen.findByRole('heading', { name: 'Premium', level: 3 })
+    expect(screen.getAllByText('Unlimited')).toHaveLength(2) // розклади й сни без обмежень
+    expect(screen.getAllByRole('progressbar')).toHaveLength(1) // лише повідомлення ШІ мають ліміт
     expect(screen.queryByRole('button', { name: 'See plans' })).toBeNull()
     expect(screen.getByText('Depth readings').closest('li').className).toBe('yes')
   })

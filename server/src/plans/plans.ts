@@ -26,11 +26,11 @@ const PLAN_TEXT: { id: PlanId; price: number; name: T2; tagline: T2; features: T
   },
   {
     id: 'pro', price: 5, name: ['Pro', 'Pro'], tagline: ['Most popular', 'Найпопулярніший'], cta: ['Upgrade', 'Оновити'],
-    features: [["Unlimited readings and dreams","Необмежені розклади та сни"],["50 AI messages a day","50 повідомлень ШІ на день"],["Detailed readings","Детальні розклади"],["Full astrology: forecast, compatibility, reports","Повна астрологія: прогноз, сумісність, звіти"]],
+    features: [["60 readings a month","60 розкладів на місяць"],["200 dreams · 40 AI messages a day","200 снів · 40 повідомлень ШІ на день"],["Detailed readings","Детальні розклади"],["Full astrology: forecast, compatibility, reports","Повна астрологія: прогноз, сумісність, звіти"]],
   },
   {
     id: 'premium', price: 10, name: ['Premium', 'Premium'], tagline: ['For deep explorers', 'Для глибоких дослідників'], cta: ['Choose', 'Обрати'],
-    features: [["Everything in Pro","Усе з Pro"],["200 AI messages a day","200 повідомлень ШІ на день"],["Depth readings","Глибинні розклади"],["Unlimited readings and dreams","Необмежені розклади та сни"]],
+    features: [["Everything in Pro","Усе з Pro"],["Unlimited readings and dreams","Необмежені розклади та сни"],["200 AI messages a day","200 повідомлень ШІ на день"],["Depth readings","Глибинні розклади"]],
   },
 ]
 

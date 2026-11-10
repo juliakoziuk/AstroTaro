@@ -10,7 +10,7 @@ import { UsageEvent } from './usage.model'
 export type UsageKind = 'reading' | 'ai_message' | 'dream'
 export function planLimit(user: { plan: string }, limit: 'readingsPerMonth' | 'dreamsTotal' | 'aiMessagesPerDay' | 'readingMode' | 'compatibility' | 'forecast', count?: number, mode?: string): never {
   const plan = planOf(user.plan)
-  const key = limit === 'readingMode' ? 'limitMode' : limit === 'compatibility' || limit === 'forecast' ? 'limitFeature' : limit === 'readingsPerMonth' ? 'limitReadings' : limit === 'dreamsTotal' ? 'limitDreams' : 'limitMessages'
+  const key = limit === 'aiMessagesPerDay' && plan === 'premium' ? 'limitMessagesTop' : limit === 'readingMode' ? 'limitMode' : limit === 'compatibility' || limit === 'forecast' ? 'limitFeature' : limit === 'readingsPerMonth' ? 'limitReadings' : limit === 'dreamsTotal' ? 'limitDreams' : 'limitMessages'
   throw new ForbiddenException({ statusCode: 403, code: 'PLAN_LIMIT', limit, plan, message: msg(currentLocale(), key, { count: String(count ?? ''), plan: plan === 'free' ? 'Free' : plan === 'pro' ? 'Pro' : 'Premium', mode: mode ?? '', upgrade: mode === 'depth' || plan !== 'free' ? 'Premium' : 'Pro' }) })
 }
 @Injectable()

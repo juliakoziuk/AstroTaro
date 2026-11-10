@@ -849,7 +849,8 @@ describe('plan limits and the billing overview', () => {
   test('the public plan list carries the limits', async () => {
     const list = (await h.api('GET', '/plans')).body
     strictEqual(list[0].limits.readingsPerMonth, 5)
-    strictEqual(list[1].limits.readingsPerMonth, null)
+    strictEqual(list[1].limits.readingsPerMonth, 60)
+    strictEqual(list[2].limits.readingsPerMonth, null)
     deepStrictEqual(list[2].limits.readingModes, ['quick', 'detailed', 'depth'])
   })
 
@@ -874,11 +875,26 @@ describe('plan limits and the billing overview', () => {
     strictEqual((await draw(u, 'quick')).status, 201)
   })
 
-  test('pro has detailed but not depth; premium has depth; neither has a monthly cap', async () => {
+  test('pro has detailed but not depth; premium has depth', async () => {
     strictEqual((await draw(pro, 'detailed')).status, 201)
     isLimit(await draw(pro, 'depth'), 'readingMode')
     strictEqual((await draw(premium, 'depth')).status, 201)
     for (let i = 0; i < 6; i++) strictEqual((await draw(pro)).status, 201, 'pro reading ' + i)
+  })
+
+  test('pro has a generous monthly cap of 60 readings and is then pointed to Premium; premium has none', async () => {
+    const p = await fresh('Pro heavy user')
+    await withPlan(p, 'pro')
+    for (let i = 1; i <= 60; i++) strictEqual((await draw(p)).status, 201, 'reading ' + i)
+    const over = await draw(p)
+    isLimit(over, 'readingsPerMonth')
+    ok(/60/.test(over.body.message) && /Upgrade to Premium/.test(over.body.message), over.body.message)
+    const b = await billing(p)
+    strictEqual(b.usage.readingsThisMonth, 60)
+    strictEqual(b.remaining.readings, 0)
+    deepStrictEqual(b.options.canUpgradeTo, ['premium'])
+    for (let i = 0; i < 8; i++) strictEqual((await draw(premium)).status, 201, 'premium reading ' + i)
+    strictEqual((await billing(premium)).remaining.readings, null)
   })
 
   test('turning autosave off does not get around the reading limit', async () => {
@@ -990,7 +1006,7 @@ describe('plan limits and the billing overview', () => {
     strictEqual(b.price, 5)
     deepStrictEqual(b.subscription, { status: 'active', cancelAtPeriodEnd: false, currentPeriodEnd: end.toISOString() })
     deepStrictEqual(b.options, { canUpgradeTo: ['premium'], canManage: true, needsPaymentFix: false })
-    deepStrictEqual(b.remaining, { readings: null, dreams: null, aiMessages: 50 })
+    deepStrictEqual(b.remaining, { readings: 60, dreams: 200, aiMessages: 40 })
 
     await h.users.update({ cancelAtPeriodEnd: true }, { where: { id: u.id } })
     b = await billing(u)
