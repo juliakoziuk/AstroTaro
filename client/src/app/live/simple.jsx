@@ -88,9 +88,10 @@ async function confirmPayment() {
 export const pricing = {
   bind: PLAN_TEXTS.flatMap(([name, tagline, price, features], i) => [
     { find: name, key: `p${i}.name` },
-    { find: tagline, key: `p${i}.tagline`, maxw: i === 1 ? 160 : 235 }, // у Pro поруч корона
+    { find: tagline, key: `p${i}.tagline`, maxw: i === 2 ? 155 : 235 }, // у Premium поруч корона
     { find: price, key: `p${i}.price` },
-    ...features.map((f, j) => ({ find: f, key: `p${i}.f${j}`, maxw: 180 })), // у межах картки тарифу
+    // усі переваги всіх трьох карток — одна група: однаковий кегль скрізь, а стискає його найдовший рядок; у межах картки тарифу
+    ...features.map((f, j) => ({ find: f, key: `p${i}.f${j}`, maxw: 180, group: 'plan-features' })),
   ]),
   async load() {
     const plans = await get('/plans')

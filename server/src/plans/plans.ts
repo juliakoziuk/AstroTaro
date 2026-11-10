@@ -22,15 +22,15 @@ const at = (t: T2, l: Locale) => t[LOCALES.indexOf(l)]
 const PLAN_TEXT: { id: PlanId; price: number; name: T2; tagline: T2; features: T2[]; cta: T2 }[] = [
   {
     id: 'free', price: 0, name: ['Free', 'Безкоштовний'], tagline: ['Basic access', 'Базовий доступ'], cta: ['Get Started', 'Почати'],
-    features: [["5 readings a month · Quick readings","5 розкладів на місяць · Швидкі розклади"],["10 dreams","10 снів"],["10 AI messages a day","10 повідомлень ШІ на день"]],
+    features: [["5 readings a month","5 розкладів на місяць"],["10 dreams","10 снів"],["10 AI messages a day","10 ШІ-запитів на день"]],
   },
   {
     id: 'pro', price: 5, name: ['Pro', 'Pro'], tagline: ['Most popular', 'Найпопулярніший'], cta: ['Upgrade', 'Оновити'],
-    features: [["30 readings a month","30 розкладів на місяць"],["50 dreams · 25 AI messages a day","50 снів · 25 повідомлень ШІ на день"],["Detailed readings","Детальні розклади"],["Full astrology: forecast, compatibility, reports","Повна астрологія: прогноз, сумісність, звіти"]],
+    features: [["30 readings a month","30 розкладів на місяць"],["50 dreams · 25 AI a day","50 снів · 25 ШІ на день"],["Detailed readings","Детальні розклади"],["Full astrology","Повна астрологія"]],
   },
   {
-    id: 'premium', price: 10, name: ['Premium', 'Premium'], tagline: ['For deep explorers', 'Для глибоких дослідників'], cta: ['Choose', 'Обрати'],
-    features: [["Everything in Pro","Усе з Pro"],["Unlimited readings and dreams","Необмежені розклади та сни"],["200 AI messages a day","200 повідомлень ШІ на день"],["Depth readings","Глибинні розклади"]],
+    id: 'premium', price: 10, name: ['Premium', 'Premium'], tagline: ['For explorers', 'Для дослідників'], cta: ['Choose', 'Обрати'],
+    features: [["Everything in Pro","Усе з Pro"],["Unlimited readings, dreams","Безліміт: розклади, сни"],["200 AI messages a day","200 ШІ-запитів на день"],["Depth readings","Глибинні розклади"]],
   },
 ]
 
