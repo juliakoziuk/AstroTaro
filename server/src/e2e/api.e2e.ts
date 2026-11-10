@@ -948,16 +948,23 @@ describe('plan limits and the billing overview', () => {
   test('compatibility is for pro and premium; the forecast of a free user has no week and month', async () => {
     for (const u of [free, pro]) await h.api('PATCH', '/profile', { token: u.token, body: { birthDate: '1990-05-05' } })
     isLimit(await h.api('POST', '/astrology/compatibility', { token: free.token, body: { birthDate: '1992-03-03' } }), 'compatibility')
-    strictEqual((await h.api('POST', '/astrology/compatibility', { token: pro.token, body: { birthDate: '1992-03-03' } })).status, 201)
+    const compat = await h.api('POST', '/astrology/compatibility', { token: pro.token, body: { birthDate: '1992-03-03' } })
+    strictEqual(compat.status, 201)
+    // у тестах моделі немає: тлумачення від неї порожнє, а шаблонний text (розрахунок і розбір) на місці
+    strictEqual(compat.body.summary, null)
+    strictEqual(compat.body.source, 'local')
+    ok(compat.body.text.length > 200 && compat.body.score >= 0)
 
     const f = (await h.api('GET', '/astrology/forecast?date=2026-06-15', { token: free.token })).body
     ok(f.day, 'today is included')
     strictEqual(f.week, null)
     strictEqual(f.month, null)
     deepStrictEqual(f.locked, ['week', 'month'])
+    strictEqual(f.narratives, null, 'model texts are a paid feature')
     const p = (await h.api('GET', '/astrology/forecast?date=2026-06-15', { token: pro.token })).body
     ok(p.week && p.month)
     deepStrictEqual(p.locked, [])
+    deepStrictEqual(p.narratives, { day: null, week: null, month: null }, 'paid plans ask for them; without a model they stay empty and the template texts show')
   })
 
   test('full reports stay for pro and above', async () => {

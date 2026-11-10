@@ -388,3 +388,7 @@
   display: grid; place-items: center; box-sizing: border-box; background: #0d2034; color: #f3e4bf; border: calc(var(--u) * 2) solid #d9ac63;
   font: 600 calc(var(--u) * 24) 'Source Sans 3', 'Segoe UI', sans-serif; letter-spacing: 0.02em;
 }
+
+/* сумісність: згорнутий шаблонний розбір під текстом від моделі (CompatibilityDialog.jsx) */
+.v-app .mdl .syn-details { margin: 10px 0; }
+.v-app .mdl .syn-details > summary { cursor: pointer; color: #e4be80; }

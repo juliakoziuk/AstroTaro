@@ -17,6 +17,7 @@ import { aspectsOf, buildReport } from './report'
 import { buildForecast } from './forecast'
 import { buildCompatibility } from './synastry'
 import { inSign, monthlyInsight, moonEventName, planetName, signName } from './text'
+import { aiCompatibility, aiForecast, aiNatalReport, positionsBlock } from './ai'
 
 @Table({ tableName: 'reports', indexes: [{ fields: ['userId', 'createdAt'] }] })
 export class Report extends Model {
@@ -118,7 +119,10 @@ export class AstrologyController {
     const theirs = natalChart({ birthDate: dto.birthDate }) // без часу й місця: планети на полудень, без будинків
     const names = { a: dto.firstName?.trim() || user.name, b: dto.name?.trim() || msg(locale, 'partnerName') }
     const plotted = (c: typeof mine) => c.planets.map((p) => ({ name: p.name, planet: planetName(p.name, locale), sign: p.sign, signName: signName(p.sign, locale), longitude: p.longitude }))
-    return { ...buildCompatibility(mine, theirs, names, locale), me: { name: names.a, planets: plotted(mine) }, partner: { name: names.b, planets: plotted(theirs) } }
+    const built = buildCompatibility(mine, theirs, names, locale)
+    // розрахунок наш, а текст пише модель за цими фактами (summary); без неї лишається шаблонний text: source каже, що саме показано
+    const summary = await aiCompatibility(mine, theirs, built, names, locale)
+    return { ...built, summary, source: summary ? 'ai' : 'local', me: { name: names.a, planets: plotted(mine) }, partner: { name: names.b, planets: plotted(theirs) } }
   }
 
   @ApiOperation({
@@ -137,7 +141,9 @@ export class AstrologyController {
     if (date !== undefined && (!DATE_ONLY.test(date) || Number.isNaN(Date.parse(date)))) throw new BadRequestException(msg(locale, 'badDate'))
     const forecast = buildForecast(natalChart(birth).planets, date ?? new Date().toISOString().slice(0, 10), locale)
     const locked = (['week', 'month'] as const).filter((range) => !limitsOf(user.plan).forecastRanges.includes(range))
-    return { ...forecast, ...Object.fromEntries(locked.map((range) => [range, null])), locked }
+    // тлумачення від моделі лише на платних тарифах (Free бачить шаблонні тексти): це і найдорожча частина, і відмінність тарифів
+    const narratives = user.plan === 'free' ? null : await aiForecast(forecast, locale)
+    return { ...forecast, ...Object.fromEntries(locked.map((range) => [range, null])), locked, narratives }
   }
 
   @ApiOperation({ summary: 'Мої астрологічні звіти' })
@@ -156,7 +162,12 @@ export class AstrologyController {
     if (!limitsOf(user.plan).fullReports) throw new ForbiddenException(msg(currentLocale(), 'reportNeedsPro'))
     const birth = birthOf(user)
     if (!birth) throw new ForbiddenException(msg(currentLocale(), 'reportNeedsBirth'))
-    return this.reports.create({ userId: u.id, ...buildReport(natalChart(birth), currentLocale()) } as any)
+    const chart = natalChart(birth)
+    const locale = currentLocale()
+    const built = buildReport(chart, locale)
+    // текст пише модель за розрахованими фактами, після нього йдуть самі положення (їх можна звірити); без моделі лишається шаблонний звіт
+    const ai = await aiNatalReport(chart, locale)
+    return this.reports.create({ userId: u.id, title: built.title, text: ai ? `${ai}\n\n${positionsBlock(chart, locale)}` : built.text } as any)
   }
 }
 

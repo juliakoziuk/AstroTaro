@@ -69,6 +69,7 @@ export default {
   'Remember me': 'Запам’ятати мене',
   'Forgot password?': 'Не пам’ятаєш пароль?',
   'Forgot password': 'Забули пароль',
+  'Detailed breakdown': 'Детальний розбір',
   'Billing': 'Оплата',
   'Unlimited': 'Необмежено',
   '{used} of {max}': '{used} з {max}',

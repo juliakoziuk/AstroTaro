@@ -98,10 +98,16 @@ function Score({ value, label }) {
   )
 }
 
-function Today({ day }) {
+/** Тлумачення від моделі (платні тарифи): абзаци через порожній рядок; без нього працюють шаблонні тексти нижче. */
+function Narrative({ text }) {
+  return text ? <div className="fc-narrative">{text.split(/\n\n+/).map((para) => <p key={para.slice(0, 50)}>{para}</p>)}</div> : null
+}
+
+function Today({ day, narrative }) {
   return (
     <>
       <Score value={day.overall} label={day.headline} />
+      <Narrative text={narrative} />
       <p className="fc-moon">☽ {t('Moon')}: {day.moon.signName} · {day.moon.phase}</p>
       <Bars spheres={day.spheres} texts />
       <p className="fc-focus">
@@ -116,10 +122,11 @@ function Today({ day }) {
 }
 
 /** Тиждень або місяць: оцінка періоду, смужка днів (висота й колір — оцінка дня), сфери, найкращі й складні дні, транзити й фази Місяця. */
-function Period({ p, lang, long }) {
+function Period({ p, lang, long, narrative }) {
   return (
     <>
       <Score value={p.overall} label={p.headline} />
+      <Narrative text={narrative} />
       <div className={`fc-strip${long ? ' long' : ''}`} role="list">
         {p.days.map((d) => (
           <div key={d.date} role="listitem" className={`fc-day tone-${toneOfScore(d.overall)}`} title={`${dayLabel(d.date, lang)}: ${d.overall}%`}>
@@ -185,15 +192,15 @@ export default function ForecastCard({ active = false }) {
               </button>
             ))}
           </div>
-          {tab === 'today' && <Today day={f.day} />}
+          {tab === 'today' && <Today day={f.day} narrative={f.narratives?.day} />}
           {/* на безкоштовному тарифі сервер віддає тиждень і місяць як null (і список locked): замість порожнього екрана — підказка */}
           {tab !== 'today' && !f[tab] && (
             <p className="muted">
               {t('Week and month forecasts are part of the Pro plan.')} <a className="more" {...navProps('/pricing')}>{t('See plans')}</a>
             </p>
           )}
-          {tab === 'week' && f.week && <Period p={f.week} lang={lang} />}
-          {tab === 'month' && f.month && <Period p={f.month} lang={lang} long />}
+          {tab === 'week' && f.week && <Period p={f.week} lang={lang} narrative={f.narratives?.week} />}
+          {tab === 'month' && f.month && <Period p={f.month} lang={lang} long narrative={f.narratives?.month} />}
         </>
       )}
     </section>

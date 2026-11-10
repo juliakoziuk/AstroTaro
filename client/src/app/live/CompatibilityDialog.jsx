@@ -105,7 +105,17 @@ function Result({ result, onChange }) {
         ))}
       </ul>
       <AspectTable result={result} />
-      <ReportBody text={result.text} />
+      {result.summary ? (
+        <>
+          <ReportBody text={result.summary} />
+          <details className="syn-details">
+            <summary>{t('Detailed breakdown')}</summary>
+            <ReportBody text={result.text} />
+          </details>
+        </>
+      ) : (
+        <ReportBody text={result.text} />
+      )}
       <button type="button" className="syn-change" onClick={onChange}>{t('Change partner')}</button>
     </>
   )
