@@ -50,7 +50,7 @@ await open('settings')
 await page.click('button[aria-label="Language"]')
 await wait(500)
 t = await texts()
-check('the Language tab shows three languages', /English/.test(t) && /Українська/.test(t) && /Español/.test(t), t.slice(0, 200))
+check('the Language tab shows exactly two languages', /English/.test(t) && /Українська/.test(t) && !/Español/.test(t), t.slice(0, 200))
 await page.screenshot({ path: path.join(OUT, 'lang-panel-en.png') })
 
 await page.evaluate(() => [...document.querySelectorAll('.lang-opt')].find((b) => b.textContent.includes('Українська')).click())
@@ -67,19 +67,6 @@ check('dreams: tags and interpretation come from the server in Ukrainian', /Бу
 await open('astrology')
 t = await texts()
 check('astrology: signs are Ukrainian', /Рак/.test(t) && /Планети/.test(t), t.slice(0, 300))
-
-// відповідь AI мовою інтерфейсу
-await open('companion')
-await page.evaluate(() => [...document.querySelectorAll('a[aria-label]')].find((a) => a.getAttribute('aria-label') === 'Астролог').click())
-await wait(1200)
-const input = await page.$('input[name=msg]')
-await input.type('Що чекає цього тижня?')
-await page.keyboard.press('Enter')
-await wait(2500)
-t = await texts()
-const answer = await page.evaluate(() => [...document.querySelectorAll('.bubble:not(.me)')].pop()?.textContent ?? '')
-check('the AI replies in Ukrainian', cyr.test(answer) && /просто зараз/i.test(answer), answer.slice(0, 200))
-await page.screenshot({ path: path.join(OUT, 'lang-companion-uk.png') })
 
 // після перезавантаження мова береться з налаштувань акаунта, а не лише з браузера
 await page.evaluate(() => localStorage.setItem('astrotarot.lang', 'en'))

@@ -13,7 +13,7 @@ const OUT = path.join(root, 'node_modules/.cache/app-shots')
 const API = process.env.API || 'http://localhost:3000/api'
 const BASE = process.env.URL || 'http://localhost:5173/app.html?clean=1'
 const LANG = process.env.LANG_ID || 'en'
-const ALL = ['dashboard', 'tarot', 'reading', 'dreams', 'analysis', 'astrology', 'companion', 'profile', 'settings', 'pricing', 'today']
+const ALL = ['dashboard', 'tarot', 'reading', 'dreams', 'analysis', 'astrology', 'profile', 'settings', 'pricing', 'today']
 const routes = (process.argv[2] ?? 'dashboard') === 'all' ? ALL : process.argv[2].split(',')
 
 async function token() {

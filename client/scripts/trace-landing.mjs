@@ -63,7 +63,6 @@ const ELEMENTS = {
   'icon-tarot': [109, ICON_CY, 80, 81],
   'icon-dreams': [337, ICON_CY, 80, 81],
   'icon-astrology': [563, ICON_CY, 80, 81],
-  'icon-assistant': [789, ICON_CY, 80, 81],
   'brand-moon': [30, 16, 32, 34],
 }
 // набори порогів яскравості (частка від максимуму) і непрозорість шарів; для кожного елемента

@@ -4,8 +4,6 @@ import { Locale, Text } from './locale'
 const MESSAGES = {
   limitReadings: { en: 'You have used all {count} readings of your {plan} plan this month. Upgrade to {upgrade} for more readings.', uk: "Ви використали всі {count} розкладів тарифу {plan} цього місяця. Перейдіть на {upgrade}, щоб мати більше розкладів." },
   limitDreams: { en: 'Your {plan} plan allows {count} dreams. Upgrade to {upgrade} for more dreams, or remove a dream to add another.', uk: "Тариф {plan} дозволяє зберігати {count} снів. Перейдіть на {upgrade}, щоб зберігати більше, або видаліть сон, щоб додати інший." },
-  limitMessages: { en: 'You have used all {count} AI messages of your {plan} plan today. Try again tomorrow or upgrade to {upgrade} for more messages.', uk: "Ви використали всі {count} повідомлень ШІ тарифу {plan} за сьогодні. Спробуйте завтра або перейдіть на {upgrade}, щоб мати більше повідомлень." },
-  limitMessagesTop: { en: 'You have used all {count} AI messages of your {plan} plan today. Try again tomorrow.', uk: "Ви використали всі {count} повідомлень ШІ тарифу {plan} за сьогодні. Спробуйте завтра." },
   limitMode: { en: 'The {mode} reading mode is unavailable on your {plan} plan. Upgrade to {upgrade} to use it.', uk: "Режим розкладу {mode} недоступний на тарифі {plan}. Перейдіть на {upgrade}, щоб ним користуватися." },
   limitFeature: { en: 'This astrology feature is unavailable on your {plan} plan. Upgrade to Pro for full astrology.', uk: "Ця функція астрології недоступна на тарифі {plan}. Перейдіть на Pro для повної астрології." },
   emailTaken: { en: 'This email is already registered', uk: 'Цей email уже зареєстровано',  },
@@ -25,10 +23,6 @@ const MESSAGES = {
   },
   partnerName: { en: 'Partner', uk: 'Партнер' },
   badDate: { en: 'Enter a valid date (YYYY-MM-DD)', uk: 'Вкажіть коректну дату (РРРР-ММ-ДД)' },
-  companionOff: {
-    en: 'AI Companion is turned off in Settings',
-    uk: 'AI Companion вимкнено в налаштуваннях',
-  },
   badCoords: { en: 'Invalid coordinates', uk: 'Некоректні координати',  },
   badCards: {
     en: 'Pick exactly one different card for every position of the spread',

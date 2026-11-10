@@ -118,7 +118,6 @@ export function BillingPanel({ ctx }) {
       <h3 className="billing-title">{t('Usage')}</h3>
       <Meter id="meter-readings" label={t('Readings this month')} used={b.usage.readingsThisMonth} max={b.limits.readingsPerMonth} resets={b.resets.readings} fmt={fmt} />
       <Meter id="meter-dreams" label={t('Dreams kept')} used={b.usage.dreamsTotal} max={b.limits.dreamsTotal} />
-      <Meter id="meter-ai" label={t('AI messages today')} used={b.usage.aiMessagesToday} max={b.limits.aiMessagesPerDay} resets={b.resets.aiMessages} fmt={fmt} />
 
       <h3 className="billing-title">{t('What your plan includes')}</h3>
       <ul className="billing-includes">

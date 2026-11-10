@@ -6,7 +6,7 @@ import { mockApi } from '../test/setup.js'
 
 // Охорона маршрутів: що бачить гість, а що — той, хто вже увійшов
 describe('route guard', () => {
-  test.each(['/dashboard', '/dreams', '/tarot', '/astrology', '/companion', '/profile', '/settings', '/history'])('a guest opening %s is sent to the sign-in screen', async (path) => {
+  test.each(['/dashboard', '/dreams', '/tarot', '/astrology', '/profile', '/settings', '/history'])('a guest opening %s is sent to the sign-in screen', async (path) => {
     mockApi({})
     window.location.hash = `#${path}`
     render(<App />)

@@ -29,7 +29,7 @@ export const dashboard = {
     { find: '12', key: 'readings' },
     { find: '5', key: 'dreams' },
     { find: '8', key: 'journal' },
-    { find: '24', key: 'chats' },
+    { find: '24', key: 'reports' },
     { find: '72%', key: 'progress' },
   ],
   actions: { 'Monthly Insight': (ctx) => ctx.go('/today') },
@@ -43,7 +43,7 @@ export const dashboard = {
         readings: d.counts.readings,
         dreams: d.counts.dreams,
         journal: d.counts.journal,
-        chats: d.counts.chats,
+        reports: d.counts.reports,
         progress: `${d.progress}%`,
       },
     }

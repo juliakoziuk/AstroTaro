@@ -24,12 +24,6 @@ export const TarotIcon = () => (
     <path d="M9.5 3.8 18 2.5l2.5 13.4-4.6.8M8.5 12.5l1 1.8 1.8.3-1.3 1.3.3 1.8-1.8-.9-1.7.9.3-1.8-1.3-1.3 1.8-.3z" />
   </Svg>
 )
-export const ChatIcon = () => (
-  <Svg>
-    <path d="M4 5.5h16a1 1 0 0 1 1 1V15a1 1 0 0 1-1 1h-9l-4.5 3.5V16H4a1 1 0 0 1-1-1V6.5a1 1 0 0 1 1-1z" />
-    <path d="M8 10.8h.01M12 10.8h.01M16 10.8h.01" />
-  </Svg>
-)
 export const AnalyticsIcon = () => (
   <Svg>
     <path d="M5 20v-7M11 20V5M17 20v-10M3 20.5h18" />

@@ -21,8 +21,8 @@ export default function SettingsPage() {
   const [saving, setSaving] = useState(false)
   const mounted = useRef(true)
   const reload = useCallback(async () => {
-    const [settings, user] = await Promise.all([get('/settings'), get('/auth/me')])
-    if (mounted.current) { setData({ settings, consent: user.consent }); setError('') }
+    const settings = await get('/settings')
+    if (mounted.current) { setData({ settings }); setError('') }
   }, [])
   useEffect(() => {
     mounted.current = true

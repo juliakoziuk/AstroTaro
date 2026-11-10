@@ -277,8 +277,7 @@
 }
 
 /* ---------- панель можливостей ----------
-   Рамка й тло панелі — в плиті. Панель займає x = 40 ... (ширина - 40); колонки — рівні четвертини,
-   --d — виміряний зсув іконки й підпису від центру колонки в референсі. */
+   Рамка й тло панелі — в плиті. Панель займає x = 40 ... (ширина - 40); колонки — рівні частини за кількістю можливостей (--n). */
 .v-landing .panel {
   --fs: 28.4;
   --ls: -0.35;
@@ -296,8 +295,8 @@
   top: calc(var(--u) * 464);
   height: calc(var(--u) * 130);
   width: max(1px, calc(var(--u) * 1));
-  left: calc(var(--u) * 40 + (100% - var(--u) * 80) * var(--k) / 4 - var(--u) * 1);
-  left: round(calc(var(--u) * 40 + (100% - var(--u) * 80) * var(--k) / 4 - var(--u) * 1), 1px);
+  left: calc(var(--u) * 40 + (100% - var(--u) * 80) * var(--k) / var(--n, 3) - var(--u) * 1);
+  left: round(calc(var(--u) * 40 + (100% - var(--u) * 80) * var(--k) / var(--n, 3) - var(--u) * 1), 1px);
   background: linear-gradient(
     180deg,
     transparent,
@@ -312,7 +311,7 @@
   --d: 0;
   --dx: 0;
   position: absolute;
-  left: calc(var(--u) * 40 + (100% - var(--u) * 80) * (var(--k) + 0.5) / 4 + var(--u) * (var(--d) - 100));
+  left: calc(var(--u) * 40 + (100% - var(--u) * 80) * (var(--k) + 0.5) / var(--n, 3) + var(--u) * (var(--d) - 100));
   top: calc(var(--u) * 460);
   width: calc(var(--u) * 200);
   height: calc(var(--u) * 130);
@@ -408,6 +407,7 @@
   }
 
   .v-landing .divider { display: none; }
+  .v-landing .feature:last-of-type:nth-of-type(odd) { grid-column: 1 / -1; } /* непарна остання можливість займає весь рядок */
 
   .v-landing .feature { position: relative; left: auto; top: auto; width: auto; height: auto; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 18px 8px; }
   .v-landing .feature img { position: static; width: 72px; height: 73px; }

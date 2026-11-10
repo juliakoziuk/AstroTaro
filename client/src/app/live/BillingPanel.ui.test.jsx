@@ -6,9 +6,9 @@ import { setToken } from '../../lib/api.js'
 import { mockApi } from '../../test/setup.js'
 
 const LIMITS = {
-  free: { readingsPerMonth: 5, dreamsTotal: 10, aiMessagesPerDay: 10, readingModes: ['quick'], compatibility: false, forecastRanges: ['day'], fullReports: false },
-  pro: { readingsPerMonth: 30, dreamsTotal: 50, aiMessagesPerDay: 25, readingModes: ['quick', 'detailed'], compatibility: true, forecastRanges: ['day', 'week', 'month'], fullReports: true },
-  premium: { readingsPerMonth: null, dreamsTotal: null, aiMessagesPerDay: 200, readingModes: ['quick', 'detailed', 'depth'], compatibility: true, forecastRanges: ['day', 'week', 'month'], fullReports: true },
+  free: { readingsPerMonth: 5, dreamsTotal: 10, readingModes: ['quick'], compatibility: false, forecastRanges: ['day'], fullReports: false },
+  pro: { readingsPerMonth: 30, dreamsTotal: 50, readingModes: ['quick', 'detailed'], compatibility: true, forecastRanges: ['day', 'week', 'month'], fullReports: true },
+  premium: { readingsPerMonth: null, dreamsTotal: null, readingModes: ['quick', 'detailed', 'depth'], compatibility: true, forecastRanges: ['day', 'week', 'month'], fullReports: true },
 }
 const PRICE = { free: 0, pro: 5, premium: 10 }
 
@@ -17,9 +17,9 @@ const overview = (plan = 'free', overrides = {}) => ({
   plan, planName: plan[0].toUpperCase() + plan.slice(1), price: PRICE[plan], interval: 'month',
   subscription: null,
   limits: LIMITS[plan],
-  usage: { readingsThisMonth: 2, dreamsTotal: 3, aiMessagesToday: 1 },
-  remaining: { readings: LIMITS[plan].readingsPerMonth === null ? null : LIMITS[plan].readingsPerMonth - 2, dreams: LIMITS[plan].dreamsTotal === null ? null : LIMITS[plan].dreamsTotal - 3, aiMessages: LIMITS[plan].aiMessagesPerDay - 1 },
-  resets: { readings: '2026-12-01T00:00:00.000Z', aiMessages: '2026-11-10T00:00:00.000Z' },
+  usage: { readingsThisMonth: 2, dreamsTotal: 3 },
+  remaining: { readings: LIMITS[plan].readingsPerMonth === null ? null : LIMITS[plan].readingsPerMonth - 2, dreams: LIMITS[plan].dreamsTotal === null ? null : LIMITS[plan].dreamsTotal - 3 },
+  resets: { readings: '2026-12-01T00:00:00.000Z' },
   options: { canUpgradeTo: plan === 'free' ? ['pro', 'premium'] : plan === 'pro' ? ['premium'] : [], canManage: false, needsPaymentFix: false },
   ...overrides,
 })
@@ -38,14 +38,13 @@ describe('Billing tab: a free user', () => {
     expect(await screen.findByRole('heading', { name: 'Free', level: 3 })).toBeTruthy()
     expect(screen.getByText('Free forever')).toBeTruthy()
     const bars = screen.getAllByRole('progressbar')
-    expect(bars).toHaveLength(3)
+    expect(bars).toHaveLength(2)
     const readings = screen.getByRole('progressbar', { name: 'Readings this month' })
     expect(readings.getAttribute('aria-valuenow')).toBe('2')
     expect(readings.getAttribute('aria-valuemax')).toBe('5')
     expect(screen.getByText('2 of 5')).toBeTruthy()
     expect(screen.getByText('3 of 10')).toBeTruthy()
-    expect(screen.getByText('1 of 10')).toBeTruthy()
-    expect(screen.getAllByText(/^Resets /).length).toBe(2) // розклади й повідомлення ШІ оновлюються, сни — ні
+    expect(screen.getAllByText(/^Resets /).length).toBe(1) // розклади оновлюються щомісяця, сни — ні
     expect(screen.queryByText(/Manage subscription/)).toBeNull()
 
     await userEvent.setup().click(screen.getByRole('button', { name: 'Upgrade' }))
@@ -65,7 +64,7 @@ describe('Billing tab: a free user', () => {
   })
 
   test('a used-up meter warns and points to the plans', async () => {
-    await show(overview('free', { usage: { readingsThisMonth: 5, dreamsTotal: 3, aiMessagesToday: 1 } }))
+    await show(overview('free', { usage: { readingsThisMonth: 5, dreamsTotal: 3 } }))
     const bar = await screen.findByRole('progressbar', { name: 'Readings this month' })
     expect(bar.getAttribute('aria-valuenow')).toBe('5')
     expect(bar.closest('.billing-meter').className).toMatch(/full/)
@@ -82,10 +81,9 @@ describe('Billing tab: subscribers', () => {
     expect(screen.getByText('$5 per month')).toBeTruthy()
     expect(screen.getByText('Active')).toBeTruthy()
     expect(screen.getByText(/^Renews on /)).toBeTruthy()
-    expect(screen.getAllByRole('progressbar')).toHaveLength(3) // Pro має щедрі, але ліміти: розклади, сни, повідомлення ШІ
+    expect(screen.getAllByRole('progressbar')).toHaveLength(2) // Pro має щедрі, але ліміти: розклади й сни
     expect(screen.getByText('2 of 30')).toBeTruthy()
     expect(screen.getByText('3 of 50')).toBeTruthy()
-    expect(screen.getByText('1 of 25')).toBeTruthy()
     expect(screen.queryByText('Unlimited')).toBeNull()
     expect(screen.queryByRole('button', { name: 'Upgrade' })).toBeNull()
 
@@ -117,7 +115,7 @@ describe('Billing tab: subscribers', () => {
     await show(overview('premium', { subscription: subscription(), options: { canUpgradeTo: [], canManage: true, needsPaymentFix: false } }))
     await screen.findByRole('heading', { name: 'Premium', level: 3 })
     expect(screen.getAllByText('Unlimited')).toHaveLength(2) // розклади й сни без обмежень
-    expect(screen.getAllByRole('progressbar')).toHaveLength(1) // лише повідомлення ШІ мають ліміт
+    expect(screen.queryAllByRole('progressbar')).toHaveLength(0) // у Premium лімітів немає
     expect(screen.queryByRole('button', { name: 'See plans' })).toBeNull()
     expect(screen.getByText('Depth readings').closest('li').className).toBe('yes')
   })

@@ -1,8 +1,6 @@
 import { test } from 'node:test'
 import { deepStrictEqual, ok, strictEqual } from 'node:assert/strict'
 import { analyzeDream } from '../dreams/analysis'
-import { localReply } from '../companion/local'
-import { personas } from '../companion/personas'
 import { natalChart } from '../astrology/astro'
 import { buildReport } from '../astrology/report'
 import { monthlyInsight, moonEventName, planetName, signName } from '../astrology/text'
@@ -75,15 +73,6 @@ test('zodiac signs, planets, moon events and insights are localized', () => {
 test('the natal report is written in the requested language', () => {
   const r = buildReport(natalChart({ birthDate: '2004-06-22' }), 'uk')
   ok(cyrillic.test(r.title) && r.text.includes('Рак'))
-})
-
-test('companion personas and fallback replies are localized', () => {
-  const p = personas('uk')
-  strictEqual(p[0].id, 'Mystic Guide')
-  ok(cyrillic.test(p[0].name) && p[0].description.every((d) => cyrillic.test(d)))
-  const say = (persona: string, text: string, locale: 'uk') => localReply({ persona, text, locale, history: [], ctx: { name: 'X' }, now: new Date('2026-11-03') })
-  ok(cyrillic.test(say('Astrologer', 'що буде?', 'uk')))
-  ok(cyrillic.test(say('Life Coach', 'допоможи', 'uk')))
 })
 
 test('plans keep their ids and translate the text', () => {

@@ -32,14 +32,13 @@ const PROTECTED: [string, string][] = [
   ['POST', '/billing/plan'],
   ['GET', '/dreams'], ['POST', '/dreams'], ['GET', '/dreams/00000000-0000-4000-8000-000000000000'],
   ['GET', '/journal'], ['POST', '/journal'], ['GET', '/spreads'], ['POST', '/spreads'], ['POST', '/tarot/readings'],
-  ['GET', '/messages'], ['POST', '/messages'], ['DELETE', '/messages'], ['POST', '/companion/chat'],
   ['GET', '/astrology'], ['GET', '/astrology/forecast'], ['GET', '/astrology/reports'], ['POST', '/astrology/reports'], ['POST', '/astrology/compatibility'],
   ['GET', '/cosmos/geo'], ['GET', '/cosmos/apod'], ['GET', '/cosmos/quote'], ['GET', '/cosmos/sun'], ['GET', '/cosmos/holidays'], ['GET', '/cosmos/art'],
 ]
 
 describe('public routes', () => {
-  test('plans, spreads, decks, cards and personas need no token', async () => {
-    for (const path of ['/plans', '/tarot/spreads', '/tarot/decks', '/tarot/cards', '/companion/personas']) {
+  test('plans, spreads, decks and cards need no token', async () => {
+    for (const path of ['/plans', '/tarot/spreads', '/tarot/decks', '/tarot/cards']) {
       const r = await h.api('GET', path)
       strictEqual(r.status, 200, path)
     }
@@ -176,16 +175,6 @@ describe('records belong to their owner', () => {
     strictEqual(upd.body.title, 'Flying again')
     strictEqual((await h.api('DELETE', `/journal/${ids.journal}`, { token: a.token })).status, 204)
     strictEqual((await h.api('GET', `/journal/${ids.journal}`, { token: a.token })).status, 404)
-  })
-
-  test('chat history is private, and clearing it clears only your own', async () => {
-    await h.api('POST', '/messages', { token: a.token, body: { role: 'user', text: 'secret from Anna' } })
-    await h.api('POST', '/messages', { token: c.token, body: { role: 'user', text: 'hello from Boris' } })
-    const listB = (await h.api('GET', '/messages', { token: c.token })).body
-    ok(!text(listB).includes('Anna'))
-    strictEqual((await h.api('DELETE', '/messages', { token: c.token })).status, 204)
-    strictEqual((await h.api('GET', '/messages', { token: c.token })).body.length, 0)
-    ok(text((await h.api('GET', '/messages', { token: a.token })).body).includes('secret from Anna'), 'the other history is untouched')
   })
 
   test('the data export holds only your own records and no credentials', async () => {
@@ -787,7 +776,7 @@ describe('email verification and password reset', () => {
   })
 })
 
-describe('tarot and companion flows', () => {
+describe('tarot flows', () => {
   let u: Awaited<ReturnType<Harness['register']>>
   before(async () => {
     h.resetLimits()
@@ -812,13 +801,10 @@ describe('tarot and companion flows', () => {
     strictEqual((await h.api('POST', '/tarot/readings', { token: u.token, body: { ...draw, cards: [{ id: 5, reversed: false }, { id: 5, reversed: false }, { id: 6, reversed: false }] } })).status, 400, 'duplicate cards are refused')
   })
 
-  test('the companion answers locally without a model, and respects the off switch', async () => {
-    const chat = await h.api('POST', '/companion/chat', { token: u.token, body: { persona: 'Mystic Guide', text: 'What does this week hold?' } })
-    strictEqual(chat.status, 201, text(chat.body))
-    strictEqual(chat.body.source, 'local')
-    ok(chat.body.reply.text.length > 0)
-    await h.api('PATCH', '/settings', { token: u.token, body: { companion: false } })
-    strictEqual((await h.api('POST', '/companion/chat', { token: u.token, body: { persona: 'Mystic Guide', text: 'Hello?' } })).status, 403)
+  test('the AI assistant is gone: its routes do not exist any more', async () => {
+    for (const [method, path] of [['POST', '/companion/chat'], ['GET', '/companion/personas'], ['GET', '/messages'], ['POST', '/messages'], ['DELETE', '/messages']] as const) {
+      strictEqual((await h.api(method, path, { token: u.token, body: method === 'POST' ? { text: 'hi' } : undefined })).status, 404, method + ' ' + path)
+    }
   })
 })
 
@@ -827,7 +813,6 @@ describe('plan limits and the billing overview', () => {
   const draw = (u: User, mode = 'quick') => h.api('POST', '/tarot/readings', { token: u.token, body: { spreadId: 'three', deck: 'Classic Tarot', mode } })
   const cards = [{ id: 0, reversed: false }, { id: 1, reversed: true }, { id: 2, reversed: false }]
   const dream = (u: User, n: number) => h.api('POST', '/dreams', { token: u.token, body: { title: 'Dream ' + n, text: 'text ' + n } })
-  const chat = (u: User) => h.api('POST', '/companion/chat', { token: u.token, body: { persona: 'Mystic Guide', text: 'What does this week hold?' } })
   const billing = async (u: User) => (await h.api('GET', '/billing', { token: u.token })).body
   const withPlan = async (u: User, plan: string) => void (await h.users.update({ plan }, { where: { id: u.id } }))
   const isLimit = (r: { status: number; body: any }, limit: string) => {
@@ -936,16 +921,6 @@ describe('plan limits and the billing overview', () => {
     for (let i = 1; i <= 12; i++) strictEqual((await dream(pro, i)).status, 201)
   })
 
-  test('free: the eleventh AI message of the day is refused', async () => {
-    const u = await fresh('Chatter')
-    for (let i = 1; i <= 10; i++) strictEqual((await chat(u)).status, 201, 'message ' + i)
-    isLimit(await chat(u), 'aiMessagesPerDay')
-    const b = await billing(u)
-    strictEqual(b.usage.aiMessagesToday, 10)
-    strictEqual(b.remaining.aiMessages, 0)
-    strictEqual((await chat(pro)).status, 201)
-  })
-
   test('compatibility is for pro and premium; the forecast of a free user has no week and month', async () => {
     for (const u of [free, pro]) await h.api('PATCH', '/profile', { token: u.token, body: { birthDate: '1990-05-05' } })
     isLimit(await h.api('POST', '/astrology/compatibility', { token: free.token, body: { birthDate: '1992-03-03' } }), 'compatibility')
@@ -998,10 +973,10 @@ describe('plan limits and the billing overview', () => {
     strictEqual(b.price, 0)
     strictEqual(b.subscription, null)
     strictEqual(b.limits.dreamsTotal, 10)
-    deepStrictEqual(b.usage, { readingsThisMonth: 0, dreamsTotal: 0, aiMessagesToday: 0 })
-    deepStrictEqual(b.remaining, { readings: 5, dreams: 10, aiMessages: 10 })
+    deepStrictEqual(b.usage, { readingsThisMonth: 0, dreamsTotal: 0 })
+    deepStrictEqual(b.remaining, { readings: 5, dreams: 10 })
     deepStrictEqual(b.options, { canUpgradeTo: ['pro', 'premium'], canManage: false, needsPaymentFix: false })
-    ok(new Date(b.resets.readings).getUTCDate() === 1 && new Date(b.resets.aiMessages).getUTCHours() === 0, 'resets at the start of the next month and day (UTC)')
+    ok(new Date(b.resets.readings).getUTCDate() === 1, 'resets at the start of the next month (UTC)')
     strictEqual((await h.api('GET', '/billing')).status, 401)
   })
 
@@ -1014,7 +989,7 @@ describe('plan limits and the billing overview', () => {
     strictEqual(b.price, 5)
     deepStrictEqual(b.subscription, { status: 'active', cancelAtPeriodEnd: false, currentPeriodEnd: end.toISOString() })
     deepStrictEqual(b.options, { canUpgradeTo: ['premium'], canManage: true, needsPaymentFix: false })
-    deepStrictEqual(b.remaining, { readings: 30, dreams: 50, aiMessages: 25 })
+    deepStrictEqual(b.remaining, { readings: 30, dreams: 50 })
 
     await h.users.update({ cancelAtPeriodEnd: true }, { where: { id: u.id } })
     b = await billing(u)

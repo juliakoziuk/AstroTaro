@@ -11,7 +11,6 @@ export interface Settings {
   notifications: boolean
   insights: boolean
   autosave: boolean
-  companion: boolean
   language: string
   theme: string
   defaultReading: string
@@ -23,7 +22,6 @@ export const DEFAULT_SETTINGS: Settings = {
   notifications: true,
   insights: true,
   autosave: true,
-  companion: true,
   language: 'English',
   theme: 'Dark',
   defaultReading: 'Tarot',

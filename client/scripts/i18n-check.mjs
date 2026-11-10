@@ -14,7 +14,7 @@ const LIST = process.argv.includes('--list')
 const DYNAMIC = [
   'Good morning,', 'Good afternoon,', 'Good evening,', 'Good night,', // привітання дашборда
   'Yes', 'No', 'Not yet', // відповідь розкладу «Так/Ні» в історії
-  'Tarot', 'Dream Journal', 'Astrology', 'AI Assistant', // функції лендінга
+  'Tarot', 'Dream Journal', 'Astrology', // функції лендінга
   'Save', 'Add dream', // підписи кнопок модалок
   'Conjunction', 'Sextile', 'Square', 'Trine', 'Opposition', // типи аспектів у діалозі натальної карти (ASPECT_LABELS)
   'Today', 'Week', 'Month', // вкладки прогнозу (TABS у Forecast.jsx)

@@ -9,7 +9,6 @@ import brandMoon from './art/traced/brand-moon.svg'
 import tarot from './art/traced/icon-tarot.svg'
 import dreams from './art/traced/icon-dreams.svg'
 import astrology from './art/traced/icon-astrology.svg'
-import assistant from './art/traced/icon-assistant.svg'
 
 // Плита — пікселі референсу без тексту (scripts/build-plate.mjs): plate-1x/2x(/4x).webp → srcset за шириною.
 const plates = import.meta.glob('./art/plate-*x.webp', { eager: true, query: '?url', import: 'default' })
@@ -28,13 +27,12 @@ const PLATE_SIZES = `${NARROW_QUERY.split(', ').map((q) => `${q} 190vw`).join(',
 // ?art=vector — сцена як трасований SVG (режим для порівняння); за замовчуванням — плита
 const VECTOR = new URLSearchParams(window.location.search).get('art') === 'vector'
 
-// cx — центр іконки в координатах референсу (981x639); d — його зсув від центру рівної колонки панелі (40 ... 941)
+// колонки панелі рівні й ділять її (40 ... 941) на стільки частин, скільки можливостей; іконка й підпис стоять по центру колонки
 const FEATURES = [
-  { id: 'tarot', label: 'Tarot', icon: tarot, cx: 148.5, route: 'tarot' },
-  { id: 'dreams', label: 'Dream Journal', icon: dreams, cx: 376.5, route: 'dreams' },
-  { id: 'astrology', label: 'Astrology', icon: astrology, cx: 602.5, route: 'astrology' },
-  { id: 'assistant', label: 'AI Assistant', icon: assistant, cx: 828.5, route: 'companion' },
-].map((f, k) => ({ ...f, k, d: f.cx - (40 + (k + 0.5) * 225.25) })) // −4.125, −1.375, −0.625, 0.125: точні двійкові дроби, тож іконки лягають на ціле px
+  { id: 'tarot', label: 'Tarot', icon: tarot, route: 'tarot' },
+  { id: 'dreams', label: 'Dream Journal', icon: dreams, route: 'dreams' },
+  { id: 'astrology', label: 'Astrology', icon: astrology, route: 'astrology' },
+].map((f, k) => ({ ...f, k }))
 
 function useMediaQuery(query) {
   return useSyncExternalStore(
@@ -114,7 +112,7 @@ export default function Landing() {
             <span>{t('inner universe')}</span>
           </h1>
           <p className="lead">
-            <span>{t('Tarot - Dream Journal - Astrology - AI Companion')}</span>
+            <span>{t('Tarot - Dream Journal - Astrology')}</span>
             <span>{t('MYSTIQ is your personal space for')}</span>
             <span>{t('self-discovery, spiritual growth and')}</span>
             <span>{t('shaping your own destiny.')}</span>
@@ -134,12 +132,12 @@ export default function Landing() {
           )}
         </section>
 
-        <nav className="panel" aria-label={t('MYSTIQ features')}>
-          {[1, 2, 3].map((k) => (
+        <nav className="panel" aria-label={t('MYSTIQ features')} style={{ '--n': FEATURES.length }}>
+          {FEATURES.slice(1).map((_, i) => i + 1).map((k) => (
             <i className="divider" style={{ '--k': k }} aria-hidden="true" key={k} />
           ))}
-          {FEATURES.map(({ id, label, icon, k, d, route }) => (
-            <a className="feature" {...navProps(`/${route}`)} key={id} style={{ '--k': k, '--d': d }}>
+          {FEATURES.map(({ id, label, icon, k, route }) => (
+            <a className="feature" {...navProps(`/${route}`)} key={id} style={{ '--k': k }}>
               <img src={icon} alt="" aria-hidden="true" draggable="false" />
               <span>{t(label)}</span>
             </a>

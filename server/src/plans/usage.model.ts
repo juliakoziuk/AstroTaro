@@ -5,6 +5,6 @@ export class UsageEvent extends Model {
   @Column({ type: DataType.UUID, defaultValue: DataType.UUIDV4, primaryKey: true }) declare id: string
   @ForeignKey(() => User)
   @Column({ type: DataType.UUID, allowNull: false, onDelete: 'CASCADE' }) declare userId: string
-  @Column({ type: DataType.STRING(32), allowNull: false }) declare kind: 'reading' | 'ai_message'
+  @Column({ type: DataType.STRING(32), allowNull: false }) declare kind: 'reading'
   @Column({ type: DataType.DATE, allowNull: false, defaultValue: DataType.NOW }) declare createdAt: Date
 }

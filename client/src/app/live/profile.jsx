@@ -86,7 +86,7 @@ export function ProfileModal({ ctx, profile }) {
 }
 
 // Налаштування ↔ ідентифікатори контролів на екранах
-const TOGGLES = { notif: 'notifications', insights: 'insights', autosave: 'autosave', companion: 'companion' }
+const TOGGLES = { notif: 'notifications', insights: 'insights', autosave: 'autosave' }
 const SELECTS = { lang: 'language', theme: 'theme', reading: 'defaultReading', time: 'timeFormat', date: 'dateFormat' }
 
 const settingsUi = (s, ids) => ({
@@ -176,7 +176,7 @@ function LanguagePanel({ ctx }) {
 export const settings = {
   bind: [],
   async load() {
-    return { values: {}, ui: settingsUi(await loadSettings(), ['insights', 'autosave', 'companion', 'reading', 'time', 'date']) }
+    return { values: {}, ui: settingsUi(await loadSettings(), ['insights', 'autosave', 'reading', 'time', 'date']) }
   },
   ...saveSetting,
   // активна вкладка «Language» (стан — у ctx.modal): закриваємо намальовану підсвітку «General» і малюємо свою біля «Language»

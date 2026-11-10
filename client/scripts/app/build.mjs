@@ -17,7 +17,7 @@ import { pathToFileURL } from 'node:url'
 
 const STRICT = 0.34
 let fonts = JSON.parse(fs.readFileSync(path.join(root, 'scripts/app/fonts.json'), 'utf8'))
-const NAV_HREFS = ['#/dashboard', '#/companion', '#/analysis', '#/pricing', '#/settings', '#/settings']
+const NAV_HREFS = ['#/dashboard', null, '#/analysis', '#/pricing', '#/settings', '#/settings']
 const NAV_LABELS = ['Home', 'Chat', 'Analytics', 'Access', 'Settings', 'Help']
 
 const snapWeight = (fam, wg) => fonts[fam].weights.reduce((a, b) => (Math.abs(b - wg) < Math.abs(a - wg) ? b : a))
@@ -149,7 +149,7 @@ async function buildScreen(id, page, opts) {
     sb.nav.forEach((d, i) => items.push({ cls: 'nav', text: NAV_LABELS[i], d, tag: 'span', sidebar: true }))
     dsl.hits.push(
       { label: 'MYSTIQ', x: 60, y: 30, w: 150, h: 130, r: 20, href: '#/dashboard' },
-      ...sb.nav.map((d, i) => ({ label: NAV_LABELS[i], x: 46, y: Math.round((d.y0 + d.y1) / 2) - 33, w: 184, h: 66, r: 33, href: NAV_HREFS[i], nav: true })),
+      ...sb.nav.map((d, i) => ({ label: NAV_LABELS[i], x: 46, y: Math.round((d.y0 + d.y1) / 2) - 33, w: 184, h: 66, r: 33, href: NAV_HREFS[i], nav: true })).filter((h) => h.href), // у «Chat» адреси немає: чату в застосунку більше нема, а намальований пункт закриває живе меню
     )
   }
   for (const t of dsl.texts) {

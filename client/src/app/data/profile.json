@@ -29,18 +29,6 @@
    "wg": 400
   },
   {
-   "s": "Chat",
-   "tag": "span",
-   "x": 127.2,
-   "y": 324.74,
-   "fs": 20.1,
-   "ls": 0,
-   "lh": 26.12,
-   "c": "#dfdcdf",
-   "f": "sans",
-   "wg": 400
-  },
-  {
    "s": "Analytics",
    "tag": "span",
    "x": 128,
@@ -497,16 +485,6 @@
    "h": 66,
    "r": 33,
    "href": "#/dashboard",
-   "nav": true
-  },
-  {
-   "label": "Chat",
-   "x": 46,
-   "y": 304,
-   "w": 184,
-   "h": 66,
-   "r": 33,
-   "href": "#/companion",
    "nav": true
   },
   {

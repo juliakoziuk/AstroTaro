@@ -263,7 +263,7 @@ export default function Screen({ d, live }) {
       ))}
 
       {d.toggles.map((control) => (
-        <button key={control.id} type="button" role="switch" aria-label={t(({ insights: 'Show daily insights', autosave: 'Autosave conversations', companion: 'Enable AI Companion', notif: 'Notifications' })[control.id] ?? control.id)} aria-checked={!!on[control.id]} className="tog" style={rect(control)} onClick={() => flip(control.id)}>
+        <button key={control.id} type="button" role="switch" aria-label={t(({ insights: 'Show daily insights', autosave: 'Autosave readings', notif: 'Notifications' })[control.id] ?? control.id)} aria-checked={!!on[control.id]} className="tog" style={rect(control)} onClick={() => flip(control.id)}>
           <i />
         </button>
       ))}

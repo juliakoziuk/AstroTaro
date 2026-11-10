@@ -7,7 +7,6 @@ export const NAV = [
   { id: 'history', label: 'History', path: '/history', routes: ['/history'] },
   { id: 'dreams', label: 'Dreams', path: '/dreams', routes: ['/dreams'] },
   { id: 'astrology', label: 'Astrology', path: '/astrology', routes: ['/astrology', '/today'] },
-  { id: 'chat', label: 'Chat', path: '/companion', routes: ['/companion'] },
   { id: 'analytics', label: 'Analytics', path: '/analysis', routes: ['/analysis'] },
   { id: 'access', label: 'Access', path: '/pricing', routes: ['/pricing'] },
   { id: 'settings', label: 'Settings', path: '/settings', routes: ['/settings'] },

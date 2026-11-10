@@ -1,9 +1,9 @@
 import { t } from '../i18n/index.js'
 import { NAV, activeNav } from './nav.js'
 import { navProps, useRoute } from './router.js'
-import { AccessIcon, AnalyticsIcon, ChatIcon, HelpIcon, HistoryIcon, HomeIcon, MoonIcon, SettingsIcon, SparkleIcon, TarotIcon } from './icons.jsx'
+import { AccessIcon, AnalyticsIcon, HelpIcon, HistoryIcon, HomeIcon, MoonIcon, SettingsIcon, SparkleIcon, TarotIcon } from './icons.jsx'
 
-const ICONS = { home: HomeIcon, tarot: TarotIcon, history: HistoryIcon, dreams: MoonIcon, astrology: SparkleIcon, chat: ChatIcon, analytics: AnalyticsIcon, access: AccessIcon, settings: SettingsIcon, help: HelpIcon }
+const ICONS = { home: HomeIcon, tarot: TarotIcon, history: HistoryIcon, dreams: MoonIcon, astrology: SparkleIcon, analytics: AnalyticsIcon, access: AccessIcon, settings: SettingsIcon, help: HelpIcon }
 
 /**
  * Меню застосунку: усі розділи за моделлю nav.js, поточний розділ підсвічено (`activeClass`) і позначено aria-current.

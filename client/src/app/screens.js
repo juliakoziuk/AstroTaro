@@ -6,7 +6,7 @@ import { bindTexts, limitByNeighbours, withoutNavTexts } from './resolve.js'
 const data = import.meta.glob('./data/*.json', { eager: true, import: 'default' })
 const plates = import.meta.glob('./art/*.webp', { eager: true, query: '?url', import: 'default' })
 
-const APP_ORDER = ['register', 'pricing', 'dashboard', 'tarot', 'reading', 'dreams', 'analysis', 'astrology', 'companion', 'profile', 'settings']
+const APP_ORDER = ['register', 'pricing', 'dashboard', 'tarot', 'reading', 'dreams', 'analysis', 'astrology', 'profile', 'settings']
 const byId = Object.fromEntries(Object.values(data).map((d) => [d.id, { ...d, plate: plates[`./art/${d.id}.webp`], plate2: plates[`./art/${d.id}-2x.webp`] }]))
 
 export const SCREENS = [

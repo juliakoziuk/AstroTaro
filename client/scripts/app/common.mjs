@@ -19,7 +19,6 @@ export const SCREENS = [
   { id: 'dreams', key: 'щоденник', route: '/dreams', title: 'Dream Journal' },
   { id: 'analysis', key: 'аналіз снів', route: '/analysis', title: 'Dream Analysis' },
   { id: 'astrology', key: 'астролог', route: '/astrology', title: 'Astrology' },
-  { id: 'companion', key: 'AI-компаньйон', route: '/companion', title: 'AI Companion' },
   { id: 'profile', key: 'профіль', route: '/profile', title: 'Profile' },
   { id: 'settings', key: 'Налаштування', route: '/settings', title: 'Settings' },
 ]

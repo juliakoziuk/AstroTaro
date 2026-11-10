@@ -14,12 +14,12 @@ describe('landing page', () => {
     expect(screen.queryByRole('link', { name: 'Profile' })).toBeNull()
   })
 
-  test('the four features lead to their screens', () => {
+  test('the three features lead to their screens', () => {
     mockApi({})
     render(<Landing />)
     const nav = screen.getByRole('navigation', { name: 'MYSTIQ features' })
     const hrefs = [...nav.querySelectorAll('a')].map((a) => a.getAttribute('href'))
-    expect(hrefs).toEqual(['#/tarot', '#/dreams', '#/astrology', '#/companion'])
+    expect(hrefs).toEqual(['#/tarot', '#/dreams', '#/astrology'])
   })
 
   test('a signed-in user sees their account chip, goes to the dashboard and can log out', async () => {

@@ -66,7 +66,7 @@ export class BillingController implements OnModuleInit {
       plan, planName: info.name, price: info.price, interval: 'month',
       subscription: user.stripeSubscriptionId ? { status: user.subscriptionStatus, cancelAtPeriodEnd: user.cancelAtPeriodEnd, currentPeriodEnd: user.currentPeriodEnd } : null,
       limits, usage, remaining: remainingOf(limits, usage),
-      resets: { readings: windows.readings.toISOString(), aiMessages: windows.aiMessages.toISOString() },
+      resets: { readings: windows.readings.toISOString() },
       options: { canUpgradeTo: plan === 'free' ? ['pro', 'premium'] : plan === 'pro' ? ['premium'] : [], canManage: !!(user.stripeCustomerId && user.stripeSubscriptionId), needsPaymentFix: ['past_due', 'unpaid'].includes(user.subscriptionStatus ?? '') },
     }
   }

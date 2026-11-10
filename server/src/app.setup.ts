@@ -32,7 +32,7 @@ export function configureApp(app: INestApplication) {
   app.enableCors({ origin: (process.env.CORS_ORIGIN ?? '').split(',').filter(Boolean), exposedHeaders: ['X-Total-Count'] })
   const docs = new DocumentBuilder()
     .setTitle('AstroTarot API')
-    .setDescription('Таро, сни, щоденник і AI-компаньйон. Захищені ендпоїнти потребують Bearer-токена з /auth/login. Мова відповідей — заголовок Accept-Language (en, uk).')
+    .setDescription('Таро, сни, щоденник і астрологія. Захищені ендпоїнти потребують Bearer-токена з /auth/login. Мова відповідей — заголовок Accept-Language (en, uk).')
     .setVersion('0.1.0')
     .addBearerAuth()
     .build()

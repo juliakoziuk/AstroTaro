@@ -95,7 +95,7 @@ try {
   ok('кнопка «назад» браузера (Dreams → Dashboard)', (await route()) === '/dashboard', await route())
 
   // 4) меню сайдбара та крес з брендом
-  for (const [label, to] of [['Chat', '/companion'], ['Analytics', '/analysis'], ['Access', '/pricing'], ['Settings', '/settings'], ['Home', '/dashboard'], ['MYSTIQ', '/dashboard']]) {
+  for (const [label, to] of [['Analytics', '/analysis'], ['Access', '/pricing'], ['Settings', '/settings'], ['Home', '/dashboard'], ['MYSTIQ', '/dashboard']]) {
     await open('/profile')
     await page.evaluate((l) => document.querySelector(`a.hit[aria-label="${l}"]`).click(), label)
     await settle()
@@ -105,8 +105,8 @@ try {
   // 5) лендінг і логін: вхід у потік
   await open('/')
   const land = await page.evaluate(() => ({ start: document.querySelector('.btn-primary').getAttribute('href'), login: document.querySelector('.btn-ghost').getAttribute('href'), feats: [...document.querySelectorAll('a.feature')].map((a) => a.getAttribute('href')).join() }))
-  ok('Landing: посилання', land.start === '#/register' && land.login === '#/login' && land.feats === '#/tarot,#/dreams,#/astrology,#/companion', JSON.stringify(land))
-  for (const [sel, to] of [['.btn-primary', '/register'], ['.btn-ghost', '/login'], ['a.feature:nth-of-type(1)', '/tarot'], ['a.feature:nth-of-type(4)', '/companion'], ['a.brand', '/']]) {
+  ok('Landing: посилання', land.start === '#/register' && land.login === '#/login' && land.feats === '#/tarot,#/dreams,#/astrology', JSON.stringify(land))
+  for (const [sel, to] of [['.btn-primary', '/register'], ['.btn-ghost', '/login'], ['a.feature:nth-of-type(1)', '/tarot'], ['a.feature:nth-of-type(3)', '/astrology'], ['a.brand', '/']]) {
     await open('/')
     await page.click(sel)
     await settle()
@@ -124,23 +124,19 @@ try {
   await page.evaluate(() => document.querySelector('.foot-link').click())
   await settle()
   ok('Login: Sign Up → Register', (await route()) === '/register', await route())
-  await open('/login')
-  await page.evaluate(() => document.querySelector('.nav-item:nth-child(2)').click())
-  await settle()
-  ok('Login: меню Chat → Companion', (await route()) === '/companion', await route())
 
-  // 6) перемикач екранів (демо-панель): список із 13 пунктів, перехід, клавіші
+  // 6) перемикач екранів (демо-панель): список із 12 пунктів, перехід, клавіші
   await page.goto(`${BASE}/app.html#/`, { waitUntil: 'networkidle0' }) // без ?clean — перемикач видно
   await page.evaluate(() => { window.__spa = 'alive' })
   await page.click('.proto-btn')
   const items = await page.$$eval('.proto-panel a', (a) => a.map((x) => x.textContent))
-  ok('перемикач: 13 екранів у списку', items.length === 13, items.length)
+  ok('перемикач: 12 екранів у списку', items.length === 12, items.length)
   await page.evaluate(() => [...document.querySelectorAll('.proto-panel a')].find((a) => a.textContent.includes('Astrology')).click())
   await settle()
   ok('перемикач: перехід на Astrology', (await route()) === '/astrology' && (await spa()), await route())
   await page.keyboard.press(']')
   await settle()
-  ok('клавіша ] — наступний екран (AI Companion)', (await route()) === '/companion', await route())
+  ok('клавіша ] — наступний екран (Profile)', (await route()) === '/profile', await route())
   await page.keyboard.press('[')
   await settle()
   ok('клавіша [ — попередній екран (Astrology)', (await route()) === '/astrology', await route())
@@ -168,10 +164,6 @@ try {
   ok('Register: «око» показує пароль', t0 === 'password' && t1 === 'text', `${t0} → ${t1}`)
   await page.evaluate(() => document.querySelector('.chk').click())
   ok('Register: галочка', await page.evaluate(() => document.querySelector('.chk').getAttribute('aria-checked') === 'true'))
-  await open('/companion')
-  await page.type('input[name=msg]', 'Hello')
-  await page.evaluate(() => document.querySelector('button.hit.act[aria-label="Send"]').click())
-  ok('Companion: «надіслати» очищає поле', (await page.$eval('input[name=msg]', (e) => e.value)) === '')
 
   // 8) старі адреси ще працюють
   await page.goto(`${BASE}/landing.html`, { waitUntil: 'networkidle0' })

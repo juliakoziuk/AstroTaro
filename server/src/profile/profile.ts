@@ -11,7 +11,6 @@ import { Spread } from '../spreads/spread.model'
 import { DEFAULT_SETTINGS, SETTING_OPTIONS, withDefaults } from '../users/settings'
 import { User } from '../users/user.model'
 import { JournalEntry } from '../journal/journal.model'
-import { Message } from '../messages/message.model'
 
 export class UpdateProfileDto {
   @ApiPropertyOptional({ example: 'Yullia' }) @IsOptional() @IsString() @MinLength(1) @MaxLength(80) name?: string
@@ -27,7 +26,6 @@ export class UpdateSettingsDto {
   @ApiPropertyOptional() @IsOptional() @IsBoolean() notifications?: boolean
   @ApiPropertyOptional() @IsOptional() @IsBoolean() insights?: boolean
   @ApiPropertyOptional() @IsOptional() @IsBoolean() autosave?: boolean
-  @ApiPropertyOptional() @IsOptional() @IsBoolean() companion?: boolean
   @ApiPropertyOptional({ enum: SETTING_OPTIONS.language }) @IsOptional() @IsIn(SETTING_OPTIONS.language) language?: string
   @ApiPropertyOptional({ enum: SETTING_OPTIONS.theme }) @IsOptional() @IsIn(SETTING_OPTIONS.theme) theme?: string
   @ApiPropertyOptional({ enum: SETTING_OPTIONS.defaultReading }) @IsOptional() @IsIn(SETTING_OPTIONS.defaultReading) defaultReading?: string
@@ -46,7 +44,6 @@ export class ProfileController {
     @InjectModel(Dream) private dreams: typeof Dream,
     @InjectModel(Report) private reports: typeof Report,
     @InjectModel(JournalEntry) private journal: typeof JournalEntry,
-    @InjectModel(Message) private messages: typeof Message,
   ) {}
 
   private async profile(id: string) {
@@ -104,16 +101,16 @@ export class ProfileController {
   async exportData(@CurrentUser() u: { id: string }) {
     const user = await this.users.findByPk(u.id)
     const where = { userId: u.id }
-    const [spreads, dreams, journal, reports, messages] = await Promise.all([
+    const [spreads, dreams, journal, reports] = await Promise.all([
       this.spreads.findAll({ where }), this.dreams.findAll({ where }), this.journal.findAll({ where }),
-      this.reports.findAll({ where }), this.messages.findAll({ where }),
+      this.reports.findAll({ where }),
     ])
     return {
       exportedAt: new Date().toISOString(), schemaVersion: 1,
       profile: { name: user.name, email: user.email, plan: user.plan, birthDate: user.birthDate,
         birthTime: user.birthTime, birthPlace: user.birthPlace, birthLat: user.birthLat, birthLon: user.birthLon, country: user.country },
       settings: withDefaults(user.settings), consent: user.consent,
-      spreads, dreams, journal, reports, messages,
+      spreads, dreams, journal, reports,
     }
   }
 
@@ -127,5 +124,5 @@ export class ProfileController {
   }
 }
 
-@Module({ imports: [SequelizeModule.forFeature([User, Spread, Dream, Report, JournalEntry, Message])], controllers: [ProfileController] })
+@Module({ imports: [SequelizeModule.forFeature([User, Spread, Dream, Report, JournalEntry])], controllers: [ProfileController] })
 export class ProfileModule {}

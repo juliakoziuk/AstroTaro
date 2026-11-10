@@ -2,7 +2,6 @@ import { Column, DataType, HasMany, Model, Table } from 'sequelize-typescript'
 import { Dream } from '../dreams/dream.model'
 import { JournalEntry } from '../journal/journal.model'
 import { Spread } from '../spreads/spread.model'
-import { Message } from '../messages/message.model'
 import { DEFAULT_SETTINGS, Settings } from './settings'
 
 export interface Consent {
@@ -95,6 +94,4 @@ export class User extends Model {
   @HasMany(() => Spread)
   declare spreads: Spread[]
 
-  @HasMany(() => Message)
-  declare messages: Message[]
 }

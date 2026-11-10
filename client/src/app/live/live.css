@@ -59,35 +59,6 @@
   .v-app .cardmdl img { width: 150px; }
 }
 
-/* чат компаньйона */
-.v-app .chat {
-  display: flex;
-  flex-direction: column;
-  gap: calc(var(--u) * 14);
-  overflow-y: auto;
-  padding: calc(var(--u) * 16);
-  background: #0c192b;
-  font-family: 'Source Sans 3', 'Segoe UI', sans-serif;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(214, 170, 104, 0.5) transparent;
-}
-.v-app .bubble {
-  max-width: 82%;
-  padding: calc(var(--u) * 14) calc(var(--u) * 20);
-  border-radius: calc(var(--u) * 24);
-  font-size: calc(var(--u) * 21);
-  line-height: 1.35;
-  color: #eceae6;
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-  border: 1px solid rgba(160, 185, 220, 0.4);
-  background: rgba(255, 255, 255, 0.04);
-  align-self: flex-start;
-}
-.v-app .bubble.me { align-self: flex-end; border-color: rgba(214, 170, 104, 0.7); background: rgba(214, 170, 104, 0.1); }
-.v-app .bubble small { display: block; margin-top: calc(var(--u) * 6); font-size: calc(var(--u) * 15); opacity: 0.6; text-align: right; }
-.v-app .bubble.typing { opacity: 0.7; font-style: italic; }
-
 /* підказка внизу екрана */
 .toast {
   position: fixed;

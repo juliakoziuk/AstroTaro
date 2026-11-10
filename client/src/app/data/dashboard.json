@@ -29,18 +29,6 @@
    "wg": 400
   },
   {
-   "s": "Chat",
-   "tag": "span",
-   "x": 127.19,
-   "y": 323.63,
-   "fs": 20.28,
-   "ls": 0,
-   "lh": 26.37,
-   "c": "#d9d7db",
-   "f": "sans",
-   "wg": 400
-  },
-  {
    "s": "Analytics",
    "tag": "span",
    "x": 127,
@@ -221,7 +209,7 @@
    "wg": 400
   },
   {
-   "s": "AI Companion",
+   "s": "Cosmic Today",
    "tag": "h3",
    "x": 447.7,
    "y": 606.22,
@@ -233,7 +221,7 @@
    "wg": 400
   },
   {
-   "s": "Ask anything",
+   "s": "The sky now",
    "tag": "span",
    "x": 449,
    "y": 652.45,
@@ -391,7 +379,7 @@
    "wg": 600
   },
   {
-   "s": "AI chats",
+   "s": "Reports",
    "tag": "span",
    "x": 1180,
    "y": 518.59,
@@ -489,13 +477,13 @@
    "href": "#/dreams"
   },
   {
-   "label": "AI Companion",
+   "label": "Cosmic Today",
    "x": 283,
    "y": 585,
    "w": 370,
    "h": 124,
    "r": 26,
-   "href": "#/companion"
+   "href": "#/today"
   },
   {
    "label": "Progress",
@@ -550,16 +538,6 @@
    "h": 66,
    "r": 33,
    "href": "#/dashboard",
-   "nav": true
-  },
-  {
-   "label": "Chat",
-   "x": 46,
-   "y": 303,
-   "w": 184,
-   "h": 66,
-   "r": 33,
-   "href": "#/companion",
    "nav": true
   },
   {
