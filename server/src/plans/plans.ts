@@ -26,7 +26,7 @@ const PLAN_TEXT: { id: PlanId; price: number; name: T2; tagline: T2; features: T
   },
   {
     id: 'pro', price: 5, name: ['Pro', 'Pro'], tagline: ['Most popular', 'Найпопулярніший'], cta: ['Upgrade', 'Оновити'],
-    features: [["60 readings a month","60 розкладів на місяць"],["200 dreams · 40 AI messages a day","200 снів · 40 повідомлень ШІ на день"],["Detailed readings","Детальні розклади"],["Full astrology: forecast, compatibility, reports","Повна астрологія: прогноз, сумісність, звіти"]],
+    features: [["30 readings a month","30 розкладів на місяць"],["50 dreams · 25 AI messages a day","50 снів · 25 повідомлень ШІ на день"],["Detailed readings","Детальні розклади"],["Full astrology: forecast, compatibility, reports","Повна астрологія: прогноз, сумісність, звіти"]],
   },
   {
     id: 'premium', price: 10, name: ['Premium', 'Premium'], tagline: ['For deep explorers', 'Для глибоких дослідників'], cta: ['Choose', 'Обрати'],

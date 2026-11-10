@@ -9,7 +9,7 @@ export type Limits = {
 }
 const LIMITS: Record<string, Limits> = {
   free: { readingsPerMonth: 5, dreamsTotal: 10, aiMessagesPerDay: 10, readingModes: ['quick'], compatibility: false, forecastRanges: ['day'], fullReports: false },
-  pro: { readingsPerMonth: 60, dreamsTotal: 200, aiMessagesPerDay: 40, readingModes: ['quick', 'detailed'], compatibility: true, forecastRanges: ['day', 'week', 'month'], fullReports: true },
+  pro: { readingsPerMonth: 30, dreamsTotal: 50, aiMessagesPerDay: 25, readingModes: ['quick', 'detailed'], compatibility: true, forecastRanges: ['day', 'week', 'month'], fullReports: true },
   premium: { readingsPerMonth: null, dreamsTotal: null, aiMessagesPerDay: 200, readingModes: ['quick', 'detailed', 'depth'], compatibility: true, forecastRanges: ['day', 'week', 'month'], fullReports: true },
 }
 export const limitsOf = (plan: string): Limits => structuredClone(Object.hasOwn(LIMITS, plan) ? LIMITS[plan] : LIMITS.free)

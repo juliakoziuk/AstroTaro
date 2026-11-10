@@ -7,7 +7,7 @@ import { mockApi } from '../../test/setup.js'
 
 const LIMITS = {
   free: { readingsPerMonth: 5, dreamsTotal: 10, aiMessagesPerDay: 10, readingModes: ['quick'], compatibility: false, forecastRanges: ['day'], fullReports: false },
-  pro: { readingsPerMonth: 60, dreamsTotal: 200, aiMessagesPerDay: 40, readingModes: ['quick', 'detailed'], compatibility: true, forecastRanges: ['day', 'week', 'month'], fullReports: true },
+  pro: { readingsPerMonth: 30, dreamsTotal: 50, aiMessagesPerDay: 25, readingModes: ['quick', 'detailed'], compatibility: true, forecastRanges: ['day', 'week', 'month'], fullReports: true },
   premium: { readingsPerMonth: null, dreamsTotal: null, aiMessagesPerDay: 200, readingModes: ['quick', 'detailed', 'depth'], compatibility: true, forecastRanges: ['day', 'week', 'month'], fullReports: true },
 }
 const PRICE = { free: 0, pro: 5, premium: 10 }
@@ -83,9 +83,9 @@ describe('Billing tab: subscribers', () => {
     expect(screen.getByText('Active')).toBeTruthy()
     expect(screen.getByText(/^Renews on /)).toBeTruthy()
     expect(screen.getAllByRole('progressbar')).toHaveLength(3) // Pro має щедрі, але ліміти: розклади, сни, повідомлення ШІ
-    expect(screen.getByText('2 of 60')).toBeTruthy()
-    expect(screen.getByText('3 of 200')).toBeTruthy()
-    expect(screen.getByText('1 of 40')).toBeTruthy()
+    expect(screen.getByText('2 of 30')).toBeTruthy()
+    expect(screen.getByText('3 of 50')).toBeTruthy()
+    expect(screen.getByText('1 of 25')).toBeTruthy()
     expect(screen.queryByText('Unlimited')).toBeNull()
     expect(screen.queryByRole('button', { name: 'Upgrade' })).toBeNull()
 

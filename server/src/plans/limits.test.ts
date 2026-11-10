@@ -5,7 +5,7 @@ import { plans } from './plans'
 
 test('the three plans have the documented limits', () => {
   deepStrictEqual(limitsOf('free'), { readingsPerMonth: 5, dreamsTotal: 10, aiMessagesPerDay: 10, readingModes: ['quick'], compatibility: false, forecastRanges: ['day'], fullReports: false })
-  deepStrictEqual(limitsOf('pro'), { readingsPerMonth: 60, dreamsTotal: 200, aiMessagesPerDay: 40, readingModes: ['quick', 'detailed'], compatibility: true, forecastRanges: ['day', 'week', 'month'], fullReports: true })
+  deepStrictEqual(limitsOf('pro'), { readingsPerMonth: 30, dreamsTotal: 50, aiMessagesPerDay: 25, readingModes: ['quick', 'detailed'], compatibility: true, forecastRanges: ['day', 'week', 'month'], fullReports: true })
   deepStrictEqual(limitsOf('premium'), { readingsPerMonth: null, dreamsTotal: null, aiMessagesPerDay: 200, readingModes: ['quick', 'detailed', 'depth'], compatibility: true, forecastRanges: ['day', 'week', 'month'], fullReports: true })
 })
 
@@ -37,7 +37,7 @@ test('each higher plan includes everything of the lower one', () => {
 test('what is left: never negative, null for unlimited', () => {
   const usage = { readingsThisMonth: 2, dreamsTotal: 12, aiMessagesToday: 10 }
   deepStrictEqual(remainingOf(limitsOf('free'), usage), { readings: 3, dreams: 0, aiMessages: 0 })
-  deepStrictEqual(remainingOf(limitsOf('pro'), usage), { readings: 58, dreams: 188, aiMessages: 30 })
+  deepStrictEqual(remainingOf(limitsOf('pro'), usage), { readings: 28, dreams: 38, aiMessages: 15 })
   deepStrictEqual(remainingOf(limitsOf('premium'), usage), { readings: null, dreams: null, aiMessages: 190 })
 })
 
