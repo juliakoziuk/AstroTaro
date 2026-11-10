@@ -185,3 +185,14 @@ test('the painted menu labels are dropped, since the live menu draws them', () =
   const texts = [T('Home', { x: 127.4, y: 247.6, fs: 20.1, lh: 26 }), T('Tarot', { x: 560, y: 300, fs: 30, lh: 36 }), T('MYSTIQ', { x: 100, y: 120, fs: 30, lh: 36 })]
   deepStrictEqual(withoutNavTexts(texts, hits).map((x) => x.s), ['Tarot', 'MYSTIQ'])
 })
+
+test('a caption bound with `after` follows the width of the value, not the place of the long mock-up value', () => {
+  const texts = [
+    { s: '$9.99', x: 100, y: 10, fs: 50 },
+    { s: '/mo', x: 220, y: 30, fs: 24 },
+  ]
+  const spec = [{ find: '$9.99', key: 'price' }, { find: '/mo', after: 'price' }]
+  const at = (price) => resolveTexts(bindTexts(texts, spec), { price }).find((x) => x.s === '/mo').x
+  strictEqual(at('$5') < at('$10') && at('$10') < at('$19.99'), true, 'the longer the price, the further the caption')
+  strictEqual(at('$5') > 100 && at('$5') < 220, true, 'a short price pulls the caption closer than the mock-up had it')
+})

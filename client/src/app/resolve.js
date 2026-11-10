@@ -100,10 +100,13 @@ export const withoutNavTexts = (texts, hits) => {
  */
 export function resolveTexts(texts, values, translate = (s) => s) {
   const out = []
+  const placed = new Map() // ключ значення → куди воно стало, для підписів, що йдуть одразу за ним (after)
   for (let i = 0; i < texts.length; i++) {
     const t = texts[i]
     if (t.dyn == null) {
-      out.push(fit(t, translate(t.s)))
+      const next = fit(t, translate(t.s))
+      const before = t.after && placed.get(t.after)
+      out.push(before ? { ...next, x: +(before.x + textWidth(before.s, before.fs) + AFTER_GAP).toFixed(2) } : next)
     } else if (t.flow) {
       // один рядок макета, що може розтекстися на кілька рядків униз
       const text = values[t.dyn] ?? ''
@@ -118,10 +121,16 @@ export function resolveTexts(texts, values, translate = (s) => s) {
       const v = t.g ? { ...t, s: String(values[t.dyn] ?? '') } : fitValue(t, String(values[t.dyn] ?? '')) // групу підганяє сторінка
       // rx — правий край значення: довге слово росте вліво (до сусіднього підпису), а не на значок праворуч
       out.push({ ...v, ...(t.rx ? { x: t.rx, ralign: true } : {}), dyn: undefined })
+      placed.set(t.dyn, out[out.length - 1])
     }
   }
   return out
 }
+
+// ширина цифр у частках кегля (шрифт із засічками): «1» вужча, крапка ще вужча; решта символів — як цифра
+const EM = { '1': 0.37, '.': 0.23, ',': 0.23, ' ': 0.25 }
+const textWidth = (s, fs = 16) => [...String(s)].reduce((sum, ch) => sum + (EM[ch] ?? 0.48), 0) * fs
+const AFTER_GAP = 14 // відступ між значенням і підписом, що йде за ним (одиниці макета)
 
 /**
  * Позначає рядки макета як динамічні. Запис специфікації:
@@ -132,12 +141,13 @@ export function resolveTexts(texts, values, translate = (s) => s) {
  *   { find: 'Cancer', key: 'sign', maxw: 56 }            — значення з обмеженням ширини (стискається, а не налазить на сусіда)
  *   { find: 'Cancer', key: 'sign', rx: 1426 }             — значення вирівняне по правому краю (x = rx)
  *   { find: 'Short', flow: 2, width: 46, fs: 18.5, lh: 23 } — те саме з меншим кеглем і висотою рядка (два рядки замість одного)
+ *   { find: '/mo', after: 'price' }                      — статичний підпис одразу після значення price (x рахується за його шириною)
  *   { find: 'Hello', drop: 17 }                           — прибрати 17 рядків макета підряд (їх замінює живий компонент)
  */
 export function bindTexts(texts, spec) {
   const out = texts.map((t) => ({ ...t }))
   const dropped = new Set()
-  for (const { find, nth = 0, offset = 0, key, lines, flow, width, drop, maxw, rx, fs, lh, group, balance } of spec) {
+  for (const { find, nth = 0, offset = 0, key, lines, flow, width, drop, maxw, rx, fs, lh, group, balance, after } of spec) {
     let seen = -1
     const at = texts.findIndex((t) => t.s === find && ++seen === nth)
     if (at < 0) throw new Error(`bindTexts: не знайдено «${find}» (nth ${nth})`)
@@ -146,7 +156,8 @@ export function bindTexts(texts, spec) {
       for (let k = 0; k < drop; k++) dropped.add(i + k)
       continue
     }
-    out[i].dyn = key
+    if (after) out[i].after = after
+    if (key != null) out[i].dyn = key
     if (group) out[i].g = group // рядки однієї групи мають однаковий кегль: його підганяє сторінка (Screen.jsx)
     if (balance) out[i].balance = true // довжина рядка при переносі — порівну, а не «довгий рядок + огризок»
     if (fs) out[i].fs = fs // менший кегль і висота рядка, щоб довший текст вміщався у свій блок

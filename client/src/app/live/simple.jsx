@@ -90,6 +90,7 @@ export const pricing = {
     { find: name, key: `p${i}.name` },
     { find: tagline, key: `p${i}.tagline`, maxw: i === 2 ? 155 : 235 }, // у Premium поруч корона
     { find: price, key: `p${i}.price` },
+    { find: '/mo', nth: i, after: `p${i}.price` }, // «/міс» одразу за ціною, а не там, де стояла довга ціна макета
     // усі переваги всіх трьох карток — одна група: однаковий кегль скрізь, а стискає його найдовший рядок; у межах картки тарифу
     ...features.map((f, j) => ({ find: f, key: `p${i}.f${j}`, maxw: 180, group: 'plan-features' })),
   ]),
