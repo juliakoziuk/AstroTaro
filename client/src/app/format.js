@@ -39,3 +39,7 @@ export const snippet = (text, max = 38) => {
   const t = String(text ?? '').replace(/\s+/g, ' ').trim()
   return t.length > max ? `${t.slice(0, max - 1).trimEnd()}…` : t
 }
+
+const MS_PER_MINUTE = 60 * 1000
+/** «Сьогодні» за місцевим годинником людини (РРРР-ММ-ДД), а не за UTC: від цієї дати сервер рахує день карти й прогнозу. */
+export const localDay = (now = new Date()) => new Date(now.getTime() - now.getTimezoneOffset() * MS_PER_MINUTE).toISOString().slice(0, 10)

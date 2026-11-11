@@ -31,7 +31,7 @@ const PROTECTED: [string, string][] = [
   ['GET', '/dashboard'], ['GET', '/profile'], ['PATCH', '/profile'], ['GET', '/settings'], ['PATCH', '/settings'], ['POST', '/settings/reset'], ['GET', '/profile/export'],
   ['POST', '/billing/plan'],
   ['GET', '/dreams'], ['POST', '/dreams'], ['GET', '/dreams/00000000-0000-4000-8000-000000000000'],
-  ['GET', '/journal'], ['POST', '/journal'], ['GET', '/spreads'], ['POST', '/spreads'], ['POST', '/tarot/readings'],
+  ['GET', '/journal'], ['POST', '/journal'], ['GET', '/spreads'], ['POST', '/spreads'], ['POST', '/tarot/readings'], ['GET', '/tarot/daily'], ['POST', '/tarot/daily'],
   ['GET', '/astrology'], ['GET', '/astrology/forecast'], ['GET', '/astrology/reports'], ['POST', '/astrology/reports'], ['POST', '/astrology/compatibility'],
   ['GET', '/cosmos/geo'], ['GET', '/cosmos/apod'], ['GET', '/cosmos/quote'], ['GET', '/cosmos/sun'], ['GET', '/cosmos/holidays'], ['GET', '/cosmos/art'],
 ]
@@ -1041,5 +1041,70 @@ describe('brute force protection (runs last: it uses up the address limits)', ()
       else strictEqual(r.status, 201)
     }
     ok(blocked > 0, 'a 429 appeared before 12 registrations')
+  })
+})
+
+describe('card of the day and the streak', () => {
+  const utcDay = (shift = 0) => new Date(Date.now() + shift * 864e5).toISOString().slice(0, 10)
+  let a: Awaited<ReturnType<Harness['register']>>
+  let c: Awaited<ReturnType<Harness['register']>>
+  before(async () => {
+    h.resetLimits()
+    a = await h.register('Anna')
+    c = await h.register('Boris')
+  })
+
+  test('the card stays hidden until it is opened, then it is the same all day and the streak counts it once', async () => {
+    const day = utcDay()
+    const before = await h.api('GET', `/tarot/daily?date=${day}`, { token: a.token })
+    strictEqual(before.status, 200)
+    strictEqual(before.body.drawn, false)
+    strictEqual(before.body.card, null)
+    deepStrictEqual(before.body.streak, { current: 0, longest: 0, total: 0, drawnToday: false })
+    strictEqual(before.body.week.length, 7)
+
+    const first = await h.api('POST', '/tarot/daily', { token: a.token, body: { date: day } })
+    strictEqual(first.status, 201, text(first.body))
+    strictEqual(first.body.drawn, true)
+    ok(first.body.card.name && first.body.card.text, 'the card has a name and a reading')
+    deepStrictEqual(first.body.streak, { current: 1, longest: 1, total: 1, drawnToday: true })
+
+    const again = await h.api('POST', '/tarot/daily', { token: a.token, body: { date: day } })
+    deepStrictEqual(again.body.card, first.body.card, 'a second opening gives the same card')
+    strictEqual(again.body.streak.total, 1)
+    deepStrictEqual((await h.api('GET', `/tarot/daily?date=${day}`, { token: a.token })).body.card, first.body.card)
+  })
+
+  test('parallel openings still leave one card', async () => {
+    const day = utcDay()
+    const replies = await Promise.all(Array.from({ length: 6 }, () => h.api('POST', '/tarot/daily', { token: c.token, body: { date: day } })))
+    for (const r of replies) strictEqual(r.status, 201, text(r.body))
+    strictEqual(new Set(replies.map((r) => r.body.card.id + ':' + r.body.card.reversed)).size, 1)
+    strictEqual(replies[0].body.streak.total, 1)
+  })
+
+  test('another person sees none of it, and the text follows the request language', async () => {
+    const day = utcDay()
+    const other = await h.register('Clara')
+    const theirs = await h.api('GET', `/tarot/daily?date=${day}`, { token: other.token })
+    strictEqual(theirs.body.drawn, false)
+    strictEqual(theirs.body.streak.total, 0)
+    const en = await h.api('GET', `/tarot/daily?date=${day}`, { token: a.token })
+    const uk = await h.api('GET', `/tarot/daily?date=${day}`, { token: a.token, lang: 'uk' })
+    strictEqual(en.body.card.id, uk.body.card.id)
+    ok(en.body.card.name !== uk.body.card.name, 'the card name is translated')
+  })
+
+  test('dates that cannot be “today” anywhere are refused, so the streak cannot be padded', async () => {
+    for (const date of [utcDay(-5), utcDay(5), '2026-02-31', 'yesterday', '2026-1-1']) {
+      strictEqual((await h.api('POST', '/tarot/daily', { token: a.token, body: { date } })).status, 400, date)
+      strictEqual((await h.api('GET', `/tarot/daily?date=${date}`, { token: a.token })).status, 400, date)
+    }
+    strictEqual((await h.api('GET', '/tarot/daily', { token: a.token })).status, 200, 'no date means the UTC day')
+  })
+
+  test('the card of the day is not limited by the plan and is not counted as a reading', async () => {
+    const dash = (await h.api('GET', '/dashboard', { token: a.token })).body
+    strictEqual(dash.counts.readings, 0)
   })
 })

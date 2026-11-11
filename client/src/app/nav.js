@@ -3,7 +3,7 @@
 // `routes` — сторінки розділу (підсвічується пункт, у розділі якого людина зараз); кожна сторінка належить рівно одному пункту.
 export const NAV = [
   { id: 'home', label: 'Home', path: '/dashboard', routes: ['/dashboard'] },
-  { id: 'tarot', label: 'Tarot', path: '/tarot', routes: ['/tarot', '/reading', '/draw'] },
+  { id: 'tarot', label: 'Tarot', path: '/tarot', routes: ['/tarot', '/reading', '/draw', '/daily'] },
   { id: 'history', label: 'History', path: '/history', routes: ['/history'] },
   { id: 'dreams', label: 'Dreams', path: '/dreams', routes: ['/dreams'] },
   { id: 'astrology', label: 'Astrology', path: '/astrology', routes: ['/astrology', '/today'] },

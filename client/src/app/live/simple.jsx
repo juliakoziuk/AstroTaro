@@ -204,5 +204,7 @@ export const tarot = {
   actions: {
     'Start Reading': (ctx) => startReading(ctx, 'three'),
     ...Object.fromEntries(SPREAD_NAMES.map((label, i) => [label, (ctx) => startReading(ctx, ctx.data?.spreads[i]?.id)])),
+    // «Карта дня» не розклад із вибором колоди: одна карта на день зі своєю серією, тож веде на окрему сторінку
+    'Daily Card': (ctx) => ctx.go('/daily'),
   },
 }

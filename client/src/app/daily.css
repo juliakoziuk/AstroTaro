@@ -1,0 +1,49 @@
+/* Екран «Card of the day»: рамка й палітра ті самі, що в «Draw your cards» (draw.css, змінні .drawpage). */
+.v-app .drawpage .daily { display: grid; grid-template-columns: minmax(0, 1fr) 250px; gap: 20px; align-items: start; margin-top: 18px; }
+.v-app .drawpage .daily .today-card,
+.v-app .drawpage .daily .streak {
+  padding: 20px; border-radius: 22px; background: var(--glass); border: 1px solid rgba(228, 190, 128, 0.35);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+}
+.v-app .drawpage .today-card { display: flex; align-items: center; gap: 26px; flex-wrap: wrap; }
+.v-app .drawpage .today-card .reading { flex: 1 1 260px; min-width: 0; }
+.v-app .drawpage .today-card .reading p { margin: 0 0 10px; color: #d8d1c0; }
+.v-app .drawpage .today-card .reading .hint { color: var(--muted); }
+.v-app .drawpage .today-card h2 { margin: 0 0 6px; font: 700 28px/1.15 'Crimson Text', Georgia, serif; color: var(--gold-hi); }
+.v-app .drawpage .today-card h2 em { margin-left: 10px; font: 600 13px/1 'Source Sans 3', 'Segoe UI', sans-serif; font-style: normal; color: var(--gold); border: 1px solid var(--line); border-radius: 999px; padding: 3px 10px; vertical-align: middle; }
+.v-app .drawpage .today-card .go { margin: 14px 0 0; width: min(100%, 300px); }
+.v-app .drawpage .today-card .more { display: inline-flex; align-items: center; gap: 8px; margin-top: 6px; color: var(--gold); text-decoration: none; font-size: 15px; }
+.v-app .drawpage .today-card .more:hover { text-decoration: underline; color: var(--gold-hi); }
+
+/* картка перевертається: рубашка → лице */
+.v-app .drawpage .flip { position: relative; flex: 0 0 auto; width: 180px; aspect-ratio: 2 / 3; perspective: 900px; }
+.v-app .drawpage .flip img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border-radius: 14px; backface-visibility: hidden; transition: transform 0.9s cubic-bezier(0.3, 0.7, 0.2, 1); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(228, 190, 128, 0.6), 0 0 26px rgba(228, 190, 128, 0.2); }
+.v-app .drawpage .flip .facedown { transform: rotateY(0); }
+.v-app .drawpage .flip .faceup { transform: rotateY(-180deg); }
+.v-app .drawpage .flip .faceup.rev { transform: rotateY(-180deg) rotate(180deg); }
+.v-app .drawpage .flip.open .facedown { transform: rotateY(180deg); }
+.v-app .drawpage .flip.open .faceup { transform: rotateY(0); }
+.v-app .drawpage .flip.open .faceup.rev { transform: rotate(180deg); }
+
+/* серія */
+.v-app .drawpage .streak .big { display: grid; justify-items: center; gap: 2px; }
+.v-app .drawpage .streak .big b { font: 700 64px/1 'Crimson Text', Georgia, serif; color: var(--gold-hi); text-shadow: 0 0 24px rgba(228, 190, 128, 0.45); }
+.v-app .drawpage .streak .big span { color: var(--gold); font-size: 15px; letter-spacing: 0.04em; }
+.v-app .drawpage .streak .note { margin: 10px 0 14px; text-align: center; color: var(--muted); font-size: 14px; }
+.v-app .drawpage .week { list-style: none; margin: 0; padding: 0; display: flex; justify-content: space-between; gap: 4px; }
+.v-app .drawpage .week li { display: grid; justify-items: center; gap: 4px; font-size: 12px; color: var(--muted); }
+.v-app .drawpage .week i { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; font-style: normal; font-size: 14px; color: #21160a; border: 1px solid rgba(228, 190, 128, 0.35); }
+.v-app .drawpage .week li.done i { background: linear-gradient(180deg, #f5dc9b, #d9ac63); border-color: var(--gold-hi); box-shadow: 0 0 12px rgba(228, 190, 128, 0.4); }
+.v-app .drawpage .week li.now i { outline: 2px solid var(--gold-hi); outline-offset: 2px; }
+.v-app .drawpage .streak .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 16px 0 0; padding-top: 14px; border-top: 1px solid rgba(228, 190, 128, 0.2); }
+.v-app .drawpage .streak .stats div { display: grid; justify-items: center; gap: 2px; }
+.v-app .drawpage .streak .stats dt { font-size: 12px; color: var(--muted); text-align: center; }
+.v-app .drawpage .streak .stats dd { margin: 0; font: 700 26px/1 'Crimson Text', Georgia, serif; color: var(--gold-hi); }
+
+@media (max-width: 820px) {
+  .v-app .drawpage .daily { grid-template-columns: 1fr; }
+  .v-app .drawpage .today-card { justify-content: center; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .v-app .drawpage .flip img { transition: none; }
+}

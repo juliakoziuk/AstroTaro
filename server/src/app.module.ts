@@ -12,6 +12,8 @@ import { DashboardModule } from './dashboard/dashboard.module'
 import { PlansModule } from './plans/plans'
 import { ProfileModule } from './profile/profile'
 import { TarotModule } from './tarot/tarot'
+import { DailyCard } from './tarot/daily.model'
+import { DailyModule } from './tarot/daily'
 import { DreamsModule } from './dreams/dreams'
 import { JournalModule } from './journal/journal'
 import { SpreadsModule } from './spreads/spreads'
@@ -32,7 +34,7 @@ import { User } from './users/user.model'
         username: cfg.get('DB_USER'),
         password: cfg.get('DB_PASS'),
         database: cfg.get('DB_NAME'),
-        models: [User, Dream, JournalEntry, Spread, Report, UsageEvent],
+        models: [User, Dream, JournalEntry, Spread, Report, UsageEvent, DailyCard],
         // Схема в продакшені змінюється лише міграціями (npm run migrate). Автосинхронізація з моделей, що додає
         // колонки й змінює таблиці, вмикається явно для локальної розробки: DB_SYNC=true у .env.
         autoLoadModels: true, // реєструє моделі з forFeature; саму схему це не змінює
@@ -47,6 +49,7 @@ import { User } from './users/user.model'
     JournalModule,
     SpreadsModule,
     TarotModule,
+    DailyModule,
     AstrologyModule,
     DashboardModule,
     ProfileModule,

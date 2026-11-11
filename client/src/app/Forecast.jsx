@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { get } from '../lib/api.js'
 import { t, useLang } from '../i18n/index.js'
+import { localDay } from './format.js'
 import { navProps } from './router.js'
 import { ASPECT_GLYPHS, PLANET_GLYPHS } from './live/zodiacWheel.constants.js'
 
@@ -9,11 +10,8 @@ const TABS = [['today', 'Today'], ['week', 'Week'], ['month', 'Month']]
 const DATE_LOCALES = { uk: 'uk-UA', en: 'en-GB' }
 const GOOD_FROM = 65 // як на сервері: від 65 — сприятливо, до 35 — вимогливо
 const HARD_UNTIL = 35
-const MS_PER_MINUTE = 60 * 1000
 
 const toneOfScore = (score) => (score >= GOOD_FROM ? 'good' : score <= HARD_UNTIL ? 'hard' : 'mixed')
-/** «Сьогодні» за місцевим часом користувача (а не UTC): сервер рахує день від цієї дати. */
-const localToday = () => new Date(Date.now() - new Date().getTimezoneOffset() * MS_PER_MINUTE).toISOString().slice(0, 10)
 const dayLabel = (iso, lang) => new Date(`${iso}T12:00:00Z`).toLocaleDateString(DATE_LOCALES[lang] ?? 'en-GB', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' })
 
 function Bars({ spheres, texts = false }) {
@@ -156,7 +154,7 @@ export default function ForecastCard({ active = false }) {
 
   useEffect(() => {
     let live = true
-    get(`/astrology/forecast?date=${localToday()}`).then(
+    get(`/astrology/forecast?date=${localDay()}`).then(
       (data) => live && setState({ status: 'ok', data }),
       (error) => live && setState({ status: 'error', error: error.message }),
     )

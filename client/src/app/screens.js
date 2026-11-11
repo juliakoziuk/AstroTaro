@@ -20,6 +20,7 @@ export const SCREENS = [
   { path: '/today', id: 'today', kind: 'today', name: 'Cosmic Today', title: 'Cosmic Today', bg: '#0a1626' },
   { path: '/history', id: 'history', kind: 'history', name: 'Reading history', title: 'Reading history', bg: '#0a1626' },
   { path: '/draw', id: 'draw', kind: 'draw', name: 'Draw your cards', title: 'Draw your cards', bg: '#0a1626' },
+  { path: '/daily', id: 'daily', kind: 'daily', name: 'Card of the day', title: 'Card of the day', bg: '#0a1626' },
   ...APP_ORDER.map((id) => {
     const live = LIVE[id]
     const d = { ...byId[id], texts: withoutNavTexts(limitByNeighbours(live ? bindTexts(byId[id].texts, live.bind) : byId[id].texts, byId[id].hits), byId[id].hits) }

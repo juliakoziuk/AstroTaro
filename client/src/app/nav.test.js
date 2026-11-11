@@ -21,6 +21,7 @@ test('the highlighted item is the section the user is in, also on its sub-pages'
   strictEqual(activeNav('/today'), 'astrology') // «Космос сьогодні» відкривається з астрології
   strictEqual(activeNav('/tarot'), 'tarot')
   strictEqual(activeNav('/draw'), 'tarot')
+  strictEqual(activeNav('/daily'), 'tarot')
   strictEqual(activeNav('/reading'), 'tarot')
   strictEqual(activeNav('/history'), 'history')
   strictEqual(activeNav('/dreams'), 'dreams')

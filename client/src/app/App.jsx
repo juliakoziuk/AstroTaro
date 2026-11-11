@@ -13,6 +13,7 @@ import InsightReminder from './InsightReminder.jsx'
 import Proto from './Proto.jsx'
 import Today from './Today.jsx'
 import Draw from './Draw.jsx'
+import Daily from './Daily.jsx'
 import History from './History.jsx'
 import { BY_PATH } from './screens.js'
 import { go, useRoute } from './router.js'
@@ -31,7 +32,7 @@ const PUBLIC = new Set(['/', '/login', '/register', '/pricing', '/forgot-passwor
 const BEFORE_LOGIN = new Set(['landing', 'login', 'register', 'forgot-password', 'reset-password', 'verify-email', 'shared'])
 // Екрани входу: залогінений користувач (є дійсний токен) одразу потрапляє на дашборд; лендінг лишається, але показує його акаунт
 const GUEST_ONLY = new Set(['login', 'register'])
-const THEMED = new Set(['app', 'today', 'draw', 'history'])
+const THEMED = new Set(['app', 'today', 'draw', 'daily', 'history'])
 const LIGHT_BG = '#f3f0e7'
 setUnauthorizedHandler(() => go('/login', { replace: true }))
 
@@ -80,6 +81,7 @@ export default function App() {
         {screen.id === 'shared' && <SharedReading />}
         {!locked && !signedInGuest && screen.kind === 'today' && <Today />}
         {!locked && !signedInGuest && screen.kind === 'draw' && <Draw />}
+        {!locked && !signedInGuest && screen.kind === 'daily' && <Daily />}
         {!locked && !signedInGuest && screen.kind === 'history' && <History />}
         {!locked && !signedInGuest && screen.kind === 'app' && (screen.id === 'settings' ? <SettingsPage /> : <Shell d={screen.data} live={screen.live} />)}
       </div>

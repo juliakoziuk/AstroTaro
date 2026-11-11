@@ -21,7 +21,7 @@ export default {
 54 body.l Detailed
 62 body.l In depth
 - btn.s Start Reading | box=930,757,1121,787 pol=d
-@hit Daily_Card 366 311 384 82 18 #/reading
+@hit Daily_Card 366 311 384 82 18 #/daily
 @hit Three_Cards 366 397 384 82 18 #/reading
 @hit Relationship 366 483 384 82 18 #/reading
 @hit Career 366 567 384 82 18 #/reading

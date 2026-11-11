@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { get } from '../lib/api.js'
-import { formatDay, formatTime } from './format.js'
+import { formatDay, formatTime, localDay } from './format.js'
 import { t, useLang } from '../i18n/index.js'
 import ForecastCard from './Forecast.jsx'
 import { navProps } from './router.js'
@@ -43,6 +43,7 @@ const loadSky = () => get('/astrology')
 const loadApod = () => get('/cosmos/apod')
 const loadQuote = () => get('/cosmos/quote')
 const loadHolidays = () => get('/cosmos/holidays')
+const loadDaily = () => get(`/tarot/daily?date=${localDay()}`)
 const loadBase = () => Promise.all([get('/profile'), get('/settings')])
 
 function Apod({ a }) {
@@ -109,6 +110,7 @@ export default function Today() {
   const apod = useLoad(loadApod)
   const quote = useLoad(loadQuote)
   const holidays = useLoad(loadHolidays)
+  const daily = useLoad(loadDaily)
   const fmts = base.status === 'ok' ? base.data[1] : { dateFormat: 'DD/MM/YYYY', timeFormat: '24-hour' }
   // #/today?section=transits|forecast|calendar — який пункт меню Astrology відкрив сторінку
   const section = new URLSearchParams(window.location.hash.split('?')[1] ?? '').get('section')
@@ -128,6 +130,23 @@ export default function Today() {
 
         <div className="grid">
           <ForecastCard active={section === 'forecast'} />
+
+          <Card title={t('Card of the day')} state={daily}>
+            {(d) => (
+              <>
+                {d.card ? (
+                  <>
+                    <h3>{d.card.name}{d.card.reversed ? ` · ${t('Reversed')}` : ''}</h3>
+                    <p className="insight">{d.card.meaning}</p>
+                  </>
+                ) : (
+                  <p className="muted">{t('One card for today. Open it, read it and carry it with you.')}</p>
+                )}
+                <div className="pair"><span>{t('Days in a row')}</span><b>{d.streak.current}</b></div>
+                <a className="more" {...navProps('/daily')}>{d.card ? t('Read more') : t('Reveal today’s card')}</a>
+              </>
+            )}
+          </Card>
 
           <Card id="transits" active={section === 'transits'} title={t('The sky now')} state={sky}>
             {(a) => a.current.map((p) => (
