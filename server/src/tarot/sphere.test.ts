@@ -5,10 +5,10 @@ import { classify, classifyLocal, parseSituation } from './sphere'
 const env = { LLM_BASE_URL: 'http://llm.test/v1', LLM_MODEL: 'm' }
 const reply = (content: string) => (async () => ({ ok: true, json: async () => ({ choices: [{ message: { content } }] }) })) as unknown as typeof fetch
 
-test('the sphere of a question is found in English, Ukrainian and Spanish', () => {
+test('the sphere of a question is found in English and Ukrainian', () => {
   strictEqual(classifyLocal('will my relationship work out?').sphere, 'love') // «work out» не робота
   strictEqual(classifyLocal('чи варто мені змінити роботу?').sphere, 'career')
-  strictEqual(classifyLocal('¿Cómo van mis ahorros y mis deudas?').sphere, 'money')
+  strictEqual(classifyLocal('як мої борги та заощадження?').sphere, 'money')
   strictEqual(classifyLocal('мене турбує здоров’я мами').sphere, 'health') // здоров’я важливіше за «маму»
   strictEqual(classifyLocal('my mother and I keep arguing').sphere, 'family')
   strictEqual(classifyLocal('should I move abroad?').sphere, 'decision')

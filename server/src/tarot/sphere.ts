@@ -1,5 +1,5 @@
 // Про що питання: сфера життя і чого людина чекає від карт. Спершу модель (вона розуміє ситуацію, а не лише слова),
-// а без ключа, при збої чи в кризі — прості правила за словами трьох мов. Результат кладемо в движок і в підказку для
+// а без ключа, при збої чи в кризі — прості правила за словами двох мов (англійська й українська). Результат кладемо в движок і в підказку для
 // тлумачення, щоб та сама карта читалась по-різному в коханні, роботі чи грошах.
 import { detectTopics } from '../companion/topics'
 import { pickProvider } from '../companion/providers'
@@ -23,20 +23,20 @@ const word = (fragment: string) => new RegExp(String.raw`(?<!\p{L})(?:${fragment
 
 // порядок важливий: конкретна сфера важливіша за загальну («здоров’я мами» — здоров’я, а не родина)
 const SPHERE_RULES: [Sphere, RegExp][] = [
-  ['health', word(String.raw`health|sick|illness|doctor|pain|diet|surgery|pregnan\p{L}*|здоров\p{L}*|хвор\p{L}*|лікар\p{L}*|біль|болить|дієт\p{L}*|вагітн\p{L}*|операці\p{L}*|salud|enferm\p{L}*|m[eé]dic\p{L}*|dolor|dieta|embaraz\p{L}*|cirug\p{L}*`)],
-  ['money', word(String.raw`money|income|debt|loan|invest\p{L}*|savings|rent|грош\p{L}*|фінанс\p{L}*|борг\p{L}*|кредит\p{L}*|інвест\p{L}*|дохід|доход\p{L}*|dinero|deudas?|pr[eé]stamo|inversi\p{L}*|ahorr\p{L}*|ingres\p{L}*`)],
-  ['love', word(String.raw`love|relationship|boyfriend|girlfriend|partner|husband|wife|ex|crush|dating|marriage|divorce|breakup|get back together|кохан\p{L}*|любов\p{L}*|стосунк\p{L}*|хлопець|хлопця|дівчин\p{L}*|партнер\p{L}*|чолові\p{L}*|дружин\p{L}*|колишн\p{L}*|весілл\p{L}*|шлюб\p{L}*|розлучен\p{L}*|amor|relaci[oó]n|novi[oa]|pareja|espos[oa]|marido|cita|matrimonio|divorcio|enamorad\p{L}*`)],
-  ['family', word(String.raw`family|mother|father|mom|dad|parents?|sister|brother|child\p{L}*|kids?|son|daughter|sibling\p{L}*|сім.я|родин\p{L}*|мам\p{L}*|тат\p{L}*|батьк\p{L}*|сестр\p{L}*|брат\p{L}*|діт\p{L}*|дитин\p{L}*|син|дочк\p{L}*|familia|madre|padre|mam[aá]|pap[aá]|hij[oa]s?|herman\p{L}*|padres`)],
-  ['career', word(String.raw`job|career|boss|colleague\p{L}*|work(?! out)|business|promotion|interview|exam|study|university|робот\p{L}*|кар.єр\p{L}*|начальник\p{L}*|колег\p{L}*|бізнес\p{L}*|співбесід\p{L}*|підвищенн\p{L}*|навчан\p{L}*|іспит\p{L}*|trabajo|empleo|carrera|jefe|colega|negocio|entrevista|ascenso|examen`)],
-  ['decision', word(String.raw`decide|decision|choose|choice|which one|should i|dilemma|чи варто|debería|вирішит\p{L}*|рішенн\p{L}*|обрат\p{L}*|вибір|вибират\p{L}*|дилем\p{L}*|decidir|decisi[oó]n|elegir|dilema`)],
-  ['self', word(String.raw`myself|purpose|life path|meaning of life|who am i|growth|confidence|себе|призначен\p{L}*|сенс життя|впевненост\p{L}*|розвит\p{L}*|prop[oó]sito|mi camino|crecimiento|confianza|qui[eé]n soy`)],
+  ['health', word(String.raw`health|sick|illness|doctor|pain|diet|surgery|pregnan\p{L}*|здоров\p{L}*|хвор\p{L}*|лікар\p{L}*|біль|болить|дієт\p{L}*|вагітн\p{L}*|операці\p{L}*`)],
+  ['money', word(String.raw`money|income|debt|loan|invest\p{L}*|savings|rent|грош\p{L}*|фінанс\p{L}*|борг\p{L}*|кредит\p{L}*|інвест\p{L}*|дохід|доход\p{L}*`)],
+  ['love', word(String.raw`love|relationship|boyfriend|girlfriend|partner|husband|wife|ex|crush|dating|marriage|divorce|breakup|get back together|кохан\p{L}*|любов\p{L}*|стосунк\p{L}*|хлопець|хлопця|дівчин\p{L}*|партнер\p{L}*|чолові\p{L}*|дружин\p{L}*|колишн\p{L}*|весілл\p{L}*|шлюб\p{L}*|розлучен\p{L}*`)],
+  ['family', word(String.raw`family|mother|father|mom|dad|parents?|sister|brother|child\p{L}*|kids?|son|daughter|sibling\p{L}*|сім.я|родин\p{L}*|мам\p{L}*|тат\p{L}*|батьк\p{L}*|сестр\p{L}*|брат\p{L}*|діт\p{L}*|дитин\p{L}*|син|дочк\p{L}*`)],
+  ['career', word(String.raw`job|career|boss|colleague\p{L}*|work(?! out)|business|promotion|interview|exam|study|university|робот\p{L}*|кар.єр\p{L}*|начальник\p{L}*|колег\p{L}*|бізнес\p{L}*|співбесід\p{L}*|підвищенн\p{L}*|навчан\p{L}*|іспит\p{L}*`)],
+  ['decision', word(String.raw`decide|decision|choose|choice|which one|should i|dilemma|чи варто|вирішит\p{L}*|рішенн\p{L}*|обрат\p{L}*|вибір|вибират\p{L}*|дилем\p{L}*`)],
+  ['self', word(String.raw`myself|purpose|life path|meaning of life|who am i|growth|confidence|себе|призначен\p{L}*|сенс життя|впевненост\p{L}*|розвит\p{L}*`)],
 ]
 
 const KIND_RULES: [Kind, RegExp][] = [
-  ['advice', word(String.raw`what (?:should|can) i do|what to do|how (?:can|do) i|що (?:мені )?робити|як мені|як бути|qu[eé] hago|qu[eé] puedo hacer|c[oó]mo puedo`)],
-  ['decision', word(String.raw`should i|which one|or should|чи варто|вибір|вибрати|debería|cuál elegir`)],
-  ['insight', word(String.raw`why|what(?:'s| is) (?:going on|happening)|чому|що (?:зі мною )?відбувається|por qu[eé]|qu[eé] est[aá] pasando`)],
-  ['outcome', word(String.raw`will|would|going to|get back together|work out|чи (?:буде|складеться|вийде|повернеться|збудеться)|що буде|що чекає|saldr[aá]|funcionar[aá]|qu[eé] pasar[aá]|volver[aá]`)],
+  ['advice', word(String.raw`what (?:should|can) i do|what to do|how (?:can|do) i|що (?:мені )?робити|як мені|як бути`)],
+  ['decision', word(String.raw`should i|which one|or should|чи варто|вибір|вибрати`)],
+  ['insight', word(String.raw`why|what(?:'s| is) (?:going on|happening)|чому|що (?:зі мною )?відбувається`)],
+  ['outcome', word(String.raw`will|would|going to|get back together|work out|чи (?:буде|складеться|вийде|повернеться|збудеться)|що буде|що чекає`)],
 ]
 
 /** Сфера й тип за словами питання: працює завжди, без моделі. */
