@@ -63,6 +63,14 @@ export class Spread extends Model {
   @Column({ type: DataType.DATE, allowNull: true })
   declare sharedAt?: Date | null
 
+  // «Збулося?»: відповідь людини через якийсь час після розкладу (yes | partly | no; null — ще не відповіла) і коли вона її дала
+  @Column({ type: DataType.STRING(8), allowNull: true })
+  @ApiProperty({ required: false, nullable: true, enum: ['yes', 'partly', 'no'] })
+  declare outcome?: string | null
+
+  @Column({ type: DataType.DATE, allowNull: true })
+  declare outcomeAt?: Date | null
+
   // [{ id: number, reversed: boolean }]
   @Column({ type: DataType.JSONB, allowNull: false })
   @ApiProperty({ type: 'array', items: { type: 'object', properties: { id: { type: 'integer', minimum: 0, maximum: 77 }, reversed: { type: 'boolean' } } } })

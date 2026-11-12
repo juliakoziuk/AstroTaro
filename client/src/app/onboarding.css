@@ -1,0 +1,68 @@
+/* Онбординг (Onboarding.jsx): картка в кольорах входу, стилі .v-account беруться з login/account.css */
+.v-account .onb { width: min(620px, 100%); gap: 16px; }
+.v-account .onb form { display: grid; gap: 14px; }
+.v-account .onb label { display: grid; gap: 6px; color: var(--muted); font-size: 14px; }
+.v-account .onb input[type='date'],
+.v-account .onb input[type='time'] { color-scheme: dark; }
+.v-account .onb .onb-sub { text-align: center; }
+
+/* крапки прогресу */
+.v-account .onb-dots { display: flex; justify-content: center; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.v-account .onb-dots li { width: 9px; height: 9px; border-radius: 50%; border: 1px solid rgba(228, 190, 128, 0.6); transition: background 0.2s, transform 0.2s; }
+.v-account .onb-dots li.done { background: rgba(228, 190, 128, 0.45); }
+.v-account .onb-dots li.now { background: var(--gold); transform: scale(1.25); }
+
+/* вибір інтересів */
+.v-account .onb-choices { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+.v-account .onb-choice {
+  width: 100%; height: auto; min-height: 112px; padding: 14px 12px; gap: 4px;
+  display: grid; justify-items: center; align-content: center; text-align: center;
+  border: 1px solid rgba(228, 190, 128, 0.4); border-radius: 18px;
+  background: rgba(255, 255, 255, 0.03); color: var(--ink);
+  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+}
+.v-account .onb-choice i { font-style: normal; font-size: 24px; color: var(--gold); line-height: 1; }
+.v-account .onb-choice b { font: 600 17px 'Source Sans 3', 'Segoe UI', sans-serif; }
+.v-account .onb-choice span { font-size: 13px; color: var(--muted); line-height: 1.3; }
+.v-account .onb-choice:hover { border-color: rgba(228, 190, 128, 0.8); }
+.v-account .onb-choice[aria-pressed='true'] { border-color: var(--gold); background: rgba(216, 181, 127, 0.14); box-shadow: 0 0 22px rgba(224, 184, 120, 0.2); }
+
+/* прапорець «не знаю часу» */
+.v-account .onb .onb-check { display: flex; align-items: center; gap: 10px; }
+.v-account .onb .onb-check input { width: 18px; height: 18px; padding: 0; accent-color: #d8b57f; }
+
+/* підказки міст з PlaceField (стилі модалки профілю тут не діють) */
+.v-account .onb .opt {
+  height: auto; padding: 8px 14px; text-align: left; justify-items: start;
+  border: 1px solid rgba(228, 190, 128, 0.3); border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04); color: var(--ink); font-weight: 400; font-size: 15px;
+}
+.v-account .onb .opt:hover { border-color: var(--gold); }
+.v-account .onb .hint { font-size: 13px; }
+
+/* велика трійка */
+.v-account .onb-big { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.v-account .onb-big li {
+  display: grid; grid-template-columns: 40px 1fr; column-gap: 14px; align-items: start;
+  padding: 14px 16px; border: 1px solid rgba(228, 190, 128, 0.35); border-radius: 18px; background: rgba(255, 255, 255, 0.03);
+}
+.v-account .onb-big li.locked { border-style: dashed; opacity: 0.85; }
+.v-account .onb-big i { grid-row: 1 / span 2; font-style: normal; font-size: 28px; color: var(--gold); text-align: center; line-height: 1.2; }
+.v-account .onb-big h2 { margin: 0; font: 500 22px 'Cormorant Garamond', Georgia, serif; color: #f8e7c4; }
+.v-account .onb-big h2 em { margin-left: 10px; font-style: normal; font-size: 18px; color: var(--gold); }
+.v-account .onb-big p { font-size: 15px; }
+
+/* кнопки-посилання: другорядні дії без золотої заливки */
+.v-account .onb-link { height: auto; padding: 4px; background: none; color: var(--gold); font-weight: 400; font-size: 15px; text-decoration: underline; text-underline-offset: 3px; }
+.v-account .onb-link.inline { display: inline; padding: 0; }
+.v-account .onb-skip { justify-self: center; color: var(--muted); }
+
+@media (max-width: 520px) {
+  .v-account .onb { padding: 28px 18px 22px; }
+  .v-account .onb-choices { grid-template-columns: 1fr; }
+  .v-account .onb-choice { min-height: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .v-account .onb-dots li, .v-account .onb-choice { transition: none; }
+}

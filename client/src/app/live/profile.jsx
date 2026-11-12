@@ -10,7 +10,7 @@ import { ReportsDialog } from './reports.jsx'
 import { loadSettings, logOut, session } from './common.js'
 
 /** Поле «місце народження» з підказками міст (Nominatim через наш сервер): вибір дає координати й країну. */
-function PlaceField({ profile, pick, setPick }) {
+export function PlaceField({ profile, pick, setPick }) {
   const [text, setText] = useState(profile?.birthPlace ?? '')
   const [options, setOptions] = useState([])
   const [note, setNote] = useState('')

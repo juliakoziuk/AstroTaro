@@ -11,7 +11,11 @@ import { User } from '../users/user.model'
 import { REMEMBER_ME_EXPIRES } from './auth.constants'
 import { ConsentDto, LoginDto, RegisterDto } from './auth.dto'
 
-const publicUser = (u: User) => ({ id: u.id, email: u.email, name: u.name, consent: u.consent, emailVerified: !!u.emailVerifiedAt })
+// Акаунти, що з'явилися до онбордингу, мітки не мають: хто вже вказав дату народження, його пройшов, тож їх на нього не женемо
+const publicUser = (u: User) => ({
+  id: u.id, email: u.email, name: u.name, consent: u.consent, emailVerified: !!u.emailVerifiedAt,
+  onboarded: !!u.onboardedAt || !!u.birthDate, interests: u.interests ?? [],
+})
 
 const RESET_TTL_MS = 60 * 60 * 1000
 const VERIFY_TTL_MS = 3 * 24 * 60 * 60 * 1000

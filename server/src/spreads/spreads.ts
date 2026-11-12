@@ -1,5 +1,5 @@
 import { UsageModule, UsageService } from '../plans/usage'
-import { BadRequestException, Body, Controller, Delete, Get, HttpCode, HttpException, HttpStatus, Injectable, Module, NotFoundException, Param, ParseUUIDPipe, Patch, Post, Query, Req, Res, UseGuards } from '@nestjs/common'
+import { BadRequestException, Body, Controller, Delete, Get, HttpCode, HttpException, HttpStatus, Injectable, Module, NotFoundException, Param, ParseUUIDPipe, Patch, Post, Put, Query, Req, Res, UseGuards } from '@nestjs/common'
 import { InjectModel, SequelizeModule } from '@nestjs/sequelize'
 import { Type } from 'class-transformer'
 import { ArrayMaxSize, ArrayMinSize, IsArray, IsBoolean, IsDateString, IsIn, IsInt, IsOptional, IsString, Max, MaxLength, Min, ValidateNested } from 'class-validator'
@@ -14,6 +14,7 @@ import { randomBytes } from 'node:crypto'
 import { Request, Response } from 'express'
 import { RateLimiter } from '../auth/rate-limit'
 import { Spread } from './spread.model'
+import { accuracyOf, OUTCOMES } from './accuracy'
 import { chosen, DECKS, MODES } from '../tarot/readings'
 import { msg } from '../i18n/messages'
 
@@ -24,6 +25,10 @@ class CardDto {
 
 export class SaveSpreadDto {
   @ApiProperty() @IsBoolean() saved: boolean
+}
+
+export class SetOutcomeDto {
+  @ApiProperty({ enum: OUTCOMES, description: 'Чи збулося: yes — так, partly — частково, no — ні' }) @IsIn(OUTCOMES) outcome: string
 }
 
 export class CreateSpreadDto {
@@ -68,10 +73,25 @@ export class SpreadsController {
     await attachNarrative(row, currentLocale())
     return presentSpread(row, currentLocale())
   }
+  @ApiOperation({
+    summary: 'Твої розклади в цифрах: скільки збулося',
+    description: 'Підсумок відповідей «Збулося?»: кількість за відповідями, відсоток, скільки розкладів чекають на відповідь, карти, що випадають найчастіше.',
+  })
+  @ApiOkResponse({ description: '{ total, answered, yes, partly, no, waiting, rate, topCards: [{ id, count }] }' })
+  @Get('accuracy') async accuracy(@CurrentUser() u) { return accuracyOf(await this.s.list(u.id)) }
   @ApiOperation({ summary: 'Один запис за id' }) @ApiOkResponse({ type: Spread }) @ApiOwnedNotFound()
   @Get(':id') async get(@CurrentUser() u, @Param('id', ParseUUIDPipe) id: string) { return presentSpread(await this.s.get(u.id, id), currentLocale()) }
   @ApiOperation({ summary: 'Зберегти розклад або прибрати зі збережених' }) @ApiOkResponse({ type: Spread }) @ApiOwnedNotFound()
   @Patch(':id') async save(@CurrentUser() u, @Param('id', ParseUUIDPipe) id: string, @Body() dto: SaveSpreadDto) { return presentSpread(await this.s.update(u.id, id, { saved: dto.saved }), currentLocale()) }
+  @ApiOperation({ summary: 'Відповісти «Збулося?»: так, частково чи ні', description: 'Відповідь можна змінити, повторивши виклик, або прибрати (DELETE).' })
+  @ApiOkResponse({ type: Spread }) @ApiOwnedNotFound()
+  @Put(':id/outcome') async setOutcome(@CurrentUser() u, @Param('id', ParseUUIDPipe) id: string, @Body() dto: SetOutcomeDto) {
+    return presentSpread(await this.s.update(u.id, id, { outcome: dto.outcome, outcomeAt: new Date() }), currentLocale())
+  }
+  @ApiOperation({ summary: 'Прибрати відповідь «Збулося?»' }) @ApiOkResponse({ type: Spread }) @ApiOwnedNotFound()
+  @Delete(':id/outcome') async clearOutcome(@CurrentUser() u, @Param('id', ParseUUIDPipe) id: string) {
+    return presentSpread(await this.s.update(u.id, id, { outcome: null, outcomeAt: null }), currentLocale())
+  }
   @ApiOperation({ summary: 'Поділитися розкладом: створити публічне посилання (лише для читання)', description: 'Якщо посилання вже є, повертає його ж. Щоб замінити, спершу відкличте.' })
   @ApiOkResponse({ description: '{ token, path, url }' }) @ApiOwnedNotFound()
   @Post(':id/share') async share(@CurrentUser() u, @Param('id', ParseUUIDPipe) id: string) {

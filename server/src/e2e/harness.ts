@@ -5,6 +5,7 @@ import { getModelToken } from '@nestjs/sequelize'
 import { AppModule } from '../app.module'
 import { AuthThrottle } from '../auth/rate-limit'
 import { MailService, Mail } from '../mail/mail'
+import { Spread } from '../spreads/spread.model'
 import { User } from '../users/user.model'
 import { configureApp } from '../app.setup'
 
@@ -24,6 +25,8 @@ export interface Harness {
   outbox: Mail[]
   /** Пряма модель користувачів: для перевірок, яких не видно через API (що лежить у базі). */
   users: typeof User
+  /** Пряма модель розкладів: щоб «постарити» розклад, чого API не дозволяє. */
+  spreads: typeof Spread
   /** Обнулити ліміти входу й реєстрації: ліміти діють на всю адресу, а набір тестів створює багато акаунтів. */
   resetLimits(): void
   /** Адреса API (з /api) для запитів, яким потрібне сире тіло чи власні заголовки. */
@@ -64,5 +67,5 @@ export async function startHarness(): Promise<Harness> {
     return { token: r.body.token, id: r.body.user.id, email, password }
   }
 
-  return { app, api, baseUrl: base, register, outbox: app.get(MailService).outbox, users: app.get(getModelToken(User)), resetLimits: () => app.get(AuthThrottle).reset(), close: () => app.close() }
+  return { app, api, baseUrl: base, register, outbox: app.get(MailService).outbox, users: app.get(getModelToken(User)), spreads: app.get(getModelToken(Spread)), resetLimits: () => app.get(AuthThrottle).reset(), close: () => app.close() }
 }

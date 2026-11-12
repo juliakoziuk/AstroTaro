@@ -71,6 +71,8 @@ export class PublicUser {
   @ApiProperty({ example: 'Юля' }) name: string
   @ApiProperty({ type: ConsentState }) consent: ConsentState
   @ApiProperty({ description: 'Пошту підтверджено за посиланням з листа' }) emailVerified: boolean
+  @ApiProperty({ description: 'Онбординг пройдено або пропущено (або дата народження вже вказана)' }) onboarded: boolean
+  @ApiProperty({ type: [String], description: 'Що цікавить людину: tarot, dreams, astrology, reflection' }) interests: string[]
 }
 
 export class AuthResponse {

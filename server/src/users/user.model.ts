@@ -85,6 +85,13 @@ export class User extends Model {
   @Column({ type: DataType.JSONB, allowNull: false, defaultValue: { dreams: false, journal: false, spreads: false } })
   declare consent: Consent
 
+  // Онбординг: коли людина його завершила чи пропустила (null — ще не бачила) і що їй цікаво (з фіксованого списку)
+  @Column({ type: DataType.DATE })
+  declare onboardedAt: Date | null
+
+  @Column({ type: DataType.JSONB, allowNull: false, defaultValue: [] })
+  declare interests: string[]
+
   @HasMany(() => Dream)
   declare dreams: Dream[]
 

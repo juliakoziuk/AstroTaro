@@ -70,7 +70,7 @@ export default function Draw() {
   const [order, setOrder] = useState(shuffled) // порядок закритих карт; лише індекси, що людина обирає, стають картами
   const [picked, setPicked] = useState([]) // [{ index, id, reversed }] у порядку витягування
   const [own, setOwn] = useState([]) // [{ id: '', reversed: false }] за позиціями
-  const [question, setQuestion] = useState('')
+  const [question, setQuestion] = useState(() => setup?.question ?? '')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [limit, setLimit] = useState(false) // помилка — вичерпаний ліміт тарифу: поруч пропонуємо тарифи

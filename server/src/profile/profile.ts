@@ -1,7 +1,7 @@
 import { Body, Controller, Get, Module, Patch, Post, UseGuards } from '@nestjs/common'
 import { InjectModel, SequelizeModule } from '@nestjs/sequelize'
-import { ApiOkResponse, ApiOperation, ApiPropertyOptional, ApiTags } from '@nestjs/swagger'
-import { IsBoolean, IsDateString, IsIn, IsLatitude, IsLongitude, IsOptional, IsString, Length, Matches, MaxLength, MinLength } from 'class-validator'
+import { ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiPropertyOptional, ApiTags } from '@nestjs/swagger'
+import { ArrayMaxSize, ArrayUnique, IsArray, IsBoolean, IsDateString, IsIn, IsLatitude, IsLongitude, IsOptional, IsString, Length, Matches, MaxLength, MinLength } from 'class-validator'
 import { CurrentUser, JwtAuthGuard } from '../auth/jwt-auth.guard'
 import { ApiAuthed } from '../common/api-docs'
 import { jsonbMerge } from '../common/jsonb'
@@ -20,6 +20,14 @@ export class UpdateProfileDto {
   @ApiPropertyOptional({ example: 50.45, nullable: true }) @IsOptional() @IsLatitude() birthLat?: number | null
   @ApiPropertyOptional({ example: 30.52, nullable: true }) @IsOptional() @IsLongitude() birthLon?: number | null
   @ApiPropertyOptional({ example: 'UA', description: 'Країна місця народження (ISO 3166-1 alpha-2)', nullable: true }) @IsOptional() @Length(2, 2) country?: string | null
+}
+
+export const INTERESTS = ['tarot', 'dreams', 'astrology', 'reflection'] as const
+
+export class OnboardingDto {
+  @ApiPropertyOptional({ enum: INTERESTS, isArray: true, description: 'Що цікавить людину; порожньо, якщо онбординг пропущено' })
+  @IsOptional() @IsArray() @ArrayMaxSize(INTERESTS.length) @ArrayUnique() @IsIn(INTERESTS, { each: true })
+  interests?: string[]
 }
 
 export class UpdateSettingsDto {
@@ -78,6 +86,20 @@ export class ProfileController {
   async update(@CurrentUser() u: { id: string }, @Body() dto: UpdateProfileDto) {
     await this.users.update({ ...dto, ...(dto.name ? { name: dto.name.trim() } : {}) }, { where: { id: u.id } })
     return this.profile(u.id)
+  }
+
+  @ApiOperation({
+    summary: 'Завершити або пропустити онбординг',
+    description: 'Ставить мітку «онбординг пройдено» (час першого виклику не змінюється) і зберігає інтереси, якщо їх передано. Пропуск — виклик без інтересів.',
+  })
+  @ApiCreatedResponse({ description: '{ onboarded: true, interests }' })
+  @Post('profile/onboarding')
+  async onboarding(@CurrentUser() u: { id: string }, @Body() dto: OnboardingDto) {
+    const user = await this.users.findByPk(u.id)
+    if (!user.onboardedAt) user.onboardedAt = new Date()
+    if (dto.interests) user.interests = dto.interests
+    await user.save()
+    return { onboarded: true, interests: user.interests }
   }
 
   @ApiOperation({ summary: 'Налаштування (екрани Settings і Profile)' })

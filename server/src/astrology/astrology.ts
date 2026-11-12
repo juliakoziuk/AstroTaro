@@ -13,6 +13,7 @@ import { currentLocale } from '../i18n/locale'
 import { msg } from '../i18n/messages'
 import { currentPlanets, natalChart, nextMoonEvents } from './astro'
 import { aspectMeaning, planetMeaning } from './interpretation'
+import { ascendantText, placementText } from './readings'
 import { aspectsOf, buildReport } from './report'
 import { buildForecast } from './forecast'
 import { buildCompatibility } from './synastry'
@@ -95,6 +96,28 @@ export class AstrologyController {
         .map((p) => ({ ...place(p), label: inSign(p.name, p.sign, locale) })),
       events: nextMoonEvents(now).map((e) => ({ ...e, id: e.name, name: moonEventName(e.name, locale) })),
       insight: monthlyInsight(now, locale),
+    }
+  }
+
+  @ApiOperation({
+    summary: 'Велика трійка: Сонце, Місяць і Асцендент',
+    description: 'Знак і короткий опис для кожної з трьох точок. Асцендент — null, поки немає часу й місця народження. Якщо немає дати народження, відповідь 403.',
+  })
+  @ApiOkResponse({ description: '{ sun: { sign, signName, text }, moon: { … }, ascendant: { … } | null }' })
+  @ApiForbiddenResponse({ description: 'У користувача немає дати народження' })
+  @Get('big-three')
+  async bigThree(@CurrentUser() u: { id: string }) {
+    const user = await this.users.findByPk(u.id)
+    const birth = birthOf(user)
+    const locale = currentLocale()
+    if (!birth) throw new ForbiddenException(msg(locale, 'reportNeedsBirth'))
+    const natal = natalChart(birth)
+    const point = (sign: string, text: string) => ({ sign, signName: signName(sign, locale), text })
+    const [sun, moon] = natal.planets
+    return {
+      sun: point(sun.sign, placementText('Sun', sun.sign, locale)),
+      moon: point(moon.sign, placementText('Moon', moon.sign, locale)),
+      ascendant: natal.ascendant ? point(natal.ascendant, ascendantText(natal.ascendant, locale)) : null,
     }
   }
 

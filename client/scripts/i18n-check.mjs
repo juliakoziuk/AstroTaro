@@ -21,6 +21,10 @@ const DYNAMIC = [
   'Billing', 'Free', 'Pro', 'Premium', // вкладка й назви тарифів (BillingPanel.jsx, settings-panel.jsx)
   'Quick readings', 'Detailed readings', 'Depth readings', 'Forecast for today', 'Forecast for the week', 'Forecast for the month', // MODE_NAMES і RANGE_NAMES у BillingPanel.jsx
   'Harmonious', 'Tense', 'Mixed', // оцінка сумісності (effectOf у CompatibilityDialog.jsx)
+  // вибір інтересів у знайомстві (INTERESTS в Onboarding.jsx)
+  'Self-reflection', 'Readings that answer your questions', 'A journal that finds the symbols', 'Your chart and the sky today', 'Notes, moods and your own patterns',
+  // підписи відповідей «Збулося?» (ANSWER_TEXT в History.jsx)
+  'Partly came true', 'Did not come true',
   // перший аргумент t() розбирається по ", {", а в цьому тексті власні «, {x}», тож літерал у коді не видно
   'Based on all {n} aspects between your charts: {h} harmonious, {x} tense.',
 ]

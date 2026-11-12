@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { del, get, patch, post } from '../lib/api.js'
+import { api, del, get, patch, post } from '../lib/api.js'
 import { t, useLang } from '../i18n/index.js'
 import { formatDate, formatTime, snippet } from './format.js'
 import { go, navProps } from './router.js'
@@ -12,7 +12,54 @@ import './history.css'
 const VERDICT = { yes: 'Yes', no: 'No', maybe: 'Not yet' }
 const THUMBS = 5 // скільки карт показуємо в рядку; більші розклади скорочуємо
 
-const readFilter = () => (session.get('historyFilter') === 'saved' ? 'saved' : 'all')
+const FILTERS = ['all', 'saved', 'waiting']
+const readFilter = () => (FILTERS.includes(session.get('historyFilter')) ? session.get('historyFilter') : 'all')
+const ANSWERS = [
+  ['yes', 'Yes'],
+  ['partly', 'Partly'],
+  ['no', 'No'],
+]
+const ANSWER_TEXT = { yes: 'Came true', partly: 'Partly came true', no: 'Did not come true' }
+const MIN_ANSWERS = 5 // менше відповідей — відсоток нічого не каже, тож його не показуємо
+
+/** «Збулося?» у цифрах: відповіді людини, відсоток (від кількох відповідей) і карти, що повертаються. */
+function Track({ stats, cardNames, onShowWaiting }) {
+  const { answered, yes, partly, no, waiting, rate, topCards } = stats
+  if (!answered && !waiting) return null
+  return (
+    <section className="track" aria-label={t('How your readings turned out')}>
+      <h2>{t('How your readings turned out')}</h2>
+      {answered > 0 && (
+        <>
+          <dl className="counts">
+            <div className="yes"><dt>{t('Came true')}</dt><dd>{yes}</dd></div>
+            <div className="partly"><dt>{t('Partly')}</dt><dd>{partly}</dd></div>
+            <div className="no"><dt>{t('Did not')}</dt><dd>{no}</dd></div>
+          </dl>
+          <p className="rate">
+            {answered >= MIN_ANSWERS
+              ? t('Your own marks: {rate}% of readings came true.', { rate })
+              : t('Answer {n} more readings to see how often yours come true.', { n: MIN_ANSWERS - answered })}
+          </p>
+        </>
+      )}
+      {topCards.length > 0 && cardNames.length > 0 && (
+        <p className="recurring">
+          {t('Cards that keep returning')}:{' '}
+          {topCards.map((c) => (
+            <b key={c.id}>{cardNames[c.id]} ×{c.count}</b>
+          ))}
+        </p>
+      )}
+      {waiting > 0 && (
+        <p className="waiting">
+          {t('{n} readings are waiting for your answer.', { n: waiting })}{' '}
+          <button type="button" className="linkish" onClick={onShowWaiting}>{t('Answer them')}</button>
+        </p>
+      )}
+    </section>
+  )
+}
 
 export default function History() {
   const lang = useLang()
@@ -24,12 +71,18 @@ export default function History() {
   const [error, setError] = useState('')
   const [sharing, setSharing] = useState(null) // { id, url } — запис, чиє посилання зараз показано
   const [copied, setCopied] = useState(false)
+  const [stats, setStats] = useState(null) // «Збулося?» у цифрах; null — ще немає або не завантажилось
+  const [cardNames, setCardNames] = useState([]) // назви карт за id, для «карт, що повертаються»
+  const [changing, setChanging] = useState(null) // id запису, відповідь якого людина хоче змінити
 
   useEffect(() => {
     let live = true
-    Promise.all([get('/spreads'), get('/tarot/spreads'), get('/settings')])
-      .then(([rows, spreads, settings]) => {
+    // підсумок і назви карт — другорядні: без них історія працює, тому їхній збій не псує екран
+    Promise.all([get('/spreads'), get('/tarot/spreads'), get('/settings'), get('/spreads/accuracy').catch(() => null), get('/tarot/cards').catch(() => [])])
+      .then(([rows, spreads, settings, accuracy, cards]) => {
         if (!live) return
+        setStats(accuracy)
+        setCardNames(cards.map((c) => c.name))
         setItems(rows)
         setNames(Object.fromEntries(spreads.map((s) => [s.id, s.name])))
         setFmt(settings)
@@ -40,8 +93,12 @@ export default function History() {
     }
   }, [lang])
 
-  const shown = useMemo(() => (items ?? []).filter((r) => filter === 'all' || r.saved), [items, filter])
+  const shown = useMemo(
+    () => (items ?? []).filter((r) => filter === 'all' || (filter === 'saved' ? r.saved : r.outcomeDue)),
+    [items, filter],
+  )
   const savedCount = (items ?? []).filter((r) => r.saved).length
+  const waitingCount = (items ?? []).filter((r) => r.outcomeDue).length
 
   const open = (r) => {
     session.set('readingId', r.id)
@@ -93,6 +150,20 @@ export default function History() {
       setError(e.message)
     }
   }
+  /** Відповісти «Збулося?» (або змінити відповідь); підсумок оновлюємо окремим запитом, він лише лічильники. */
+  const saveAnswer = async (r, request) => {
+    setError('')
+    try {
+      const updated = await request()
+      setItems((list) => list.map((x) => (x.id === r.id ? updated : x)))
+      setChanging(null)
+      get('/spreads/accuracy').then(setStats, () => {})
+    } catch (e) {
+      setError(e.message)
+    }
+  }
+  const answer = (r, outcome) => saveAnswer(r, () => api('PUT', `/spreads/${r.id}/outcome`, { outcome }))
+  const clearAnswer = (r) => saveAnswer(r, () => del(`/spreads/${r.id}/outcome`))
   const pickFilter = (value) => {
     session.set('historyFilter', value)
     setFilter(value)
@@ -117,7 +188,14 @@ export default function History() {
           <StarIcon filled={filter === 'saved'} />
           {t('Saved')} · {savedCount}
         </button>
+        {waitingCount > 0 && (
+          <button role="tab" aria-selected={filter === 'waiting'} className={filter === 'waiting' ? 'on' : ''} onClick={() => pickFilter('waiting')}>
+            {t('Waiting')} · {waitingCount}
+          </button>
+        )}
       </div>
+
+      {stats && <Track stats={stats} cardNames={cardNames} onShowWaiting={() => pickFilter('waiting')} />}
 
       {error && (
         <p className="err" role="alert">
@@ -127,7 +205,7 @@ export default function History() {
 
       {items && shown.length === 0 && (
         <div className="empty">
-          <p>{filter === 'saved' ? t('No saved readings yet') : t('No readings yet')}</p>
+          <p>{filter === 'saved' ? t('No saved readings yet') : filter === 'waiting' ? t('No readings are waiting for an answer') : t('No readings yet')}</p>
           <a className="go" {...navProps('/tarot')}>
             <SparkleIcon />
             {t('Start a reading')}
@@ -179,6 +257,33 @@ export default function History() {
                   </>
                 )}
               </div>
+              {(r.outcomeDue || r.outcome) && (
+                <div className={`outcome${r.outcome ? ` ${r.outcome}` : ''}`}>
+                  {r.outcome && changing !== r.id ? (
+                    <>
+                      <span className="mark">{t(ANSWER_TEXT[r.outcome])}</span>
+                      <button type="button" className="linkish" onClick={() => setChanging(r.id)}>{t('Change')}</button>
+                    </>
+                  ) : (
+                    <>
+                      <span className="ask">{t('Did it come true?')}</span>
+                      <span className="choices" role="group" aria-label={t('Did it come true?')}>
+                        {ANSWERS.map(([id, label]) => (
+                          <button key={id} type="button" className={`pick ${id}${r.outcome === id ? ' on' : ''}`} aria-pressed={r.outcome === id} onClick={() => answer(r, id)}>
+                            {t(label)}
+                          </button>
+                        ))}
+                      </span>
+                      {r.outcome && (
+                        <>
+                          <button type="button" className="linkish" onClick={() => clearAnswer(r)}>{t('Remove my answer')}</button>
+                          <button type="button" className="linkish" onClick={() => setChanging(null)}>{t('Cancel')}</button>
+                        </>
+                      )}
+                    </>
+                  )}
+                </div>
+              )}
               {sharing?.id === r.id && (
                 <div className="sharebox" role="group" aria-label={t('Share reading')}>
                   <p>{t('Anyone with this link can see this reading, but not your account.')}</p>

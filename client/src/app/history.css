@@ -70,3 +70,39 @@
   color: #f1e9d6; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(228, 190, 128, 0.45);
 }
 .v-app .drawpage .sharebox .acts { justify-content: flex-end; }
+
+/* «Збулося?» (History.jsx): рядок відповіді під записом і підсумок угорі */
+.v-app .drawpage .outcome {
+  grid-column: 1 / -1; display: flex; align-items: center; flex-wrap: wrap; gap: 10px 14px; margin-top: 6px; padding-top: 10px;
+  border-top: 1px dashed rgba(228, 190, 128, 0.3);
+}
+.v-app .drawpage .outcome .ask { color: var(--gold-hi); font-size: 15px; }
+.v-app .drawpage .outcome .choices { display: flex; gap: 8px; flex-wrap: wrap; }
+.v-app .drawpage .outcome .pick {
+  padding: 6px 16px; border-radius: 999px; cursor: pointer; font: inherit; font-size: 14px; color: var(--gold-hi);
+  background: rgba(228, 190, 128, 0.08); border: 1px solid rgba(228, 190, 128, 0.45);
+}
+.v-app .drawpage .outcome .pick:hover { border-color: var(--gold-hi); }
+.v-app .drawpage .outcome .pick.on { color: #21160a; background: linear-gradient(180deg, #f5dc9b, #d9ac63); border-color: var(--gold-hi); }
+.v-app .drawpage .outcome .mark { font-size: 14px; font-weight: 700; padding: 2px 12px; border-radius: 999px; border: 1px solid; }
+.v-app .drawpage .outcome.yes .mark { color: #bff0c4; border-color: rgba(150, 230, 160, 0.7); background: rgba(80, 170, 100, 0.18); }
+.v-app .drawpage .outcome.no .mark { color: #ffc2b8; border-color: rgba(255, 150, 130, 0.7); background: rgba(200, 80, 70, 0.18); }
+.v-app .drawpage .outcome.partly .mark { color: var(--gold-hi); border-color: var(--line); background: rgba(228, 190, 128, 0.14); }
+.v-app .drawpage .linkish { padding: 0; font: inherit; font-size: 14px; color: var(--gold); background: none; border: 0; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+.v-app .drawpage .linkish:hover { color: var(--gold-hi); }
+
+.v-app .drawpage .track {
+  margin-top: 16px; padding: 16px 18px; display: grid; gap: 10px; border-radius: 20px;
+  background: var(--glass); border: 1px solid rgba(228, 190, 128, 0.32);
+}
+.v-app .drawpage .track h2 { margin: 0; font: 700 20px/1.2 'Crimson Text', Georgia, serif; color: var(--gold-hi); }
+.v-app .drawpage .track p { margin: 0; font-size: 15px; color: var(--muted); }
+.v-app .drawpage .track .counts { display: flex; gap: 12px; flex-wrap: wrap; margin: 0; }
+.v-app .drawpage .track .counts div { display: grid; gap: 2px; min-width: 96px; padding: 8px 14px; border-radius: 14px; border: 1px solid; text-align: center; }
+.v-app .drawpage .track .counts dt { font-size: 13px; color: var(--muted); }
+.v-app .drawpage .track .counts dd { margin: 0; font: 700 24px/1.1 'Crimson Text', Georgia, serif; }
+.v-app .drawpage .track .counts .yes { border-color: rgba(150, 230, 160, 0.6); color: #bff0c4; }
+.v-app .drawpage .track .counts .partly { border-color: var(--line); color: var(--gold-hi); }
+.v-app .drawpage .track .counts .no { border-color: rgba(255, 150, 130, 0.6); color: #ffc2b8; }
+.v-app .drawpage .track .rate { color: #e8dfc9; }
+.v-app .drawpage .track .recurring b { margin-right: 12px; font-weight: 600; color: var(--gold); white-space: nowrap; }

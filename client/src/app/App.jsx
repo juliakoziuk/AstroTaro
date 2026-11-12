@@ -15,6 +15,8 @@ import Today from './Today.jsx'
 import Draw from './Draw.jsx'
 import Daily from './Daily.jsx'
 import History from './History.jsx'
+import Onboarding from './Onboarding.jsx'
+import { useOnboarded } from './onboardingGate.js'
 import { BY_PATH } from './screens.js'
 import { go, useRoute } from './router.js'
 import { useToast } from './toast.js'
@@ -44,6 +46,11 @@ export default function App() {
   const theme = useTheme()
   const locked = !PUBLIC.has(screen.path) && !getToken()
   const signedInGuest = GUEST_ONLY.has(screen.id) && !!getToken()
+  // Новий акаунт спершу веде на знайомство. Доки сервер не відповів, екрани застосунку не малюємо, щоб дашборд не блимнув перед переходом.
+  const onboarded = useOnboarded()
+  const inApp = !locked && !signedInGuest && !PUBLIC.has(screen.path) && screen.id !== 'onboarding'
+  const toOnboarding = inApp && onboarded === false
+  const showApp = inApp && onboarded === true
 
   useEffect(() => {
     if (locked) go('/login', { replace: true })
@@ -52,6 +59,10 @@ export default function App() {
   useEffect(() => {
     if (signedInGuest) go('/dashboard', { replace: true })
   }, [signedInGuest])
+
+  useEffect(() => {
+    if (toOnboarding) go('/onboarding', { replace: true })
+  }, [toOnboarding])
 
   // залогінений користувач: мова й тема з його налаштувань на сервері
   useEffect(() => {
@@ -79,11 +90,12 @@ export default function App() {
         {screen.id === 'reset-password' && <ResetPassword />}
         {screen.id === 'verify-email' && <VerifyEmail />}
         {screen.id === 'shared' && <SharedReading />}
-        {!locked && !signedInGuest && screen.kind === 'today' && <Today />}
-        {!locked && !signedInGuest && screen.kind === 'draw' && <Draw />}
-        {!locked && !signedInGuest && screen.kind === 'daily' && <Daily />}
-        {!locked && !signedInGuest && screen.kind === 'history' && <History />}
-        {!locked && !signedInGuest && screen.kind === 'app' && (screen.id === 'settings' ? <SettingsPage /> : <Shell d={screen.data} live={screen.live} />)}
+        {!locked && screen.kind === 'onboarding' && <Onboarding />}
+        {showApp && screen.kind === 'today' && <Today />}
+        {showApp && screen.kind === 'draw' && <Draw />}
+        {showApp && screen.kind === 'daily' && <Daily />}
+        {showApp && screen.kind === 'history' && <History />}
+        {showApp && screen.kind === 'app' && (screen.id === 'settings' ? <SettingsPage /> : <Shell d={screen.data} live={screen.live} />)}
       </div>
       {BEFORE_LOGIN.has(screen.id) && <LangSwitch />}
       <Proto />

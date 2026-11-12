@@ -31,8 +31,8 @@ const PROTECTED: [string, string][] = [
   ['GET', '/dashboard'], ['GET', '/profile'], ['PATCH', '/profile'], ['GET', '/settings'], ['PATCH', '/settings'], ['POST', '/settings/reset'], ['GET', '/profile/export'],
   ['POST', '/billing/plan'],
   ['GET', '/dreams'], ['POST', '/dreams'], ['GET', '/dreams/00000000-0000-4000-8000-000000000000'],
-  ['GET', '/journal'], ['POST', '/journal'], ['GET', '/spreads'], ['POST', '/spreads'], ['POST', '/tarot/readings'], ['GET', '/tarot/daily'], ['POST', '/tarot/daily'],
-  ['GET', '/astrology'], ['GET', '/astrology/forecast'], ['GET', '/astrology/reports'], ['POST', '/astrology/reports'], ['POST', '/astrology/compatibility'],
+  ['GET', '/journal'], ['POST', '/journal'], ['GET', '/spreads'], ['GET', '/spreads/accuracy'], ['POST', '/spreads'], ['PUT', '/spreads/00000000-0000-4000-8000-000000000000/outcome'], ['DELETE', '/spreads/00000000-0000-4000-8000-000000000000/outcome'], ['POST', '/tarot/readings'], ['GET', '/tarot/daily'], ['POST', '/tarot/daily'],
+  ['POST', '/profile/onboarding'], ['GET', '/astrology'], ['GET', '/astrology/big-three'], ['GET', '/astrology/forecast'], ['GET', '/astrology/reports'], ['POST', '/astrology/reports'], ['POST', '/astrology/compatibility'],
   ['GET', '/cosmos/geo'], ['GET', '/cosmos/apod'], ['GET', '/cosmos/quote'], ['GET', '/cosmos/sun'], ['GET', '/cosmos/holidays'], ['GET', '/cosmos/art'],
 ]
 
@@ -227,6 +227,114 @@ describe('plans and consent', () => {
     strictEqual(s.theme, 'Light')
     strictEqual(s.language, 'Ukrainian')
     strictEqual((await h.api('PATCH', '/settings', { token: u.token, body: { theme: 'Neon' } })).status, 400)
+  })
+})
+
+describe('onboarding', () => {
+  let u: Awaited<ReturnType<Harness['register']>>
+  before(async () => {
+    u = await h.register()
+  })
+
+  test('a new account has not been through onboarding; skipping marks it done and keeps the first time', async () => {
+    const me = (await h.api('GET', '/auth/me', { token: u.token })).body
+    strictEqual(me.onboarded, false)
+    deepStrictEqual(me.interests, [])
+    strictEqual((await h.api('POST', '/profile/onboarding', { token: u.token, body: {} })).status, 201)
+    strictEqual((await h.api('GET', '/auth/me', { token: u.token })).body.onboarded, true)
+    const first = (await h.users.findByPk(u.id)).onboardedAt?.getTime()
+    ok(first)
+    await h.api('POST', '/profile/onboarding', { token: u.token, body: { interests: ['tarot'] } })
+    strictEqual((await h.users.findByPk(u.id)).onboardedAt?.getTime(), first, 'the first time is kept')
+  })
+
+  test('interests: only the known ones, no repeats, and a later call without them keeps what was saved', async () => {
+    const saved = await h.api('POST', '/profile/onboarding', { token: u.token, body: { interests: ['dreams', 'astrology'] } })
+    strictEqual(saved.status, 201)
+    deepStrictEqual(saved.body.interests, ['dreams', 'astrology'])
+    strictEqual((await h.api('POST', '/profile/onboarding', { token: u.token, body: { interests: ['money'] } })).status, 400)
+    strictEqual((await h.api('POST', '/profile/onboarding', { token: u.token, body: { interests: ['tarot', 'tarot'] } })).status, 400)
+    await h.api('POST', '/profile/onboarding', { token: u.token, body: {} })
+    deepStrictEqual((await h.api('GET', '/auth/me', { token: u.token })).body.interests, ['dreams', 'astrology'])
+  })
+
+  test('an account that already has a birth date counts as onboarded', async () => {
+    const old = await h.register()
+    await h.api('PATCH', '/profile', { token: old.token, body: { birthDate: '1999-03-14' } })
+    strictEqual((await h.api('GET', '/auth/me', { token: old.token })).body.onboarded, true)
+  })
+
+  test('big three: needs a birth date, the Ascendant appears only with time and place, texts follow the language', async () => {
+    const p = await h.register()
+    strictEqual((await h.api('GET', '/astrology/big-three', { token: p.token })).status, 403)
+    await h.api('PATCH', '/profile', { token: p.token, body: { birthDate: '1999-03-14' } })
+    const noTime = (await h.api('GET', '/astrology/big-three', { token: p.token })).body
+    strictEqual(noTime.sun.sign, 'Pisces')
+    ok(noTime.sun.text.length > 40 && noTime.moon.text.length > 40)
+    strictEqual(noTime.ascendant, null)
+    await h.api('PATCH', '/profile', { token: p.token, body: { birthTime: '08:30', birthPlace: 'Kyiv', birthLat: 50.45, birthLon: 30.52, country: 'UA' } })
+    const full = (await h.api('GET', '/astrology/big-three', { token: p.token })).body
+    ok(full.ascendant?.sign && full.ascendant.text.length > 40)
+    const uk = (await h.api('GET', '/astrology/big-three', { token: p.token, lang: 'uk' })).body
+    strictEqual(uk.sun.signName, 'Риби')
+    ok(/[а-яіїє]/i.test(uk.sun.text))
+  })
+})
+
+describe('"did it come true?"', () => {
+  let owner: Awaited<ReturnType<Harness['register']>>
+  let stranger: Awaited<ReturnType<Harness['register']>>
+  let id: string
+  const BODY = { spreadId: 'three', question: 'Will the project launch on time?', cards: [{ id: 5, reversed: false }, { id: 9, reversed: true }, { id: 3, reversed: false }] }
+  before(async () => {
+    owner = await h.register()
+    stranger = await h.register()
+    id = (await h.api('POST', '/spreads', { token: owner.token, body: BODY })).body.id
+  })
+
+  test('a fresh reading is not asked about yet; one older than a week is', async () => {
+    const fresh = (await h.api('GET', '/spreads/' + id, { token: owner.token })).body
+    strictEqual(fresh.outcome ?? null, null)
+    strictEqual(fresh.outcomeDue, false)
+    await h.spreads.update({ date: new Date(Date.now() - 8 * 86_400_000) }, { where: { id } })
+    strictEqual((await h.api('GET', '/spreads/' + id, { token: owner.token })).body.outcomeDue, true)
+    strictEqual((await h.api('GET', '/spreads/accuracy', { token: owner.token })).body.waiting, 1)
+  })
+
+  test('the owner answers, can change the answer and take it back; a stranger cannot touch it', async () => {
+    const put = (token: string, outcome: unknown) => h.api('PUT', `/spreads/${id}/outcome`, { token, body: { outcome } })
+    strictEqual((await put(stranger.token, 'yes')).status, 404)
+    strictEqual((await put(owner.token, 'sometimes')).status, 400)
+    strictEqual((await put(owner.token, undefined)).status, 400)
+    const yes = await put(owner.token, 'yes')
+    strictEqual(yes.status, 200)
+    strictEqual(yes.body.outcome, 'yes')
+    strictEqual(yes.body.outcomeDue, false, 'an answered reading is not asked about again')
+    strictEqual((await put(owner.token, 'partly')).body.outcome, 'partly')
+    strictEqual((await h.api('DELETE', `/spreads/${id}/outcome`, { token: stranger.token })).status, 404)
+    const cleared = await h.api('DELETE', `/spreads/${id}/outcome`, { token: owner.token })
+    strictEqual(cleared.body.outcome ?? null, null)
+    strictEqual(cleared.body.outcomeDue, true)
+  })
+
+  test('the summary counts only your own readings', async () => {
+    await h.api('PUT', `/spreads/${id}/outcome`, { token: owner.token, body: { outcome: 'partly' } })
+    const second = (await h.api('POST', '/spreads', { token: owner.token, body: BODY })).body.id
+    await h.api('PUT', `/spreads/${second}/outcome`, { token: owner.token, body: { outcome: 'yes' } })
+    const s = (await h.api('GET', '/spreads/accuracy', { token: owner.token })).body
+    deepStrictEqual([s.total, s.answered, s.yes, s.partly, s.no], [2, 2, 1, 1, 0])
+    strictEqual(s.rate, 75)
+    deepStrictEqual(s.topCards, [{ id: 3, count: 2 }, { id: 5, count: 2 }, { id: 9, count: 2 }])
+    const theirs = (await h.api('GET', '/spreads/accuracy', { token: stranger.token })).body
+    deepStrictEqual([theirs.total, theirs.answered, theirs.rate], [0, 0, null])
+  })
+
+  test('the answer is private: neither the public link nor the export of someone else shows it', async () => {
+    const link = (await h.api('POST', `/spreads/${id}/share`, { token: owner.token })).body
+    const shared = await h.api('GET', `/shared/${link.token}`)
+    strictEqual(shared.status, 200)
+    ok(!('outcome' in shared.body) && !('outcomeDue' in shared.body), 'the shared page has no outcome')
+    ok(!text((await h.api('GET', '/profile/export', { token: stranger.token })).body).includes(id))
   })
 })
 

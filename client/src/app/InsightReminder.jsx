@@ -8,7 +8,7 @@ const dayOf = (now) => `${now.getFullYear()}-${now.getMonth()}-${now.getDate()}`
 
 export default function InsightReminder({ route }) {
   useEffect(() => {
-    if (!getToken() || route === '/login' || route === '/' || route === '/settings') return
+    if (!getToken() || route === '/login' || route === '/' || route === '/settings' || route === '/onboarding') return
     const day = dayOf(new Date())
     if (settledDay === day) return
     let live = true

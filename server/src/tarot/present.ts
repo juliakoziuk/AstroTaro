@@ -1,4 +1,5 @@
 import { Locale } from '../i18n/locale'
+import { isOutcomeDue } from '../spreads/accuracy'
 import { Spread } from '../spreads/spread.model'
 import { DrawnCard, interpret, Mode, SPREAD_IDS } from './readings'
 import { classifyLocal, Situation } from './sphere'
@@ -16,7 +17,8 @@ export function presentShared(row: Spread, locale: Locale) {
 
 export function presentSpread(row: Spread, locale: Locale) {
   const known = SPREAD_IDS.includes(row.spreadId) && Array.isArray(row.cards)
-  const { narratives, situation: saved, ...rest } = row.toJSON()
+  const { narratives, situation: saved, ...plain } = row.toJSON()
+  const rest = { ...plain, outcomeDue: isOutcomeDue(row) } // чи пора питати «Збулося?»
   if (!known) return { ...rest, result: null }
   const situation = (saved as Situation | null) ?? classifyLocal(row.question)
   const local = interpret(row.spreadId, row.cards as DrawnCard[], (row.mode as Mode) ?? 'quick', locale, row.question, situation)
