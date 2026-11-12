@@ -135,7 +135,7 @@ export default function Draw() {
     setError('')
     setLimit(false)
     try {
-      const body = { spreadId: setup.spreadId, deck: setup.deck, mode: setup.mode, question: question.trim(), cards: cards.map((c) => ({ id: c.id, reversed: c.reversed })) }
+      const body = { spreadId: setup.spreadId, mode: setup.mode, question: question.trim(), cards: cards.map((c) => ({ id: c.id, reversed: c.reversed })) }
       const reading = await post('/tarot/readings', body)
       session.set('temporaryReading', reading.temporary ? JSON.stringify(reading) : '')
       session.set('readingId', reading.id)

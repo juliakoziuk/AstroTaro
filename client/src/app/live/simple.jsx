@@ -177,14 +177,14 @@ export const registerScreen = {
 // ---------- Tarot Studio ----------
 const SPREAD_NAMES = ['Daily Card', 'Three Cards', 'Relationship', 'Career', 'Life Purpose', 'Yes / No']
 
-// Карти не обирає сервер: розклад, колода й режим запам'ятовуються, а людина сама тягне карти на екрані /draw
+// Карти не обирає сервер: розклад і режим запам'ятовуються, а людина сама тягне карти на екрані /draw (колода одна, тож не обирається)
 function startReading(ctx, spreadId) {
   if (!spreadId) throw new Error(t('Data is still loading'))
   const mode = ctx.ui.radio.mode ?? 'quick'
   // режими поза тарифом не пропускаємо на екран /draw: сервер однаково відмовив би, а тут можна сказати чому й що робити
   const allowed = ctx.data?.limits?.readingModes
   if (allowed && !allowed.includes(mode)) throw new Error(mode === 'depth' ? t('Depth readings are included in Premium.') : t('Detailed readings are included in Pro and Premium.'))
-  session.set('draw', JSON.stringify({ spreadId, deck: ctx.ui.sel.deck, mode }))
+  session.set('draw', JSON.stringify({ spreadId, mode }))
   ctx.go('/draw')
 }
 
@@ -192,13 +192,12 @@ export const tarot = {
   bind: SPREAD_NAMES.map((find, i) => ({ find, key: `spread${i}` })),
   async load() {
     // ліміти тарифу потрібні лише для підказки про режим; якщо запит не вдався, пускаємо далі й рішення лишається за сервером
-    const [all, decks, billing] = await Promise.all([get('/tarot/spreads'), get('/tarot/decks'), getToken() ? get('/billing').catch(() => null) : null])
+    const [all, billing] = await Promise.all([get('/tarot/spreads'), getToken() ? get('/billing').catch(() => null) : null])
     // у плиті шість рядків: «Власний розклад» (Custom) стоїть лише в старих записах історії, на його місці — «Так/Ні»
     const spreads = all.filter((x) => x.id !== 'custom')
     return {
       values: Object.fromEntries(spreads.map((s, i) => [`spread${i}`, s.name])),
       data: { spreads, limits: billing?.limits ?? null },
-      ui: { options: { deck: decks.decks } },
     }
   },
   actions: {

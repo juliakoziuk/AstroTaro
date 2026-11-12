@@ -151,8 +151,6 @@ try {
   await open('/tarot')
   await page.evaluate(() => document.querySelector('.rad[aria-label="depth"]').click())
   ok('радіо в Tarot Studio', await page.evaluate(() => document.querySelector('.rad[aria-label="depth"]').getAttribute('aria-checked') === 'true'))
-  await page.select('.sel select', 'Thoth')
-  ok('select колоди', await page.evaluate(() => [...document.querySelectorAll('.t')].some((e) => e.textContent === 'Thoth')))
   await open('/settings')
   await page.evaluate(() => document.querySelector('.tog').click())
   ok('перемикач у Settings', await page.evaluate(() => document.querySelector('.tog').getAttribute('aria-checked') === 'false'))

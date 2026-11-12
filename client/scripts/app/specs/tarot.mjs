@@ -1,4 +1,6 @@
-// Tarot Studio — вибір розкладу, колоди й режиму. Номери — рядки з scripts/app/detections/tarot.json.
+// Tarot Studio — вибір розкладу й режиму (колода одна, тож вибору колоди немає). Номери — рядки з scripts/app/detections/tarot.json.
+// Намальована картка «Select a deck» лишається на макеті: після збірки плити запускайте node scripts/app/lift-tarot.mjs, він її прибирає
+// й піднімає картку режиму та кнопку на її місце (разом із текстами, радіо й зоною кнопки).
 export default {
   dsl: `
 @sidebar
@@ -11,8 +13,6 @@ export default {
 59 h3.s Career
 64 h3.s Life Purpose
 72 h3.s Yes / No
-24 h2 Select a deck
-@select deck 29 body.l 835 311 399 64 Classic Tarot;Rider-Waite;Thoth;Marseille
 42 h2 Reading mode
 @radio mode quick 864 530 36 on
 @radio mode detailed 864 590 36 off

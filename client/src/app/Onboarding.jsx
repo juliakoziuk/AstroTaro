@@ -82,7 +82,7 @@ export default function Onboarding() {
   const drawFirst = () =>
     finish(() => {
       // дальше людина сама тягне карту на /draw: розклад «Карта дня», питання вже вписане
-      session.set('draw', JSON.stringify({ spreadId: 'daily', deck: 'Classic Tarot', mode: 'quick', question: question.trim() }))
+      session.set('draw', JSON.stringify({ spreadId: 'daily', mode: 'quick', question: question.trim() }))
       go('/draw')
     })
 

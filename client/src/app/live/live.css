@@ -36,12 +36,10 @@
 }
 
 /* картка таро на екрані Reading */
-.v-app .cardimg {
-  display: grid;
-  place-items: center;
-  overflow: hidden;
-}
-.v-app .cardimg img { height: 100%; width: auto; max-width: 100%; object-fit: contain; border-radius: calc(var(--u) * 8); }
+/* Карта показується повністю (формат 2:3, без обрізання): картинка займає всю рамку й вписується в неї (contain). Відсоткова висота
+   в сітці не працює в Firefox (картинка ставала на ширину рамки й обрізалась знизу), тож розмір задано абсолютно. */
+/* (.ov вже position: absolute, тож картинка позиціонується від рамки) */
+.v-app .cardimg img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; border-radius: calc(var(--u) * 8); }
 .v-app .cardimg img.rev { transform: rotate(180deg); }
 /* стрілка й розділювач рядка списку розкладу (у плиті їх немає) */
 .v-app .chev { display: grid; place-items: center; color: #f3efe7; }
@@ -50,7 +48,7 @@
 
 /* повний опис карти в позиції */
 .v-app .cardmdl { width: min(100%, 660px); display: grid; grid-template-columns: 200px 1fr; gap: 24px; align-items: start; }
-.v-app .cardmdl img { width: 200px; aspect-ratio: 2 / 3; object-fit: cover; border-radius: 12px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(228, 190, 128, 0.6); }
+.v-app .cardmdl img { width: 200px; aspect-ratio: 2 / 3; object-fit: contain; border-radius: 12px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(228, 190, 128, 0.6); }
 .v-app .cardmdl img.rev { transform: rotate(180deg); }
 .v-app .cardmdl .where { margin: 0 0 4px; font-size: 13px; letter-spacing: 0.06em; color: #b9a07a; }
 .v-app .cardmdl .detail { margin: 0 0 14px; line-height: 1.6; color: #dcd6c8; }
@@ -363,3 +361,13 @@
 /* сумісність: згорнутий шаблонний розбір під текстом від моделі (CompatibilityDialog.jsx) */
 .v-app .mdl .syn-details { margin: 10px 0; }
 .v-app .mdl .syn-details > summary { cursor: pointer; color: #e4be80; }
+
+/* повний текст тлумачення у великому вікні (екран Reading): абзаци розділені порожнім рядком, рядки в абзаці — переносом */
+.v-app .full-link { display: flex; justify-content: flex-end; align-items: center; }
+.v-app .full-link button {
+  padding: 0; font: inherit; font-size: calc(var(--u) * 17); color: #e8c987; background: none; border: 0; cursor: pointer;
+  text-decoration: underline; text-underline-offset: 3px;
+}
+.v-app .full-link button:hover { color: #f6e3b4; }
+.v-app .full-text { max-height: 62vh; overflow-y: auto; padding-right: 8px; }
+.v-app .full-text p { margin: 0 0 14px; line-height: 1.6; color: #dcd6c8; white-space: pre-line; }

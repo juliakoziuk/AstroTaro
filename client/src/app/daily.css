@@ -7,7 +7,7 @@
 }
 .v-app .drawpage .today-card { display: flex; align-items: center; gap: 26px; flex-wrap: wrap; }
 .v-app .drawpage .today-card .reading { flex: 1 1 260px; min-width: 0; }
-.v-app .drawpage .today-card .reading p { margin: 0 0 10px; color: #d8d1c0; }
+.v-app .drawpage .today-card .reading p { margin: 0 0 10px; color: #d8d1c0; white-space: pre-line; }
 .v-app .drawpage .today-card .reading .hint { color: var(--muted); }
 .v-app .drawpage .today-card h2 { margin: 0 0 6px; font: 700 28px/1.15 'Crimson Text', Georgia, serif; color: var(--gold-hi); }
 .v-app .drawpage .today-card h2 em { margin-left: 10px; font: 600 13px/1 'Source Sans 3', 'Segoe UI', sans-serif; font-style: normal; color: var(--gold); border: 1px solid var(--line); border-radius: 999px; padding: 3px 10px; vertical-align: middle; }

@@ -185,22 +185,10 @@
    "wg": 600
   },
   {
-   "s": "Select a deck",
-   "tag": "h2",
-   "x": 834.95,
-   "y": 257.7,
-   "fs": 34.91,
-   "ls": 0,
-   "lh": 45.39,
-   "c": "#f4f2ee",
-   "f": "serif",
-   "wg": 400
-  },
-  {
    "s": "Reading mode",
    "tag": "h2",
    "x": 834.95,
-   "y": 440.04,
+   "y": 260.04,
    "fs": 34.91,
    "ls": -0.56,
    "lh": 45.39,
@@ -212,7 +200,7 @@
    "s": "Quick",
    "tag": "span",
    "x": 908.86,
-   "y": 511,
+   "y": 331,
    "fs": 28.47,
    "ls": -0.06,
    "lh": 37.01,
@@ -224,7 +212,7 @@
    "s": "Detailed",
    "tag": "span",
    "x": 908.72,
-   "y": 570.63,
+   "y": 390.63,
    "fs": 28.47,
    "ls": 0.07,
    "lh": 37.01,
@@ -236,7 +224,7 @@
    "s": "In depth",
    "tag": "span",
    "x": 908.72,
-   "y": 630.43,
+   "y": 450.43,
    "fs": 28.47,
    "ls": 0,
    "lh": 37.01,
@@ -248,7 +236,7 @@
    "s": "Start Reading",
    "tag": "span",
    "x": 930.01,
-   "y": 749.95,
+   "y": 569.95,
    "fs": 32.94,
    "ls": 0,
    "lh": 42.82,
@@ -315,7 +303,7 @@
   {
    "label": "Start Reading",
    "x": 816,
-   "y": 733,
+   "y": 553,
    "w": 440,
    "h": 76,
    "r": 38,
@@ -387,7 +375,7 @@
    "group": "mode",
    "value": "quick",
    "cx": 864,
-   "cy": 530,
+   "cy": 350,
    "d": 36,
    "on": true
   },
@@ -395,7 +383,7 @@
    "group": "mode",
    "value": "detailed",
    "cx": 864,
-   "cy": 590,
+   "cy": 410,
    "d": 36,
    "on": false
   },
@@ -403,7 +391,7 @@
    "group": "mode",
    "value": "depth",
    "cx": 864,
-   "cy": 650,
+   "cy": 470,
    "d": 36,
    "on": false
   }
@@ -411,32 +399,7 @@
  "checks": [],
  "reveals": [],
  "clears": [],
- "selects": [
-  {
-   "id": "deck",
-   "options": [
-    "Classic Tarot",
-    "Rider-Waite",
-    "Thoth",
-    "Marseille"
-   ],
-   "x": 835,
-   "y": 311,
-   "w": 399,
-   "h": 64,
-   "t": {
-    "s": "Classic Tarot",
-    "tag": "span",
-    "x": 858.86,
-    "y": 325.13,
-    "fs": 28.47,
-    "ls": -0.15,
-    "lh": 37.01,
-    "c": "#f0efed",
-    "f": "sans",
-    "wg": 400
-   }
-  }
- ],
- "inputs": []
+ "selects": [],
+ "inputs": [],
+ "lifted": 180
 }

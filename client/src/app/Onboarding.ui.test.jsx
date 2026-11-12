@@ -43,7 +43,7 @@ describe('onboarding', () => {
     await waitFor(() => expect(window.location.hash).toBe('#/draw'))
 
     expect(calls.find((c) => c.key === 'POST /profile/onboarding').body).toEqual({ interests: ['dreams'] })
-    expect(JSON.parse(session.get('draw'))).toEqual({ spreadId: 'daily', deck: 'Classic Tarot', mode: 'quick', question: 'What should I focus on?' })
+    expect(JSON.parse(session.get('draw'))).toEqual({ spreadId: 'daily', mode: 'quick', question: 'What should I focus on?' })
     expect(window.location.hash).toBe('#/draw')
   })
 

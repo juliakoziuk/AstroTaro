@@ -1,7 +1,8 @@
 import { Locale, LOCALES } from '../i18n/locale'
 import { analyze, Verdict, verdictFromValence } from './analysis'
 import { CARD_COUNT, cardOf } from './cards'
-import { giftShadowLine, pairLine, practiceLine, reflectQuestion, reversedNote, roleLine, summaryParts } from './narrative'
+import { headline, insightLines, keyIndex, keyLine, lower, outlookLine, pairLine, practiceLine, questionEcho, questionLines, reversedNote, roleLine, otherSideLine, sceneLine, sentence, suitSphereLine, summaryParts, tipLine, trustLine, watchLine, closingLine } from './narrative'
+import { plainOf } from './plain'
 import { classifyLocal, Situation } from './sphere'
 
 type T2 = [string, string]
@@ -67,14 +68,6 @@ export function chosen(spreadId: string, cards: DrawnCard[]): DrawnCard[] {
   return cards.map((c) => ({ id: c.id, reversed: !!c.reversed }))
 }
 
-const lower = (s: string) => s.charAt(0).toLowerCase() + s.slice(1)
-const sentence = (s: string) => `${s.charAt(0).toUpperCase()}${s.slice(1)}.`
-
-const TRUST: Record<Locale, string> = {
-  en: 'Take time to journal on what each card stirs in you, and trust the process: the reading shows a direction, not a fixed fate.',
-  uk: 'Знайди час записати, що викликає в тобі кожна карта, і довірся процесу: розклад показує напрям, а не незмінну долю.',
-}
-
 export interface Interpretation {
   // meaning — короткий текст у рядку списку; detail — повний текст про карту в її позиції (залежить від режиму)
   positions: { label: string; card: string; reversed: boolean; meaning: string; detail: string }[]
@@ -84,41 +77,90 @@ export interface Interpretation {
 }
 
 /**
- * Тлумачення з урахуванням контексту: роль карти в позиції, переворот, взаємодія із сусідньою картою, динаміка розкладу,
- * відомі пари, повтори чисел і тема питання. Режими різні за змістом, а не лише за довжиною:
- *   quick    — суть: настрій і рух розкладу, одна порада; у рядках лише суть кожної карти;
- *   detailed — розбір по картах (роль у позиції, зв’язок із сусідньою), будова розкладу й порада;
- *   depth    — ще й відомі пари та повтори, дар і тінь кожної карти, запитання для роздумів і вправа на тиждень.
+ * Тлумачення людською мовою з урахуванням контексту: роль карти в позиції, переворот, сусідня карта, відомі пари, повтори
+ * чисел і сфера питання. Режими різні за змістом, а не лише за довжиною:
+ *   quick    — відповідь у двох-трьох реченнях: загальний висновок, головна карта розкладу й одна порада;
+ *   detailed — розповідь по позиціях: що означає кожна карта на своєму місці, як вона пов’язана із сусідньою, будова розкладу й порада;
+ *   depth    — розбір «що тут може бути насправді»: приклади з життя для кожної карти, що означає масть у твоїй сфері, пари й повтори,
+ *              що робити далі, на що звернути увагу, запитання, прив’язані до карт, і вправа на тиждень.
+ * Абзаци тексту розділені порожнім рядком.
  */
 export function interpret(spreadId: string, drawn: DrawnCard[], mode: Mode, locale: Locale, question = '', situation: Situation = classifyLocal(question)): Interpretation {
   const labels = spreadsFor(locale).find((s) => s.id === spreadId)!.positions
-  const analysis = analyze(spreadId, drawn, situation)
-  const cards = drawn.map((d) => cardOf(d.id, locale))
-  const names = cards.map((c) => c.name)
-  const parts = summaryParts(spreadId, analysis, names, locale)
-  const meaningOf = (i: number) => lower(drawn[i].reversed ? cards[i].reversed : cards[i].upright)
-  const role = (i: number) => roleLine(spreadId, i, meaningOf(i), locale)
+  const a = analyze(spreadId, drawn, situation)
+  const names = drawn.map((d) => cardOf(d.id, locale).name)
+  const plain = drawn.map((d) => plainOf(d.id, locale))
+  const what = (i: number) => (drawn[i].reversed ? plain[i].rev : plain[i].up)
+  const role = (i: number) => roleLine(spreadId, i, what(i), locale)
+  const tips = plain.map((p) => p.tip)
+  const scenes = plain.map((p) => p.scene)
+  const pair = (i: number) => pairLine(a.cards[i - 1], a.cards[i], names[i - 1], names[i], locale)
+  const key = keyIndex(spreadId, a)
+  const single = drawn.length === 1
+  const parts = summaryParts(spreadId, a, names, locale)
+  const head = headline(spreadId, a, locale)
 
   const positions = drawn.map((d, i) => {
     const out = [role(i)]
+    if (mode === 'depth') {
+      out.push(sceneLine(plain[i].scene, locale, d.reversed))
+      const suit = suitSphereLine(a.cards[i], spreadId, a.topic, locale)
+      if (suit) out.push(suit)
+    }
     if (mode !== 'quick') {
       if (d.reversed) out.push(reversedNote(locale))
-      if (i > 0) out.push(pairLine(analysis.cards[i - 1], analysis.cards[i], names[i - 1], names[i], locale))
+      if (i > 0) out.push(pair(i))
     }
-    if (mode === 'depth') out.push(giftShadowLine(names[i], lower(cards[i].upright), lower(cards[i].reversed), d.reversed, locale))
-    if (mode === 'depth') out.push(reflectQuestion(analysis.cards[i].valence >= 1 ? 'bright' : analysis.cards[i].valence <= -1 ? 'heavy' : 'mixed', locale))
-    return { label: labels[i], card: names[i], reversed: d.reversed, meaning: mode === 'quick' ? sentence(meaningOf(i)) : role(i), detail: out.join(' ') }
+    if (mode === 'depth') out.push(otherSideLine(plain[i].up, plain[i].rev, d.reversed, locale))
+    out.push(tipLine(tips[i], locale))
+    return { label: labels[i], card: names[i], reversed: d.reversed, meaning: mode === 'quick' ? sentence(what(i)) : role(i), detail: out.join(' ') }
   })
 
-  // у «Так/Ні» відповідь іде першою, без загального настрою
-  const summary = spreadId === 'yesno' ? [...parts.spread] : [parts.tone, ...parts.spread]
-  if (mode !== 'quick') summary.push(...drawn.map((_, i) => role(i)), ...parts.structure)
-  if (mode === 'depth') {
-    summary.push(...parts.combos)
-    summary.push(...drawn.map((d, i) => giftShadowLine(names[i], lower(cards[i].upright), lower(cards[i].reversed), d.reversed, locale)))
-    summary.push(reflectQuestion(analysis.tone, locale), practiceLine(analysis.seed, locale))
+  // текст збирається з абзаців; кожен абзац — речення, з’єднані пробілом (або рядки через \n)
+  const blocks: string[] = []
+  if (mode === 'quick') {
+    blocks.push(head.join(' '), `${keyLine(names[key], what(key), locale)} ${tipLine(tips[key], locale)}`)
+  } else if (mode === 'detailed') {
+    blocks.push(head.join(' '))
+    if (single) {
+      // одна карта: її роль уже є в рядку, тож без окремого «головна карта»
+      blocks.push([role(0), ...(drawn[0].reversed ? [reversedNote(locale)] : []), tipLine(tips[0], locale)].join(' '))
+    } else {
+      blocks.push(drawn.map((_, i) => role(i)).join('\n'))
+      const extra = [...(spreadId === 'relationship' || spreadId === 'career' ? insightLines(spreadId, a, names, locale) : []), ...parts.structure.slice(0, 2)]
+      if (extra.length) blocks.push(extra.join(' '))
+      blocks.push(`${keyLine(names[key], what(key), locale)} ${tipLine(tips[key], locale)}`)
+    }
+  } else {
+    const echo = questionEcho(question, locale)
+    // «сфера питання» має сенс, коли карт кілька: для однієї карти вона була б однослівним «не збіглося»
+    const lens = single ? '' : parts.lens
+    if (echo || lens) blocks.push([echo, lens].filter(Boolean).join(' '))
+    blocks.push(head.join(' '))
+    const seenSuits = new Set<number>()
+    let notedReversed = false
+    drawn.forEach((_, i) => {
+      const lines = [role(i), sceneLine(scenes[i], locale, drawn[i].reversed)]
+      const c = a.cards[i]
+      if (c.suit >= 0 && !seenSuits.has(c.suit)) {
+        seenSuits.add(c.suit)
+        const suit = suitSphereLine(c, spreadId, a.topic, locale)
+        if (suit) lines.push(suit)
+      }
+      if (drawn[i].reversed && !notedReversed) {
+        notedReversed = true
+        lines.push(reversedNote(locale))
+      }
+      blocks.push(lines.join(' '))
+    })
+    const links = drawn.map((_, i) => (i > 0 ? pair(i) : '')).filter(Boolean)
+    if (links.length) blocks.push(links.join(' '))
+    const patterns = [...parts.structure, ...parts.combos]
+    if (patterns.length) blocks.push(patterns.join(' '))
+    blocks.push(single ? outlookLine(spreadId, names, tips, locale) : `${outlookLine(spreadId, names, tips, locale)} ${watchLine(a, names, scenes, locale)}`)
+    blocks.push(questionLines(spreadId, names, locale).join('\n'))
+    blocks.push(single ? practiceLine('', locale, true) : `${practiceLine(tips[key], locale)} ${closingLine(a.tone, a.seed, locale)}`, trustLine(locale))
   }
-  summary.push(parts.closing)
-  if (mode === 'depth') summary.push(TRUST[locale])
-  return { positions, summary: summary.join(' '), ...(spreadId === 'yesno' ? { verdict: verdictFromValence(analysis.cards[0].valence) } : {}) }
+  const summary = blocks.filter(Boolean).join('\n\n')
+  return { positions, summary, ...(spreadId === 'yesno' ? { verdict: verdictFromValence(a.cards[0].valence) } : {}) }
 }

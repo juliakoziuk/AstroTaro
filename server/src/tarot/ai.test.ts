@@ -24,7 +24,7 @@ test('the facts hand the model Waite, positions, orientation and the combination
 
 test('the system prompt sets language and the depth of the mode', () => {
   const p = readingSystemPrompt('uk', 'depth')
-  ok(p.includes('Ukrainian') && p.includes('380-520 words'))
+  ok(p.includes('Ukrainian') && p.includes('450-600 words'))
 })
 
 test('narrate returns the model text', async () => {

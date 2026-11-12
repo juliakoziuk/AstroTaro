@@ -3,7 +3,7 @@ import { Fragment, useEffect } from 'react'
 import { get, patch, post } from '../../lib/api.js'
 import { t } from '../../i18n/index.js'
 import { cardImage } from './cardimage.js'
-import { box, Ov, Prose, Zone } from './parts.jsx'
+import { box, Dialog, Ov, Prose, Zone } from './parts.jsx'
 import { BookmarkIcon, RefreshIcon } from '../icons.jsx'
 import { session } from './common.js'
 
@@ -22,6 +22,9 @@ const SINGLE_TEXT = [345, 628, 570, 250]
 // «Поділитися» прибрано, тому «Новий розклад» стоїть одразу під «Зберегти»
 const BUTTONS = { save: [970, 590, 490, 72, 36], again: [970, 690, 490, 72, 36] }
 const MODE_LABEL = { quick: 'Quick', detailed: 'Detailed', depth: 'In depth' }
+const SUMMARY_BOX = [997, 345, 455, 205] // рамка тлумачення в макеті
+const FULL_LINK = [997, 556, 455, 28] // під рамкою: «Читати повністю»
+const LONG_SUMMARY = 420 // довший текст у рамку не вміщується, тож його можна відкрити у великому вікні
 
 const label = (i) => ({ find: ['Past', 'Present', 'Future'][i], key: `p${i}.label` })
 
@@ -141,7 +144,19 @@ export const reading = {
           <Zone key={`row${i}`} at={[...ROWS[i], 18]} className="quiet" label={`${row.label}: ${row.card}`} onClick={() => ctx.openModal({ name: 'card', index: i })} />
         ))}
         {ctx.modal?.name === 'card' && rows[ctx.modal.index] && <CardDetail row={rows[ctx.modal.index]} card={r.cards[ctx.modal.index]} mode={r.mode} onClose={ctx.closeModal} />}
-        {r && <Prose at={[997, 345, 455, 205]} text={r.result.summary} fs={23.85} lh={34} />}
+        {r && <Prose at={SUMMARY_BOX} text={r.result.summary} fs={23.85} lh={34} />}
+        {r && r.result.summary.length > LONG_SUMMARY && (
+          <Ov at={FULL_LINK} className="full-link">
+            <button type="button" onClick={() => ctx.openModal({ name: 'summary' })}>{t('Read in full')}</button>
+          </Ov>
+        )}
+        {ctx.modal?.name === 'summary' && r && (
+          <Dialog title={t('Interpretation')} onClose={ctx.closeModal} wide>
+            <div className="full-text">
+              {r.result.summary.split('\n\n').map((para, i) => <p key={i}>{para}</p>)}
+            </div>
+          </Dialog>
+        )}
         {r && (
           <>
             <button type="button" className="ov pill" style={box(...BUTTONS.save)} onClick={save}>

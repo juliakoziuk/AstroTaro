@@ -74,16 +74,16 @@ test('the story arc follows how the cards feel from position to position', () =>
   const sun = { id: 19, reversed: false }
   const tower = { id: 16, reversed: false }
   const rising = interpret('three', [tower, { id: 13, reversed: false }, sun], 'quick', 'en').summary
-  ok(rising.includes('climbs'), rising)
+  ok(rising.includes('getting better'), rising)
   const falling = interpret('three', [sun, { id: 13, reversed: false }, tower], 'quick', 'en').summary
-  ok(falling.includes('slides'), falling)
+  ok(falling.includes('It was better before'), falling)
 })
 
 test('the question steers the reading and a reversed card is explained', () => {
   const cups = { id: 22 + 14 + 2, reversed: true } // Three of Cups, reversed
   const text = interpret('three', [{ id: 16, reversed: false }, cups, { id: 19, reversed: false }], 'depth', 'en', 'will my relationship work out?')
   ok(text.summary.includes('love and relationships') && text.summary.includes('Three of Cups'), text.summary)
-  ok(text.positions[1].detail.includes('Reversed, this energy'), text.positions[1].detail)
+  ok(text.positions[1].detail.includes('The card is reversed'), text.positions[1].detail)
 })
 
 test('repeated numbers are noted', () => {
@@ -129,12 +129,15 @@ test('the three modes read differently in kind, not only in length', () => {
   // рядки в списку: швидко — лише суть карти, докладно й глибоко — речення про її роль у позиції
   ok(!q.positions[0].meaning.startsWith('Behind you'), q.positions[0].meaning)
   ok(d.positions[0].meaning.startsWith('Behind you') && d.positions[0].meaning === p.positions[0].meaning)
-  // деталі карти: швидко — коротко, докладно — зв’язок із сусідньою картою, глибоко — ще й дар і тінь та запитання
+  // деталі карти: швидко — роль і порада, докладно — ще й зв’язок із сусідньою картою, глибоко — ще й приклади з життя
   ok(q.positions[1].detail.length < d.positions[1].detail.length && d.positions[1].detail.length < p.positions[1].detail.length)
-  ok(!d.positions[1].detail.includes('shadow') && p.positions[1].detail.includes('shadow') && p.positions[1].detail.includes('?'))
-  // загальний текст: швидко — суть, докладно — по картах, глибоко — ще й дар/тінь, запитання й вправа
+  ok(!q.positions[1].detail.includes('What it can look like') && !d.positions[1].detail.includes('What it can look like') && p.positions[1].detail.includes('What it can look like'))
+  ok(!q.positions[1].detail.includes('side by side') || d.positions[1].detail.length > q.positions[1].detail.length)
+  // загальний текст: швидко — висновок, головна карта й порада; докладно — розповідь по позиціях; глибоко — приклади, що робити далі, запитання, вправа
   ok(!q.summary.includes('Behind you') && d.summary.includes('Behind you') && p.summary.includes('Behind you'))
-  ok(!d.summary.includes('gift') && p.summary.includes('gift') && p.summary.includes('?'))
+  ok(!d.summary.includes('What it can look like') && p.summary.includes('What it can look like') && p.summary.includes('?'))
+  ok(!q.summary.includes('?') && !d.summary.includes('?'))
+  ok(p.summary.includes('This week:') && !d.summary.includes('This week:'))
   ok(q.summary.length < d.summary.length && d.summary.length < p.summary.length)
 })
 
@@ -143,6 +146,61 @@ test('the mode instructions for the model differ in structure, not just a word c
   const [q, d, p] = (['quick', 'detailed', 'depth'] as const).map((m) => readingSystemPrompt('en', m))
   ok(q.includes('Do not go through the cards one by one'))
   ok(d.includes('one short paragraph for each card') && !d.includes('symbolism'))
-  ok(p.includes('symbolism') && p.includes('shadow') && p.includes('reflection') && p.includes('practice'))
+  ok(p.includes('realistic examples') && p.includes('risk') && p.includes('reflection') && p.includes('practice'))
   ok(new Set([q, d, p]).size === 3)
+})
+
+const allModes = ['quick', 'detailed', 'depth'] as const
+
+test('no poetic filler: neither language ever talks about light and shadow', () => {
+  for (const id of SPREAD_IDS)
+    for (let seed = 1; seed <= 25; seed++)
+      for (const l of locales)
+        for (const m of allModes) {
+          const r = interpret(id, draw(id, seeded(seed)), m, l, 'my work and money')
+          for (const text of [r.summary, ...r.positions.flatMap((p) => [p.meaning, p.detail])])
+            ok(!/light and shadow|\bshadow\b|світло й тінь|\bтінь\b|\bтіні\b/i.test(text), `${id}/${l}/${m}: ${text}`)
+        }
+})
+
+test('for every kind of spread the three modes differ in kind and grow in size', () => {
+  for (const id of SPREAD_IDS) {
+    if (id === 'custom') continue
+    for (const l of locales) {
+      const cards = draw(id, seeded(21))
+      const [q, d, p] = allModes.map((m) => interpret(id, cards, m, l, 'will it work out for me?'))
+      ok(q.summary.length < d.summary.length && d.summary.length < p.summary.length, `${id}/${l}: ${q.summary.length} ${d.summary.length} ${p.summary.length}`)
+      // приклади з життя є лише в глибокому режимі, у кожній позиції
+      const scene = l === 'en' ? 'What it can look like' : 'Як це може виглядати'
+      for (const pos of p.positions) ok(pos.detail.includes(scene), `${id}/${l}: ${pos.detail}`)
+      for (const pos of [...q.positions, ...d.positions]) ok(!pos.detail.includes(scene), `${id}/${l}`)
+      ok(!q.summary.includes(scene) && !d.summary.includes(scene) && p.summary.includes(scene), `${id}/${l}`)
+      // швидкий текст — це абзаци висновку й головної карти, а не розбір по картах
+      ok(q.summary.split('\n\n').length <= 2, `${id}/${l}: ${q.summary}`)
+      ok(p.summary.split('\n\n').length >= 5, `${id}/${l}: ${p.summary.split('\n\n').length}`)
+    }
+  }
+})
+
+test('a reversed card is read through its reversed meaning, and examples are adapted to a blocked form', () => {
+  const upright = interpret('daily', [{ id: 16, reversed: false }], 'depth', 'en')
+  const reversed = interpret('daily', [{ id: 16, reversed: true }], 'depth', 'en')
+  ok(upright.positions[0].meaning.includes('sudden shake-up') && !reversed.positions[0].meaning.includes('sudden shake-up'))
+  ok(reversed.positions[0].detail.includes('in a stuck or blocked form') && !upright.positions[0].detail.includes('in a stuck or blocked form'))
+})
+
+test('the same spread is read differently for different cards, and the suit is explained for the area of the question', () => {
+  const a = interpret('career', [{ id: 22, reversed: false }, { id: 22 + 14 + 3, reversed: false }, { id: 22 + 56 - 1, reversed: false }], 'depth', 'en', 'how is my work and career going?')
+  const b = interpret('career', [{ id: 16, reversed: false }, { id: 17, reversed: true }, { id: 3, reversed: false }], 'depth', 'en', 'how is my work and career going?')
+  ok(a.summary !== b.summary && a.positions[0].detail !== b.positions[0].detail)
+  ok(a.summary.includes('Wands in a question about work'), a.summary)
+  ok(a.summary.includes('Cups in a question about work'), a.summary)
+  ok(a.summary.includes('Pentacles in a question about work'), a.summary)
+})
+
+test('a relationship reading compares you and your partner', () => {
+  const youStrong = interpret('relationship', [{ id: 19, reversed: false }, { id: 16, reversed: false }, { id: 3, reversed: false }], 'quick', 'en').summary
+  ok(youStrong.includes('better place than your partner'), youStrong)
+  const partnerStrong = interpret('relationship', [{ id: 16, reversed: false }, { id: 19, reversed: false }, { id: 3, reversed: false }], 'quick', 'en').summary
+  ok(partnerStrong.includes('Your partner seems to be in a better place'), partnerStrong)
 })
