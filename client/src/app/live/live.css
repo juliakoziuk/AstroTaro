@@ -1,4 +1,61 @@
-/* Спільні вікна (форми, звіти, натальна карта, сумісність) і підказка внизу екрана. Екрани застосунку — page.css. */
+/* Живі елементи поверх плит екранів: оверлеї в сітці макета, підказки, модальні вікна, чат. */
+.v-app .ov {
+  position: absolute;
+  left: calc(var(--u) * var(--x) + var(--g) * var(--s, 1));
+  top: calc(var(--u) * var(--y));
+  width: calc(var(--u) * var(--w));
+  height: calc(var(--u) * var(--h));
+  border-radius: calc(var(--u) * var(--r, 0));
+  box-sizing: border-box;
+}
+
+.v-app .ov-none { pointer-events: none; }
+
+/* порожній слот списку, що закриває намальовану мініатюру */
+.v-app .tile {
+  display: grid;
+  place-items: center;
+  background: radial-gradient(circle at 50% 40%, #1b2d47, #0b1727 75%);
+  border: calc(var(--u) * 1.5) solid rgba(214, 170, 104, 0.7);
+  color: #e4be80;
+  font-family: 'Crimson Text', Georgia, serif;
+  font-size: calc(var(--u) * 34);
+  line-height: 1;
+}
+
+/* рамка виділеного рядка списку (замість намальованої) */
+.v-app .row-on {
+  border: calc(var(--u) * 2.5) solid #f0c47c;
+  box-shadow: 0 0 calc(var(--u) * 14) rgba(240, 190, 110, 0.55), inset 0 0 calc(var(--u) * 10) rgba(240, 190, 110, 0.12);
+}
+
+/* закриває намальовану підсвітку, коли вона не належить виділеному рядку */
+.v-app .row-off {
+  background: #0c192b;
+  border: calc(var(--u) * 1.5) solid rgba(206, 164, 100, 0.55);
+}
+
+/* картка таро на екрані Reading */
+/* Карта показується повністю (формат 2:3, без обрізання): картинка займає всю рамку й вписується в неї (contain). Відсоткова висота
+   в сітці не працює в Firefox (картинка ставала на ширину рамки й обрізалась знизу), тож розмір задано абсолютно. */
+/* (.ov вже position: absolute, тож картинка позиціонується від рамки) */
+.v-app .cardimg img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; border-radius: calc(var(--u) * 8); }
+.v-app .cardimg img.rev { transform: rotate(180deg); }
+/* стрілка й розділювач рядка списку розкладу (у плиті їх немає) */
+.v-app .chev { display: grid; place-items: center; color: #f3efe7; }
+.v-app .chev svg { width: 55%; height: 70%; }
+.v-app .divider { background: linear-gradient(90deg, transparent, rgba(214, 170, 104, 0.55) 12%, rgba(214, 170, 104, 0.55) 88%, transparent); }
+
+/* повний опис карти в позиції */
+.v-app .cardmdl { width: min(100%, 660px); display: grid; grid-template-columns: 200px 1fr; gap: 24px; align-items: start; }
+.v-app .cardmdl img { width: 200px; aspect-ratio: 2 / 3; object-fit: contain; border-radius: 12px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(228, 190, 128, 0.6); }
+.v-app .cardmdl img.rev { transform: rotate(180deg); }
+.v-app .cardmdl .where { margin: 0 0 4px; font-size: 13px; letter-spacing: 0.06em; color: #b9a07a; }
+.v-app .cardmdl .detail { margin: 0 0 14px; line-height: 1.6; color: #dcd6c8; }
+@media (max-width: 560px) {
+  .v-app .cardmdl { grid-template-columns: 1fr; justify-items: center; }
+  .v-app .cardmdl img { width: 150px; }
+}
 
 /* підказка внизу екрана */
 .toast {
@@ -85,6 +142,25 @@
 .v-app .mdl button.primary { background: linear-gradient(180deg, #f0cf94, #d3a768); color: #1a1208; border-color: transparent; }
 .v-app .mdl button:disabled { opacity: 0.6; cursor: default; }
 
+/* прокручуваний абзац поверх намальованої панелі (довжина тексту заздалегідь невідома) */
+.v-app .prose {
+  overflow-y: auto;
+  font-family: 'Source Sans 3', 'Segoe UI', sans-serif;
+  font-size: calc(var(--u) * var(--fs));
+  line-height: calc(var(--u) * var(--lh));
+  color: var(--c, #edebeb);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(214, 170, 104, 0.5) transparent;
+}
+
+/* затемнює намальовану підсвітку неактивної персони, не ховаючи її аватар */
+.v-app .row-dim {
+  background: rgba(8, 18, 32, 0.66);
+  border: calc(var(--u) * 1.5) solid rgba(206, 164, 100, 0.45);
+}
+
 /* підказки міст у формі профілю */
 .v-app .mdl .opt {
   display: block;
@@ -98,6 +174,74 @@
   color: #f3efe7;
 }
 .v-app .mdl .opt:hover { background: rgba(228, 190, 128, 0.12); }
+
+/* картина з музейної колекції у рамці */
+.v-app .artframe { overflow: hidden; border: calc(var(--u) * 2) solid rgba(214, 170, 104, 0.8); background: #0b1727; }
+.v-app .artframe a, .v-app .artframe img { display: block; width: 100%; height: 100%; }
+.v-app .artframe img { object-fit: cover; }
+.v-app .artframe small {
+  position: absolute;
+  inset: auto 0 0 0;
+  padding: calc(var(--u) * 6) calc(var(--u) * 12);
+  font: calc(var(--u) * 14)/1.3 'Source Sans 3', sans-serif;
+  color: #e9e1d0;
+  background: linear-gradient(transparent, rgba(5, 10, 18, 0.85));
+  pointer-events: none;
+}
+
+/* порожній стан списку снів: повідомлення й кнопка замість п'яти порожніх рядків */
+.v-app .empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: calc(var(--u) * 14);
+  text-align: center;
+  padding: 0 calc(var(--u) * 40);
+  color: #d9d2c3;
+  font-family: 'Source Sans 3', 'Segoe UI', sans-serif;
+}
+.v-app .empty h3 { margin: 0; font: 600 calc(var(--u) * 40)/1.2 'Crimson Text', Georgia, serif; color: #f1dda6; }
+.v-app .empty p { margin: 0; max-width: calc(var(--u) * 420); font-size: calc(var(--u) * 22); line-height: 1.4; color: #aeb6c2; }
+.v-app .cta {
+  margin-top: calc(var(--u) * 10);
+  padding: calc(var(--u) * 12) calc(var(--u) * 34);
+  border: 0;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #f0cf94, #d3a768);
+  color: #1a1208;
+  font: 600 calc(var(--u) * 22)/1 'Source Sans 3', sans-serif;
+  cursor: pointer;
+}
+.v-app .cta:hover { filter: brightness(1.08); }
+
+/* вибір мови на екрані Settings */
+.v-app .lang-panel {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--u) * 16);
+  padding: calc(var(--u) * 34) calc(var(--u) * 40);
+  font-family: 'Source Sans 3', 'Segoe UI', sans-serif;
+  color: #e6dfd0;
+}
+.v-app .lang-panel h2 { margin: 0; font: 600 calc(var(--u) * 42)/1.2 'Crimson Text', Georgia, serif; color: #f1dda6; }
+.v-app .lang-panel p { margin: 0 0 calc(var(--u) * 12); font-size: calc(var(--u) * 22); color: #aeb6c2; }
+.v-app .lang-opt {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: min(100%, calc(var(--u) * 520));
+  padding: calc(var(--u) * 16) calc(var(--u) * 26);
+  border-radius: 999px;
+  border: calc(var(--u) * 1.5) solid rgba(214, 170, 104, 0.45);
+  background: transparent;
+  color: inherit;
+  font: 600 calc(var(--u) * 26)/1 'Source Sans 3', sans-serif;
+  cursor: pointer;
+}
+.v-app .lang-opt:hover { background: rgba(228, 190, 128, 0.1); }
+.v-app .lang-opt.on { border-color: #f0c47c; background: rgba(240, 190, 110, 0.12); color: #f5dca8; box-shadow: 0 0 calc(var(--u) * 12) rgba(240, 190, 110, 0.35); }
+.v-app .lang-opt b { color: #f0c47c; }
 
 /* звіти */
 .v-app .mdl .report-text { margin: 0 0 12px; white-space: pre-wrap; overflow-wrap: anywhere; color: #e2dccd; font-size: 15.5px; line-height: 1.5; }
@@ -123,6 +267,32 @@
 .v-app .mdl .chart-table tr.meaning td { border-top: 0; padding: 0 0 8px; font-size: 13.5px; line-height: 1.45; color: #aeb6c2; }
 .v-app .mdl .chart-table td.asp { text-align: center; color: #e4be80; font-size: 18px; }
 
+/* екран розкладу: кнопки (замість намальованих), підпис і трактування однієї карти */
+.v-app .pill {
+  display: flex; align-items: center; justify-content: center; gap: calc(var(--u) * 16); padding: 0; cursor: pointer;
+  font: 400 calc(var(--u) * 30) / 1 'Crimson Text', Georgia, serif; color: #f3efe7;
+  background: rgba(8, 20, 36, 0.55); border: calc(var(--u) * 2) solid #e4be80; transition: filter 0.15s, box-shadow 0.15s;
+}
+.v-app .pill svg { font-size: calc(var(--u) * 34); color: #e4be80; }
+.v-app .pill:hover { box-shadow: 0 0 calc(var(--u) * 18) rgba(228, 190, 128, 0.35); }
+.v-app .pill.gold {
+  color: #21160a; border-color: transparent; background: linear-gradient(180deg, #f9e0a2, #e1b169);
+  box-shadow: 0 calc(var(--u) * 6) calc(var(--u) * 22) rgba(228, 190, 128, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+.v-app .pill.gold svg { color: #21160a; }
+.v-app .pill:focus-visible { outline: calc(var(--u) * 2) solid #f1dda6; outline-offset: calc(var(--u) * 3); }
+
+.v-app .cap { text-align: center; color: #f3efe7; }
+.v-app .cap b { display: block; font: 400 calc(var(--u) * 28) / 1.25 'Crimson Text', Georgia, serif; }
+.v-app .cap span { display: block; margin-top: calc(var(--u) * 2); font: 400 calc(var(--u) * 22) / 1.3 'Source Sans 3', 'Segoe UI', sans-serif; color: #e6dfce; }
+
+.v-app .single { overflow-y: auto; padding-right: calc(var(--u) * 8); scrollbar-width: thin; scrollbar-color: rgba(214, 170, 104, 0.5) transparent; }
+.v-app .single h3 { margin: 0 0 calc(var(--u) * 8); font: 400 calc(var(--u) * 30) / 1.2 'Crimson Text', Georgia, serif; color: #f3efe7; }
+.v-app .single p { margin: 0; font: 400 calc(var(--u) * 22) / 1.5 'Source Sans 3', 'Segoe UI', sans-serif; color: #e6dfce; }
+
+/* клікабельний рядок списку: без прямокутної рамки при наведенні, лише ледь помітне підсвічування */
+.v-app .hit.quiet:hover { box-shadow: none; background: rgba(232, 196, 138, 0.06); }
+
 /* сумісність: загальна оцінка, подвійне колесо, смужки за сферами */
 .v-app .mdl .syn-score { display: flex; align-items: baseline; gap: 14px; margin-bottom: 8px; }
 .v-app .mdl .syn-score b { font: 600 46px/1 'Crimson Text', Georgia, serif; color: #f1dda6; }
@@ -138,6 +308,14 @@
 .v-app .mdl .syn-bar div { height: 100%; border-radius: 4px; background: linear-gradient(90deg, #d3a768, #f0cf94); }
 .v-app .mdl .syn-change { margin-bottom: 10px; }
 
+/* підпис біля намальованої стрілки «назад» (напр. «Таро» на екрані Reading) */
+.v-app .crumb-ov { display: flex; align-items: center; }
+.v-app .crumb-ov button {
+  all: unset; box-sizing: border-box; cursor: pointer; color: #e4be80; font: 600 calc(var(--u) * 21) / 1 'Source Sans 3', 'Segoe UI', sans-serif;
+  padding: calc(var(--u) * 4) calc(var(--u) * 10); border-radius: calc(var(--u) * 16);
+}
+.v-app .crumb-ov button:hover { background: rgba(228, 190, 128, 0.14); color: #fff; }
+.v-app .crumb-ov button:focus-visible { outline: 2px solid #f4e1a8; outline-offset: 2px; }
 .v-app .mdl .syn-counted { margin: 0 0 8px; }
 .v-app .mdl .syn-all { margin: 0 0 16px; }
 .v-app .mdl .syn-all summary { cursor: pointer; color: #e4be80; font-weight: 600; padding: 4px 0; }
@@ -149,9 +327,47 @@
 .v-app .mdl .syn-person { margin: 0 0 12px; padding: 8px 12px 0; border: 1px solid rgba(228, 190, 128, 0.25); border-radius: 12px; }
 .v-app .mdl .syn-person legend { padding: 0 6px; font: 600 15px/1.2 'Crimson Text', Georgia, serif; color: #e4be80; }
 
+/* пошук у списку снів: поле в шапці списку (SearchBox у dreams.jsx) */
+.v-app .search { display: grid; align-items: center; }
+.v-app .search input {
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  padding: 0 calc(var(--u) * 18);
+  border: calc(var(--u) * 1.5) solid rgba(228, 190, 128, 0.4);
+  border-radius: 999px;
+  background: rgba(10, 22, 38, 0.7);
+  color: #f1e9d6;
+  font: 400 calc(var(--u) * 20) 'Source Sans 3', 'Segoe UI', sans-serif;
+}
+.v-app .search input::placeholder { color: #8f9bad; }
+.v-app .search input:focus-visible { outline: calc(var(--u) * 2) solid var(--gold); outline-offset: calc(var(--u) * 2); }
+
+/* тарифи: кнопка порталу Stripe для тих, хто вже підписаний (pricing.Over у simple.jsx) */
+.v-app .manage { display: grid; }
+.v-app .manage button {
+  height: 100%; border-radius: 999px; cursor: pointer; color: #1a1208; font: 600 calc(var(--u) * 20) 'Source Sans 3', 'Segoe UI', sans-serif;
+  border: 0; background: linear-gradient(180deg, #f0cf94, #d3a768);
+}
+.v-app .manage button:disabled { opacity: 0.6; cursor: default; }
+.v-app .manage button:focus-visible { outline: calc(var(--u) * 2) solid #fff; outline-offset: calc(var(--u) * 2); }
+
+/* тарифи: плашка «Ваш тариф» на кнопці поточного тарифу (pricing.Over у simple.jsx) */
+.v-app .yourplan {
+  display: grid; place-items: center; box-sizing: border-box; background: #0d2034; color: #f3e4bf; border: calc(var(--u) * 2) solid #d9ac63;
+  font: 600 calc(var(--u) * 24) 'Source Sans 3', 'Segoe UI', sans-serif; letter-spacing: 0.02em;
+}
+
 /* сумісність: згорнутий шаблонний розбір під текстом від моделі (CompatibilityDialog.jsx) */
 .v-app .mdl .syn-details { margin: 10px 0; }
 .v-app .mdl .syn-details > summary { cursor: pointer; color: #e4be80; }
 
+/* повний текст тлумачення у великому вікні (екран Reading): абзаци розділені порожнім рядком, рядки в абзаці — переносом */
+.v-app .full-link { display: flex; justify-content: flex-end; align-items: center; }
+.v-app .full-link button {
+  padding: 0; font: inherit; font-size: calc(var(--u) * 17); color: #e8c987; background: none; border: 0; cursor: pointer;
+  text-decoration: underline; text-underline-offset: 3px;
+}
+.v-app .full-link button:hover { color: #f6e3b4; }
 .v-app .full-text { max-height: 62vh; overflow-y: auto; padding-right: 8px; }
 .v-app .full-text p { margin: 0 0 14px; line-height: 1.6; color: #dcd6c8; white-space: pre-line; }

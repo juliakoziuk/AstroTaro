@@ -1,4 +1,5 @@
 import { useTheme } from '../../lib/theme.js'
+import { Ov } from './parts.jsx'
 import { degreeLabel, pointAt, spreadPlanets } from './wheelLayout.js'
 import {
   ANGLE_LABEL_RADIUS,
@@ -23,12 +24,15 @@ import {
   SIGN_GLYPH_RADIUS,
   SIGN_GLYPH_SIZE,
   SIGN_RING_INNER_RADIUS,
+  WHEEL_CENTER,
   wheelColors,
   WHEEL_COVER_RADIUS,
   WHEEL_RIM_RADIUS,
   WHEEL_VIEW_RADIUS,
 } from './zodiacWheel.constants.js'
 
+// місце колеса на плиті (темна тема); на сторінці світлої теми колесо вбудоване (inline)
+const AT = [WHEEL_CENTER.x - WHEEL_VIEW_RADIUS, WHEEL_CENTER.y - WHEEL_VIEW_RADIUS, WHEEL_VIEW_RADIUS * 2, WHEEL_VIEW_RADIUS * 2, WHEEL_VIEW_RADIUS]
 const HALF_SIGN = SIGN_ARC_DEGREES / 2
 const HALF_CIRCLE = FULL_CIRCLE_DEGREES / 2
 const VIEW_BOX = `${-WHEEL_VIEW_RADIUS} ${-WHEEL_VIEW_RADIUS} ${WHEEL_VIEW_RADIUS * 2} ${WHEEL_VIEW_RADIUS * 2}`
@@ -40,7 +44,9 @@ const lineProps = (a, b) => ({ x1: a.x, y1: a.y, x2: b.x, y2: b.y })
  * Живе зодіакальне колесо поверх намальованого. Натальна карта (є час і місце): Асцендент зліва, будинки за Плацідусом,
  * кути ASC/DC/MC/IC. Без часу — знаки з 0° Овна ліворуч; без дати народження — небо зараз. Лінії всередині — аспекти.
  */
-export function ZodiacWheel({ planets, aspects = [], houses = null, angles = null, label }) {
+export function ZodiacWheel({ planets, aspects = [], houses = null, angles = null, label, inline = false }) {
+  const Wrap = inline ? 'div' : Ov
+  const wrapProps = inline ? { className: 'ap-wheel' } : { at: AT, className: 'ov-none' }
   const colors = wheelColors(useTheme())
   const asc = angles?.ascendant ?? 0
   const at = (longitude, radius) => pointAt(longitude, radius, asc)
@@ -49,7 +55,7 @@ export function ZodiacWheel({ planets, aspects = [], houses = null, angles = nul
   const axes = angles ? [['AC', angles.ascendant], ['DC', angles.ascendant + HALF_CIRCLE], ['MC', angles.midheaven], ['IC', angles.midheaven + HALF_CIRCLE]] : []
 
   return (
-    <div className="ap-wheel" role="img" aria-label={label}>
+    <Wrap {...wrapProps} role="img" aria-label={label}>
       <svg viewBox={VIEW_BOX} width="100%" height="100%">
         <circle r={WHEEL_COVER_RADIUS} fill={colors.cover} />
         <circle r={ASPECT_RING_RADIUS} fill={colors.inner} />
@@ -112,6 +118,6 @@ export function ZodiacWheel({ planets, aspects = [], houses = null, angles = nul
           )
         })}
       </svg>
-    </div>
+    </Wrap>
   )
 }

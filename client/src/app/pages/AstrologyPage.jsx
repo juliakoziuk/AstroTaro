@@ -52,7 +52,7 @@ export default function AstrologyPage() {
         <div className="ap-cols">
           <div className="ap-stack">
             <section className="ap-panel">
-              {chart && <ZodiacWheel planets={chart.planets} aspects={chart.aspects} houses={natal?.houses} angles={natal?.angles} label={t('Zodiac wheel')} />}
+              {chart && <ZodiacWheel inline planets={chart.planets} aspects={chart.aspects} houses={natal?.houses} angles={natal?.angles} label={t('Zodiac wheel')} />}
               {!natal && (
                 <p className="ap-note" role="status">
                   {t('Add your birth date to see your natal chart')}{' '}

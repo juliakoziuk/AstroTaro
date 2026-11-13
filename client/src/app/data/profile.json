@@ -1,0 +1,595 @@
+{
+ "id": "profile",
+ "route": "/profile",
+ "title": "Profile",
+ "texts": [
+  {
+   "s": "MYSTIQ",
+   "tag": "span",
+   "x": 81.38,
+   "y": 118.36,
+   "fs": 30.86,
+   "ls": -0.48,
+   "lh": 40.12,
+   "c": "#ece0b8",
+   "f": "serif",
+   "wg": 400,
+   "href": "#/dashboard"
+  },
+  {
+   "s": "Home",
+   "tag": "span",
+   "x": 127.39,
+   "y": 247.64,
+   "fs": 20.1,
+   "ls": 0,
+   "lh": 26.12,
+   "c": "#efebc8",
+   "f": "sans",
+   "wg": 400
+  },
+  {
+   "s": "Analytics",
+   "tag": "span",
+   "x": 128,
+   "y": 393.83,
+   "fs": 20.1,
+   "ls": -0.04,
+   "lh": 26.12,
+   "c": "#e6e5e6",
+   "f": "sans",
+   "wg": 400
+  },
+  {
+   "s": "Access",
+   "tag": "span",
+   "x": 128,
+   "y": 461.64,
+   "fs": 20.1,
+   "ls": 0.28,
+   "lh": 26.12,
+   "c": "#e5e3e3",
+   "f": "sans",
+   "wg": 400
+  },
+  {
+   "s": "Settings",
+   "tag": "span",
+   "x": 127.4,
+   "y": 529.93,
+   "fs": 20.1,
+   "ls": 0,
+   "lh": 26.12,
+   "c": "#e7e6e7",
+   "f": "sans",
+   "wg": 400
+  },
+  {
+   "s": "Help",
+   "tag": "span",
+   "x": 127.39,
+   "y": 597.83,
+   "fs": 20.1,
+   "ls": 0,
+   "lh": 26.12,
+   "c": "#e8e5e4",
+   "f": "sans",
+   "wg": 400
+  },
+  {
+   "s": "Profile",
+   "tag": "h1",
+   "x": 283.35,
+   "y": 66.8,
+   "fs": 54.87,
+   "ls": 0,
+   "lh": 71.33,
+   "c": "#f4f1e5",
+   "f": "serif",
+   "wg": 400
+  },
+  {
+   "s": "Manage your account, preferences, and personal information",
+   "tag": "span",
+   "x": 282.17,
+   "y": 133.27,
+   "fs": 22.86,
+   "ls": 0,
+   "lh": 29.72,
+   "c": "#fcfbf9",
+   "f": "sans",
+   "wg": 500
+  },
+  {
+   "s": "Yullia",
+   "tag": "h2",
+   "x": 501.55,
+   "y": 221.59,
+   "fs": 44.58,
+   "ls": 0,
+   "lh": 57.95,
+   "c": "#f3efe4",
+   "f": "serif",
+   "wg": 600
+  },
+  {
+   "s": "yuliia@example.com",
+   "tag": "span",
+   "x": 510,
+   "y": 280.86,
+   "fs": 22.89,
+   "ls": 0,
+   "lh": 29.76,
+   "c": "#eae8e8",
+   "f": "sans",
+   "wg": 400
+  },
+  {
+   "s": "Jun 22, 2004",
+   "tag": "span",
+   "x": 550.31,
+   "y": 324.63,
+   "fs": 22.89,
+   "ls": -0.18,
+   "lh": 29.76,
+   "c": "#e3e0df",
+   "f": "sans",
+   "wg": 400
+  },
+  {
+   "s": "Edit Profile",
+   "tag": "span",
+   "x": 1294.26,
+   "y": 279.27,
+   "fs": 21.7,
+   "ls": 0,
+   "lh": 28.2,
+   "c": "#f4e6a5",
+   "f": "sans",
+   "wg": 500
+  },
+  {
+   "s": "Your Activity",
+   "tag": "h2",
+   "x": 297.72,
+   "y": 422.87,
+   "fs": 28.26,
+   "ls": 0,
+   "lh": 36.74,
+   "c": "#f3efe1",
+   "f": "serif",
+   "wg": 600
+  },
+  {
+   "s": "24",
+   "tag": "span",
+   "x": 366.52,
+   "y": 533.24,
+   "fs": 36.92,
+   "ls": 0.41,
+   "lh": 48,
+   "c": "#f5ebcd",
+   "f": "serif",
+   "wg": 400
+  },
+  {
+   "s": "18",
+   "tag": "span",
+   "x": 558.15,
+   "y": 533.92,
+   "fs": 36.92,
+   "ls": 0.34,
+   "lh": 48,
+   "c": "#f7efdb",
+   "f": "serif",
+   "wg": 400
+  },
+  {
+   "s": "5",
+   "tag": "span",
+   "x": 750.15,
+   "y": 533.74,
+   "fs": 36.92,
+   "ls": 0,
+   "lh": 48,
+   "c": "#f4edd4",
+   "f": "serif",
+   "wg": 400
+  },
+  {
+   "s": "Readings",
+   "tag": "span",
+   "x": 349.52,
+   "y": 573.28,
+   "fs": 18.49,
+   "ls": -0.08,
+   "lh": 24.04,
+   "c": "#ebe9e5",
+   "f": "sans",
+   "wg": 400
+  },
+  {
+   "s": "Dreams",
+   "tag": "span",
+   "x": 543.52,
+   "y": 573.16,
+   "fs": 18.49,
+   "ls": 0.22,
+   "lh": 24.04,
+   "c": "#ebe9e4",
+   "f": "sans",
+   "wg": 400
+  },
+  {
+   "s": "Reports",
+   "tag": "span",
+   "x": 729.52,
+   "y": 572.91,
+   "fs": 18.49,
+   "ls": 0,
+   "lh": 24.04,
+   "c": "#ece9e2",
+   "f": "sans",
+   "wg": 400
+  },
+  {
+   "s": "Saved Readings",
+   "tag": "h3",
+   "x": 384.57,
+   "y": 669.65,
+   "fs": 21.62,
+   "ls": 0.2,
+   "lh": 28.1,
+   "c": "#f0ede4",
+   "f": "serif",
+   "wg": 700
+  },
+  {
+   "s": "Favorites",
+   "tag": "h3",
+   "x": 385.57,
+   "y": 730.21,
+   "fs": 21.62,
+   "ls": -0.4,
+   "lh": 28.1,
+   "c": "#efece2",
+   "f": "serif",
+   "wg": 700
+  },
+  {
+   "s": "History",
+   "tag": "h3",
+   "x": 385.57,
+   "y": 787.04,
+   "fs": 21.62,
+   "ls": -0.55,
+   "lh": 28.1,
+   "c": "#f1eee6",
+   "f": "serif",
+   "wg": 700
+  },
+  {
+   "s": "My Reports",
+   "tag": "h3",
+   "x": 385.78,
+   "y": 845.72,
+   "fs": 21.62,
+   "ls": 0,
+   "lh": 28.1,
+   "c": "#f1eee5",
+   "f": "serif",
+   "wg": 700
+  },
+  {
+   "s": "Account Settings",
+   "tag": "h2",
+   "x": 915.35,
+   "y": 420.29,
+   "fs": 32.26,
+   "ls": 0,
+   "lh": 41.94,
+   "c": "#f3efe3",
+   "f": "serif",
+   "wg": 600
+  },
+  {
+   "s": "Email",
+   "tag": "h3",
+   "x": 994.56,
+   "y": 487.19,
+   "fs": 22,
+   "ls": -0.86,
+   "lh": 28.6,
+   "c": "#edebe6",
+   "f": "serif",
+   "wg": 400
+  },
+  {
+   "s": "yuliia@example.com",
+   "tag": "span",
+   "x": 1218,
+   "y": 487.41,
+   "fs": 20.7,
+   "ls": -0.53,
+   "lh": 26.91,
+   "c": "#e4e2e1",
+   "f": "sans",
+   "wg": 400
+  },
+  {
+   "s": "Password",
+   "tag": "h3",
+   "x": 994.34,
+   "y": 542.08,
+   "fs": 22,
+   "ls": 0,
+   "lh": 28.6,
+   "c": "#eeede8",
+   "f": "serif",
+   "wg": 400
+  },
+  {
+   "s": "Notifications",
+   "tag": "h3",
+   "x": 995.78,
+   "y": 598.08,
+   "fs": 22,
+   "ls": -0.02,
+   "lh": 28.6,
+   "c": "#eeece6",
+   "f": "serif",
+   "wg": 400
+  },
+  {
+   "s": "Language",
+   "tag": "h3",
+   "x": 996.34,
+   "y": 656.33,
+   "fs": 22,
+   "ls": 0.19,
+   "lh": 28.6,
+   "c": "#edebe7",
+   "f": "serif",
+   "wg": 400
+  },
+  {
+   "s": "Theme",
+   "tag": "h3",
+   "x": 995.56,
+   "y": 717.19,
+   "fs": 22,
+   "ls": 0.37,
+   "lh": 28.6,
+   "c": "#f3f0ea",
+   "f": "serif",
+   "wg": 400
+  },
+  {
+   "s": "Log Out",
+   "tag": "h3",
+   "x": 1170.5,
+   "y": 828.7,
+   "fs": 24.89,
+   "ls": 0,
+   "lh": 32.36,
+   "c": "#f3df96",
+   "f": "serif",
+   "wg": 600
+  }
+ ],
+ "hits": [
+  {
+   "label": "Back",
+   "x": 270,
+   "y": 13,
+   "w": 55,
+   "h": 55,
+   "r": 27,
+   "href": "back:#/dashboard"
+  },
+  {
+   "label": "Edit Profile",
+   "x": 1219,
+   "y": 266,
+   "w": 209,
+   "h": 54,
+   "r": 27,
+   "href": "#/settings"
+  },
+  {
+   "label": "Readings",
+   "x": 297,
+   "y": 473,
+   "w": 174,
+   "h": 138,
+   "r": 18,
+   "href": "#/reading"
+  },
+  {
+   "label": "Dreams",
+   "x": 486,
+   "y": 473,
+   "w": 174,
+   "h": 138,
+   "r": 18,
+   "href": "#/dreams"
+  },
+  {
+   "label": "Reports",
+   "x": 674,
+   "y": 473,
+   "w": 174,
+   "h": 138,
+   "r": 18,
+   "href": "#/astrology"
+  },
+  {
+   "label": "Saved Readings",
+   "x": 300,
+   "y": 655,
+   "w": 560,
+   "h": 57,
+   "r": 14,
+   "href": "#/reading"
+  },
+  {
+   "label": "My Reports",
+   "x": 300,
+   "y": 832,
+   "w": 560,
+   "h": 56,
+   "r": 14,
+   "href": "#/astrology"
+  },
+  {
+   "label": "Email",
+   "x": 898,
+   "y": 478,
+   "w": 572,
+   "h": 50,
+   "r": 14,
+   "href": "#/settings"
+  },
+  {
+   "label": "Password",
+   "x": 898,
+   "y": 534,
+   "w": 572,
+   "h": 50,
+   "r": 14,
+   "href": "#/settings"
+  },
+  {
+   "label": "Log Out",
+   "x": 898,
+   "y": 815,
+   "w": 572,
+   "h": 62,
+   "r": 31,
+   "href": "#/login"
+  },
+  {
+   "label": "MYSTIQ",
+   "x": 60,
+   "y": 30,
+   "w": 150,
+   "h": 130,
+   "r": 20,
+   "href": "#/dashboard"
+  },
+  {
+   "label": "Home",
+   "x": 46,
+   "y": 227,
+   "w": 184,
+   "h": 66,
+   "r": 33,
+   "href": "#/dashboard",
+   "nav": true
+  },
+  {
+   "label": "Analytics",
+   "x": 46,
+   "y": 375,
+   "w": 184,
+   "h": 66,
+   "r": 33,
+   "href": "#/analysis",
+   "nav": true
+  },
+  {
+   "label": "Access",
+   "x": 46,
+   "y": 441,
+   "w": 184,
+   "h": 66,
+   "r": 33,
+   "href": "#/pricing",
+   "nav": true
+  },
+  {
+   "label": "Settings",
+   "x": 46,
+   "y": 511,
+   "w": 184,
+   "h": 66,
+   "r": 33,
+   "href": "#/settings",
+   "nav": true
+  },
+  {
+   "label": "Help",
+   "x": 46,
+   "y": 579,
+   "w": 184,
+   "h": 66,
+   "r": 33,
+   "href": "#/settings",
+   "nav": true
+  }
+ ],
+ "toggles": [
+  {
+   "id": "notif",
+   "x": 1385,
+   "y": 598,
+   "w": 60,
+   "h": 32,
+   "on": true
+  }
+ ],
+ "radios": [],
+ "checks": [],
+ "reveals": [],
+ "clears": [],
+ "selects": [
+  {
+   "id": "lang",
+   "options": [
+    "English",
+    "Ukrainian"
+   ],
+   "x": 1330,
+   "y": 652,
+   "w": 124,
+   "h": 40,
+   "t": {
+    "s": "English",
+    "tag": "span",
+    "x": 1342.34,
+    "y": 657.7,
+    "fs": 20.7,
+    "ls": 0,
+    "lh": 26.91,
+    "c": "#eae8e5",
+    "f": "sans",
+    "wg": 400
+   }
+  },
+  {
+   "id": "theme",
+   "options": [
+    "Dark",
+    "Light",
+    "Auto"
+   ],
+   "x": 1352,
+   "y": 712,
+   "w": 100,
+   "h": 40,
+   "t": {
+    "s": "Dark",
+    "tag": "span",
+    "x": 1363.34,
+    "y": 717.87,
+    "fs": 20.7,
+    "ls": 0,
+    "lh": 26.91,
+    "c": "#eeece9",
+    "f": "sans",
+    "wg": 400
+   }
+  }
+ ],
+ "inputs": []
+}

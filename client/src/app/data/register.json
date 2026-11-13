@@ -1,0 +1,386 @@
+{
+ "id": "register",
+ "route": "/register",
+ "title": "Create your account",
+ "texts": [
+  {
+   "s": "MYSTIQ",
+   "tag": "span",
+   "x": 79.41,
+   "y": 117.7,
+   "fs": 29.63,
+   "ls": 0.84,
+   "lh": 38.52,
+   "c": "#edd89a",
+   "f": "serif",
+   "wg": 400,
+   "href": "#/dashboard"
+  },
+  {
+   "s": "Home",
+   "tag": "span",
+   "x": 126.36,
+   "y": 246.35,
+   "fs": 20.55,
+   "ls": 0,
+   "lh": 26.71,
+   "c": "#e6d9a1",
+   "f": "sans",
+   "wg": 400
+  },
+  {
+   "s": "Analytics",
+   "tag": "span",
+   "x": 127,
+   "y": 392.51,
+   "fs": 20.55,
+   "ls": 0,
+   "lh": 26.71,
+   "c": "#b4b8c2",
+   "f": "sans",
+   "wg": 400
+  },
+  {
+   "s": "Access",
+   "tag": "span",
+   "x": 127,
+   "y": 460.35,
+   "fs": 20.55,
+   "ls": 0.23,
+   "lh": 26.71,
+   "c": "#bbbec6",
+   "f": "sans",
+   "wg": 400
+  },
+  {
+   "s": "Settings",
+   "tag": "span",
+   "x": 127.38,
+   "y": 527.6,
+   "fs": 20.55,
+   "ls": -0.22,
+   "lh": 26.71,
+   "c": "#babdc6",
+   "f": "sans",
+   "wg": 400
+  },
+  {
+   "s": "Help",
+   "tag": "span",
+   "x": 126.36,
+   "y": 596.01,
+   "fs": 20.55,
+   "ls": 0,
+   "lh": 26.71,
+   "c": "#babdc5",
+   "f": "sans",
+   "wg": 400
+  },
+  {
+   "s": "MYSTIQ",
+   "tag": "span",
+   "x": 840.19,
+   "y": 147.59,
+   "fs": 40.74,
+   "ls": 3,
+   "lh": 52.96,
+   "c": "#f1dda6",
+   "f": "serif",
+   "wg": 400
+  },
+  {
+   "s": "Create your account",
+   "tag": "h1",
+   "x": 746.13,
+   "y": 239.7,
+   "fs": 46.66,
+   "ls": 0,
+   "lh": 60.66,
+   "c": "#eeedec",
+   "f": "serif",
+   "wg": 400
+  },
+  {
+   "s": "Join MYSTIQ and start your journey",
+   "tag": "span",
+   "x": 747.26,
+   "y": 299.52,
+   "fs": 24.61,
+   "ls": 0,
+   "lh": 32,
+   "c": "#b4b7c0",
+   "f": "sans",
+   "wg": 400
+  },
+  {
+   "s": "I agree to the",
+   "tag": "span",
+   "x": 731.02,
+   "y": 646.82,
+   "fs": 24.73,
+   "ls": 0,
+   "lh": 32.14,
+   "c": "#d7d5d9",
+   "f": "sans",
+   "wg": 400
+  },
+  {
+   "s": "Terms of Service",
+   "tag": "span",
+   "x": 871.51,
+   "y": 646.54,
+   "fs": 24.73,
+   "ls": 0.07,
+   "lh": 32.14,
+   "c": "#f0d07b",
+   "f": "sans",
+   "wg": 400
+  },
+  {
+   "s": "and",
+   "tag": "span",
+   "x": 731.01,
+   "y": 679.92,
+   "fs": 24.73,
+   "ls": 0,
+   "lh": 32.14,
+   "c": "#d6d5da",
+   "f": "sans",
+   "wg": 400
+  },
+  {
+   "s": "Privacy Policy",
+   "tag": "span",
+   "x": 775.02,
+   "y": 680.07,
+   "fs": 24.73,
+   "ls": -0.32,
+   "lh": 32.14,
+   "c": "#edcb7b",
+   "f": "sans",
+   "wg": 400
+  },
+  {
+   "s": "Create Account",
+   "tag": "span",
+   "x": 858.78,
+   "y": 753.13,
+   "fs": 30.5,
+   "ls": 0,
+   "lh": 39.65,
+   "c": "#121923",
+   "f": "sans",
+   "wg": 600
+  },
+  {
+   "s": "Already have an account?",
+   "tag": "span",
+   "x": 750,
+   "y": 831.62,
+   "fs": 25.36,
+   "ls": -0.4,
+   "lh": 32.97,
+   "c": "#c8c8cf",
+   "f": "sans",
+   "wg": 400
+  },
+  {
+   "s": "Sign In",
+   "tag": "span",
+   "x": 1025.24,
+   "y": 831.87,
+   "fs": 25.36,
+   "ls": 0,
+   "lh": 32.97,
+   "c": "#edc672",
+   "f": "sans",
+   "wg": 600,
+   "href": "#/login"
+  }
+ ],
+ "hits": [
+  {
+   "label": "Create Account",
+   "x": 653,
+   "y": 740,
+   "w": 545,
+   "h": 64,
+   "r": 32,
+   "href": "#/dashboard"
+  },
+  {
+   "label": "MYSTIQ",
+   "x": 60,
+   "y": 30,
+   "w": 150,
+   "h": 130,
+   "r": 20,
+   "href": "#/dashboard"
+  },
+  {
+   "label": "Home",
+   "x": 46,
+   "y": 226,
+   "w": 184,
+   "h": 66,
+   "r": 33,
+   "href": "#/dashboard",
+   "nav": true
+  },
+  {
+   "label": "Analytics",
+   "x": 46,
+   "y": 374,
+   "w": 184,
+   "h": 66,
+   "r": 33,
+   "href": "#/analysis",
+   "nav": true
+  },
+  {
+   "label": "Access",
+   "x": 46,
+   "y": 440,
+   "w": 184,
+   "h": 66,
+   "r": 33,
+   "href": "#/pricing",
+   "nav": true
+  },
+  {
+   "label": "Settings",
+   "x": 46,
+   "y": 509,
+   "w": 184,
+   "h": 66,
+   "r": 33,
+   "href": "#/settings",
+   "nav": true
+  },
+  {
+   "label": "Help",
+   "x": 46,
+   "y": 577,
+   "w": 184,
+   "h": 66,
+   "r": 33,
+   "href": "#/settings",
+   "nav": true
+  }
+ ],
+ "toggles": [],
+ "radios": [],
+ "checks": [
+  {
+   "id": "terms",
+   "x": 674,
+   "y": 650,
+   "size": 28,
+   "on": false
+  }
+ ],
+ "reveals": [
+  {
+   "id": "password",
+   "x": 1128,
+   "y": 508,
+   "w": 52,
+   "h": 34
+  },
+  {
+   "id": "confirm",
+   "x": 1128,
+   "y": 580,
+   "w": 52,
+   "h": 34
+  }
+ ],
+ "clears": [],
+ "selects": [],
+ "inputs": [
+  {
+   "id": "fullname",
+   "type": "text",
+   "placeholder": "Full name",
+   "x": 651,
+   "y": 353,
+   "w": 544,
+   "h": 59,
+   "t": {
+    "s": "Full name",
+    "tag": "span",
+    "x": 740.28,
+    "y": 368.88,
+    "fs": 21.5,
+    "ls": -0.13,
+    "lh": 27.96,
+    "c": "#aeb2bb",
+    "f": "sans",
+    "wg": 400
+   }
+  },
+  {
+   "id": "email",
+   "type": "email",
+   "placeholder": "Email address",
+   "x": 651,
+   "y": 423,
+   "w": 544,
+   "h": 60,
+   "t": {
+    "s": "Email address",
+    "tag": "span",
+    "x": 740.28,
+    "y": 439.38,
+    "fs": 21.5,
+    "ls": -0.03,
+    "lh": 27.96,
+    "c": "#b6b9c2",
+    "f": "sans",
+    "wg": 400
+   }
+  },
+  {
+   "id": "password",
+   "type": "password",
+   "placeholder": "Password",
+   "x": 651,
+   "y": 494,
+   "w": 544,
+   "h": 60,
+   "t": {
+    "s": "Password",
+    "tag": "span",
+    "x": 741.28,
+    "y": 510.88,
+    "fs": 21.5,
+    "ls": 0,
+    "lh": 27.96,
+    "c": "#b1b6c0",
+    "f": "sans",
+    "wg": 400
+   }
+  },
+  {
+   "id": "confirm",
+   "type": "password",
+   "placeholder": "Confirm password",
+   "x": 651,
+   "y": 565,
+   "w": 544,
+   "h": 60,
+   "t": {
+    "s": "Confirm password",
+    "tag": "span",
+    "x": 742.14,
+    "y": 581.94,
+    "fs": 21.5,
+    "ls": 0.06,
+    "lh": 27.96,
+    "c": "#b0b4bd",
+    "f": "sans",
+    "wg": 400
+   }
+  }
+ ]
+}
