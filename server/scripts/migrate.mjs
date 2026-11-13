@@ -24,6 +24,7 @@ const connection = (database) => ({
   user: url ? decodeURIComponent(url.username) : process.env.DB_USER,
   password: url ? decodeURIComponent(url.password) : process.env.DB_PASS,
   database,
+  connectionTimeoutMillis: 20_000, // не ждати з'єднання вічно: краще впасти з помилкою, ніж мовчки завісити деплой
   ...(useSsl ? { ssl: { rejectUnauthorized: !noVerify } } : {}),
 })
 
@@ -47,10 +48,29 @@ if (process.argv.includes('--create') && url) {
 
 const client = new pg.Client(connection(databaseName))
 await client.connect()
+
+// Один виконавець за раз: дві репліки чи два деплої одночасно не застосують файл двічі.
+// Блокування тримаємо лише на час транзакції (pg_advisory_xact_lock): воно зникає саме при COMMIT/ROLLBACK. Колишнє сесійне
+// pg_advisory_lock через пулер Neon (PgBouncer) могло лишатись на чужому з'єднанні й вічно блокувати наступні запуски (деплой висів
+// після «node scripts/migrate.mjs» без жодного рядка). Ключ тепер інший, щоб не наткнутись на таке застрягле блокування зі старої версії.
+// lock_timeout: чекати на іншого виконавця не довше хвилини, далі помилка замість вічного очікування.
+const LOCK_KEY = 727275
+async function inLock(work) {
+  await client.query('BEGIN')
+  try {
+    await client.query("SET LOCAL lock_timeout = '60s'")
+    await client.query('SELECT pg_advisory_xact_lock($1)', [LOCK_KEY])
+    const result = await work()
+    await client.query('COMMIT')
+    return result
+  } catch (e) {
+    await client.query('ROLLBACK').catch(() => {})
+    throw e
+  }
+}
+
 try {
-  // один виконавець за раз: два одночасні запуски (наприклад, дві репліки) не застосують файл двічі
-  await client.query('SELECT pg_advisory_lock(727274)')
-  await client.query('CREATE TABLE IF NOT EXISTS schema_migrations (name text PRIMARY KEY, applied_at timestamptz NOT NULL DEFAULT now())')
+  await inLock(() => client.query('CREATE TABLE IF NOT EXISTS schema_migrations (name text PRIMARY KEY, applied_at timestamptz NOT NULL DEFAULT now())'))
   const done = new Set((await client.query('SELECT name FROM schema_migrations')).rows.map((r) => r.name))
   const files = (await readdir(dir)).filter((f) => f.endsWith('.sql')).sort()
   let applied = 0
@@ -64,16 +84,23 @@ try {
       continue
     }
     const sql = await readFile(path.join(dir, file), 'utf8')
+    let outcome
     try {
-      await client.query('BEGIN')
-      await client.query(sql)
-      await client.query('INSERT INTO schema_migrations (name) VALUES ($1)', [file])
-      await client.query('COMMIT')
+      // у блокуванні перевіряємо ще раз: інший запуск міг застосувати цей файл, поки ми чекали
+      outcome = await inLock(async () => {
+        if ((await client.query('SELECT 1 FROM schema_migrations WHERE name = $1', [file])).rowCount) return 'already'
+        await client.query(sql)
+        await client.query('INSERT INTO schema_migrations (name) VALUES ($1)', [file])
+        return 'applied'
+      })
     } catch (e) {
-      await client.query('ROLLBACK')
       console.error(`FAILED   ${file}: ${e.message}`)
       process.exitCode = 1
       break
+    }
+    if (outcome === 'already') {
+      console.log(`  ok       ${file}`)
+      continue
     }
     console.log(`  applied  ${file}`)
     applied++

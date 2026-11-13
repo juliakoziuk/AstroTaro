@@ -13,7 +13,7 @@
 ## 1. База (Neon)
 
 1. Створіть проєкт, регіон **Frankfurt** (ближче до України й до сервера Render).
-2. У розділі підключення скопіюйте **connection string**: `postgresql://…@ep-….neon.tech/neondb?sslmode=require`. Це значення `DATABASE_URL`.
+2. У розділі підключення **вимкніть Connection pooling** (потрібен прямий рядок без `-pooler` у назві хоста: через пулер міграції можуть висіти) і скопіюйте **connection string**: `postgresql://…@ep-….neon.tech/neondb?sslmode=require`. Це значення `DATABASE_URL`.
 3. Нічого створювати вручну не треба: таблиці створить сервер під час першого запуску (міграції).
 
 ## 2. Бекенд (Render)
