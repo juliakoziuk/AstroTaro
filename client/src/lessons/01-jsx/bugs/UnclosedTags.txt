@@ -1,9 +1,0 @@
-function LoginForm() {
-  return (
-    <form>
-      <input type="email" placeholder="Email">
-      <br>
-      <button>Увійти</button>
-    </form>
-  )
-}

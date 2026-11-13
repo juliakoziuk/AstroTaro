@@ -61,7 +61,7 @@ for (const sc of SCREENS) {
 DYNAMIC.forEach((k) => add(k, 'dynamic'))
 
 // літерали всередині t(...) і label="..." у вихідному коді
-const SKIP = ['src/i18n', 'src/lessons', 'src/rn-lite', 'src/mystiq', 'src/app/data']
+const SKIP = ['src/i18n', 'src/app/data']
 const files = []
 const walk = (dir) => {
   for (const e of fs.readdirSync(dir, { withFileTypes: true })) {

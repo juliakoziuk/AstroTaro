@@ -5,7 +5,6 @@
 - `client/` — фронтенд (React + Vite): `src/`, `public/`, HTML-входи, скрипти збірки плит і перевірок (`client/scripts/`).
 - `server/` — API на NestJS (PostgreSQL через `docker-compose.yml`).
 - `assets/` — вихідні зображення для скриптів збірки: `cards/`, `imgase/` (макети екранів), `reference/`, `design/`, `img.png`.
-- `photo-studio/` — окремий навчальний Angular-проєкт.
 - Корінь: `npm run run:all` (клієнт + сервер разом), `npm run run:frontend`, `npm run run:backend`, `npm run build`, `npm test`, `npm run lint`.
   Команди клієнта (`i18n:check`, `app:*`, `landing:*`, `login:*`) запускайте з `client/`: `npm --prefix client run i18n:check`.
 
