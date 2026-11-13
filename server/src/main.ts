@@ -8,6 +8,6 @@ async function bootstrap() {
   configureApp(app)
   const port = Number(process.env.PORT ?? 3000)
   await app.listen(port)
-  console.log(`MYSTIQ API: http://localhost:${port}/api`)
+  console.log(`API is listening on port ${port} (path /api)`)
 }
 bootstrap()
