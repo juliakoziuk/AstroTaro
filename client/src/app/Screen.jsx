@@ -9,6 +9,7 @@ import SideProfile from './SideProfile.jsx'
 import ThemeToggle from './ThemeToggle.jsx'
 import { LogoutIcon } from './icons.jsx'
 import { logOut } from './live/common.js'
+import { usePlateReady } from './plate.js'
 import { box } from './live/parts.jsx'
 
 // гостьові екрани: людина ще не в застосунку, тож без бічного меню; картка посередині, арт по боках розтягується до країв
@@ -136,6 +137,7 @@ export default function Screen({ d, live }) {
   const [busy, setBusy] = useState(false)
   const alive = useRef(true)
   const guest = GUEST.has(d.id)
+  const plateReady = usePlateReady(d.plate2) // плиту декодуємо до вставки: без білих плям при завантаженні (див. plate.js)
   // у гостя бічної панелі немає: її тексти (логотип) не показуємо
   // eslint-disable-next-line react-hooks/exhaustive-deps -- переклад залежить від поточної мови
   const texts =useMemo(() => resolveTexts(guest ? d.texts.filter((x) => x.x >= SIDE) : d.texts, state.values, t), [d, guest, state.values, lang])
@@ -234,7 +236,7 @@ export default function Screen({ d, live }) {
       )}
       {/* плита розрізана на бічну панель і решту: на широких екранах між ними з'являється проміжок (його заповнює розмитий фон) */}
       <div className={guest ? 'art art-guest' : 'art'} aria-hidden="true">
-        {guest ? (
+        {!plateReady ? null : guest ? (
           // арт по боках картки збільшується до країв вікна (як у логіні), 2x-плита тримає різкість; панелі немає
           ['left', 'mid', 'right'].map((part) => (
             <div className={`pl pl-${part}`} key={part}>
