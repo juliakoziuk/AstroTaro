@@ -13,7 +13,27 @@ export const setUnauthorizedHandler = (fn) => {
   onUnauthorized = fn
 }
 
+// Один екран із кількох місць питає те саме (/settings тричі, /auth/me тричі, /dashboard двічі): мова, тема, шлюз онбордингу, нагадування,
+// бічна панель. Однакові GET за кілька секунд віддаємо з одного запиту. Будь-яка зміна (не GET) скидає все, тож застарілого не побачимо.
+const GET_REUSE_MS = 3000
+const recent = new Map() // токен|мова|шлях → { at, promise }
+
+/** Забути запам'ятовані GET (для тестів: кожен починає з чистого аркуша). */
+export const forgetRecentGets = () => recent.clear()
+
 export async function api(method, path, body) {
+  if (method !== 'GET') {
+    recent.clear()
+    try {
+      return await send(method, path, body)
+    } finally {
+      recent.clear() // GET, що стартував під час зміни, міг прочитати старе
+    }
+  }
+  return send(method, path, body)
+}
+
+async function send(method, path, body) {
   const token = getToken()
   let res
   try {
@@ -41,7 +61,15 @@ export async function api(method, path, body) {
   return data
 }
 
-export const get = (path) => api('GET', path)
+export function get(path) {
+  const key = `${getToken() ?? ''}|${getLang()}|${path}`
+  const hit = recent.get(key)
+  if (hit && Date.now() - hit.at < GET_REUSE_MS) return hit.promise.then(structuredClone) // кожен отримувач має власну копію
+  const promise = api('GET', path)
+  recent.set(key, { at: Date.now(), promise })
+  promise.catch(() => recent.get(key)?.promise === promise && recent.delete(key)) // помилку не запам'ятовуємо
+  return promise.then(structuredClone)
+}
 export const post = (path, body = {}) => api('POST', path, body)
 export const patch = (path, body) => api('PATCH', path, body)
 export const del = (path) => api('DELETE', path)

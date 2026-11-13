@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, vi } from 'vitest'
 import { cleanup } from '@testing-library/react'
+import { forgetRecentGets } from '../lib/api.js'
 
 // jsdom не має matchMedia: екрани питають про вузьке вікно (див. useMediaQuery). Тести — на «широкому» вікні.
 globalThis.matchMedia ??= (query) => ({ matches: false, media: query, addEventListener() {}, removeEventListener() {}, addListener() {}, removeListener() {} })
@@ -7,6 +8,7 @@ globalThis.matchMedia ??= (query) => ({ matches: false, media: query, addEventLi
 window.scrollTo = () => {} // jsdom не реалізує; екрани прокручують нагору при переході
 
 beforeEach(() => {
+  forgetRecentGets() // GET, однакові за шляхом, у сусідніх тестах не мають ділити відповідь
   localStorage.clear()
   sessionStorage.clear()
   window.history.replaceState({}, '', '/')

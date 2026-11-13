@@ -79,3 +79,25 @@ test('an error without a code has an undefined code', async () => {
   globalThis.fetch = reply(500, { message: 'boom' })
   await rejects(get('/x'), (e) => e.code === undefined && e.status === 500)
 })
+
+test('the same GET within a few seconds is one request; a change in between, an error or another path is not shared', async () => {
+  setToken('dedupe')
+  let calls = 0
+  globalThis.fetch = async () => (calls++, reply(200, { n: calls })())
+  const [a, b] = await Promise.all([get('/settings'), get('/settings')])
+  strictEqual(calls, 1, 'two screens asking at once share one request')
+  a.n = 99
+  strictEqual(b.n, 1, 'each caller gets its own copy')
+  strictEqual((await get('/settings')).n, 1, 'still fresh a moment later')
+  await get('/profile')
+  strictEqual(calls, 2, 'another path is its own request')
+  await post('/settings', {})
+  await get('/settings')
+  strictEqual(calls, 4, 'a change clears the reuse (post + a fresh get)')
+  globalThis.fetch = reply(500, { message: 'boom' })
+  await rejects(get('/broken'), { message: 'boom' })
+  let retried = false
+  globalThis.fetch = async () => ((retried = true), reply(200, {})())
+  await get('/broken')
+  strictEqual(retried, true, 'a failed GET is not remembered')
+})

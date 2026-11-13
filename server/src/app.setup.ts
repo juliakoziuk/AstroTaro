@@ -33,7 +33,9 @@ export function configureApp(app: INestApplication) {
       exceptionFactory: (errors) => new BadRequestException(localizedErrors(errors)),
     }),
   )
-  app.enableCors({ origin: (process.env.CORS_ORIGIN ?? '').split(',').filter(Boolean), exposedHeaders: ['X-Total-Count'] })
+  // maxAge: клієнт на іншому origin шле заголовок Authorization, тож кожному запиту передує попередній OPTIONS (повний круг до сервера).
+  // Без max-age Chrome кешує його лише 5 с, тож майже кожен запит коштував двох. Годину браузери тримають відповідь і самі.
+  app.enableCors({ origin: (process.env.CORS_ORIGIN ?? '').split(',').filter(Boolean), exposedHeaders: ['X-Total-Count'], maxAge: 3600 })
   const docs = new DocumentBuilder()
     .setTitle('AstroTarot API')
     .setDescription('Таро, сни, щоденник і астрологія. Захищені ендпоїнти потребують Bearer-токена з /auth/login. Мова відповідей — заголовок Accept-Language (en, uk).')

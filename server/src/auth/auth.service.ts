@@ -10,6 +10,7 @@ import { msg } from '../i18n/messages'
 import { User } from '../users/user.model'
 import { REMEMBER_ME_EXPIRES } from './auth.constants'
 import { ConsentDto, LoginDto, RegisterDto } from './auth.dto'
+import { forgetSession } from './session-cache'
 
 // Акаунти, що з'явилися до онбордингу, мітки не мають: хто вже вказав дату народження, його пройшов, тож їх на нього не женемо
 const publicUser = (u: User) => ({
@@ -102,6 +103,7 @@ export class AuthService {
     const user = await this.users.findOne({ where: { passwordResetHash: hashToken(token) } })
     if (!user || !user.passwordResetExpires || user.passwordResetExpires.getTime() < Date.now()) throw new BadRequestException(msg(currentLocale(), 'badToken'))
     await user.update({ passwordHash: await bcrypt.hash(password, 10), passwordResetHash: null, passwordResetExpires: null, passwordChangedAt: new Date() })
+    forgetSession(user.id) // старі токени мають перестати діяти одразу, а не після життя запису в кеші
   }
 
   async verifyEmail(token: string) {
