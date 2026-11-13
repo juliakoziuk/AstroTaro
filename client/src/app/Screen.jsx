@@ -9,7 +9,7 @@ import SideProfile from './SideProfile.jsx'
 import ThemeToggle from './ThemeToggle.jsx'
 import { LogoutIcon } from './icons.jsx'
 import { logOut } from './live/common.js'
-import { usePlateReady } from './plate.js'
+import { isDecoded, plateUrl, usePlateReady } from './plate.js'
 import { box } from './live/parts.jsx'
 
 // гостьові екрани: людина ще не в застосунку, тож без бічного меню; картка посередині, арт по боках розтягується до країв
@@ -137,7 +137,10 @@ export default function Screen({ d, live }) {
   const [busy, setBusy] = useState(false)
   const alive = useRef(true)
   const guest = GUEST.has(d.id)
-  const plateReady = usePlateReady(d.plate2) // плиту декодуємо до вставки: без білих плям при завантаженні (див. plate.js)
+  // плиту обираємо за розміром вікна й декодуємо до вставки: без білих плям і без добудови на очах (див. plate.js)
+  const plate = plateUrl(d, guest)
+  const plateReady = usePlateReady(plate)
+  const [artLate] = useState(() => !isDecoded(plate)) // плита не була готова при показі екрана: тоді арт м'яко проявляється, а готова з'являється одразу
   // у гостя бічної панелі немає: її тексти (логотип) не показуємо
   // eslint-disable-next-line react-hooks/exhaustive-deps -- переклад залежить від поточної мови
   const texts =useMemo(() => resolveTexts(guest ? d.texts.filter((x) => x.x >= SIDE) : d.texts, state.values, t), [d, guest, state.values, lang])
@@ -235,21 +238,21 @@ export default function Screen({ d, live }) {
         </>
       )}
       {/* плита розрізана на бічну панель і решту: на широких екранах між ними з'являється проміжок (його заповнює розмитий фон) */}
-      <div className={guest ? 'art art-guest' : 'art'} aria-hidden="true">
+      <div className={`${guest ? 'art art-guest' : 'art'}${artLate ? ' art-late' : ''}`} aria-hidden="true">
         {!plateReady ? null : guest ? (
           // арт по боках картки збільшується до країв вікна (як у логіні), 2x-плита тримає різкість; панелі немає
           ['left', 'mid', 'right'].map((part) => (
             <div className={`pl pl-${part}`} key={part}>
-              <img src={d.plate2} width="1536" height="1024" alt="" draggable="false" decoding="async" fetchPriority="high" />
+              <img src={plate} width="1536" height="1024" alt="" draggable="false" decoding="async" fetchPriority="high" />
             </div>
           ))
         ) : (
           <>
             <div className="pl pl-side">
-              <img className="plate" src={d.plate2} width="1536" height="1024" alt="" draggable="false" decoding="async" fetchPriority="high" />
+              <img className="plate" src={plate} width="1536" height="1024" alt="" draggable="false" decoding="async" fetchPriority="high" />
             </div>
             <div className="pl pl-main">
-              <img src={d.plate2} width="1536" height="1024" alt="" draggable="false" decoding="async" fetchPriority="high" />
+              <img src={plate} width="1536" height="1024" alt="" draggable="false" decoding="async" fetchPriority="high" />
             </div>
           </>
         )}

@@ -1,7 +1,7 @@
 // Екран Tarot Studio без вибору колоди (колода одна): прибирає намальовану картку «Select a deck» і піднімає на її місце
 // картку «Reading mode» та кнопку «Start Reading» — і на плиті (src/app/art/tarot.webp), і в даних екрана (src/app/data/tarot.json).
 // Запускати ПІСЛЯ node scripts/app/build.mjs tarot (він малює плиту з макета, де картка колоди ще є), далі плиту 2x:
-//   node scripts/app/lift-tarot.mjs && node scripts/app/plate2x.mjs tarot
+//   node scripts/app/lift-tarot.mjs && node scripts/app/plate2x.mjs tarot && node scripts/app/plate-mid.mjs tarot
 // Повторний запуск на вже піднятому екрані нічого не робить (у даних є позначка «lifted»).
 import { readFileSync, writeFileSync } from 'node:fs'
 import sharp from 'sharp'

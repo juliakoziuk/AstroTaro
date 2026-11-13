@@ -17,7 +17,9 @@ import Daily from './Daily.jsx'
 import History from './History.jsx'
 import Onboarding from './Onboarding.jsx'
 import { useOnboarded } from './onboardingGate.js'
-import { BY_PATH } from './screens.js'
+import { BY_PATH, SCREENS } from './screens.js'
+import { plateOf, useHeldScreen } from './heldScreen.js'
+import { decodePlate, prefetchPlates } from './plate.js'
 import { go, useRoute } from './router.js'
 import { useToast } from './toast.js'
 import LangSwitch from '../i18n/LangSwitch.jsx'
@@ -40,19 +42,22 @@ setUnauthorizedHandler(() => go('/login', { replace: true }))
 
 export default function App() {
   const route = useRoute()
-  const screen = BY_PATH[route] ?? BY_PATH['/']
+  const target = BY_PATH[route] ?? BY_PATH['/'] // куди йде людина: за цим працюють охорона маршрутів і переходи
+  const screen = useHeldScreen(target) // що малюємо: між екранами з плитою лишається попередній, доки новий не готовий
+  const holding = screen.path !== target.path
   const toast = useToast()
   const lang = useLang()
   const theme = useTheme()
-  const locked = !PUBLIC.has(screen.path) && !getToken()
-  const signedInGuest = GUEST_ONLY.has(screen.id) && !!getToken()
+  const locked = !PUBLIC.has(target.path) && !getToken()
+  const signedInGuest = GUEST_ONLY.has(target.id) && !!getToken()
   // Новий акаунт спершу веде на знайомство. Доки сервер не відповів, екрани застосунку не малюємо, щоб дашборд не блимнув перед переходом.
   const onboarded = useOnboarded()
   // inApp — екрани лише для залогінених: їх (і перехід на знайомство) тримає перевірка. Публічні намальовані екрани (Реєстрація, Тарифи)
   // теж «екрани застосунку», але гостю їх показуємо завжди, без запиту до сервера.
-  const inApp = !locked && !signedInGuest && !PUBLIC.has(screen.path) && screen.id !== 'onboarding'
+  const inApp = !locked && !signedInGuest && !PUBLIC.has(target.path) && target.id !== 'onboarding'
   const toOnboarding = inApp && onboarded === false
   const showApp = !locked && !signedInGuest && (!inApp || onboarded === true)
+  const visible = showApp || holding // поки тримаємо попередній екран, його не ховаємо
 
   useEffect(() => {
     if (locked) go('/login', { replace: true })
@@ -83,6 +88,38 @@ export default function App() {
     window.scrollTo(0, 0)
   }, [screen, lang, theme])
 
+  // Наступні екрани готуємо наперед, щоб вони з'являлись одразу: 1) після входу тихо вантажимо плити екранів бічного меню в кеш;
+  // 2) на наведення й фокус на посилання на екран із плитою декодуємо її (до кліку зазвичай устигає).
+  const signedIn = !!getToken()
+  useEffect(() => {
+    if (!signedIn) return undefined
+    let stop = () => {}
+    const timer = setTimeout(() => {
+      const ids = ['dashboard', 'tarot', 'dreams', 'astrology', 'analysis', 'profile', 'pricing', 'reading']
+      stop = prefetchPlates(ids.map((id) => plateOf(SCREENS.find((x) => x.id === id) ?? {})))
+    }, 2500)
+    return () => {
+      clearTimeout(timer)
+      stop()
+    }
+  }, [signedIn])
+
+  useEffect(() => {
+    const warm = (e) => {
+      const link = e.target?.closest?.('a[href^="#/"]')
+      if (!link) return
+      const next = BY_PATH[link.getAttribute('href').slice(1).split('?')[0]]
+      const url = next && plateOf(next)
+      if (url) decodePlate(url)
+    }
+    document.addEventListener('pointerover', warm, { passive: true })
+    document.addEventListener('focusin', warm)
+    return () => {
+      document.removeEventListener('pointerover', warm)
+      document.removeEventListener('focusin', warm)
+    }
+  }, [])
+
   return (
     <>
       <div className="route" key={screen.path}>
@@ -93,11 +130,11 @@ export default function App() {
         {screen.id === 'verify-email' && <VerifyEmail />}
         {screen.id === 'shared' && <SharedReading />}
         {!locked && screen.kind === 'onboarding' && <Onboarding />}
-        {showApp && screen.kind === 'today' && <Today />}
-        {showApp && screen.kind === 'draw' && <Draw />}
-        {showApp && screen.kind === 'daily' && <Daily />}
-        {showApp && screen.kind === 'history' && <History />}
-        {showApp && screen.kind === 'app' && (screen.id === 'settings' ? <SettingsPage /> : <Shell d={screen.data} live={screen.live} />)}
+        {visible && screen.kind === 'today' && <Today />}
+        {visible && screen.kind === 'draw' && <Draw />}
+        {visible && screen.kind === 'daily' && <Daily />}
+        {visible && screen.kind === 'history' && <History />}
+        {visible && screen.kind === 'app' && (screen.id === 'settings' ? <SettingsPage /> : <Shell d={screen.data} live={screen.live} />)}
       </div>
       {BEFORE_LOGIN.has(screen.id) && <LangSwitch />}
       <Proto />

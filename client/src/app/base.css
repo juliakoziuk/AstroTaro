@@ -7,14 +7,5 @@ html, body {
   background: #0b1828;
 }
 
-/* плавна поява екрана при переході */
-.route { animation: route-in 0.28s ease both; }
-
-@keyframes route-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .route { animation: none; }
-}
+/* Екран при переході з'являється одразу, без згасання: новий екран підготовлений заздалегідь (plate.js, App.jsx), а попередній
+   лишається на місці, доки новий не готовий. Згасання з прозорості показувало б темний фон між екранами. */
