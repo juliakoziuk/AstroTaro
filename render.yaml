@@ -2,7 +2,7 @@
 # Значення з «sync: false» Render спитає під час створення; JWT_SECRET він згенерує сам.
 services:
   - type: web
-    name: mystiq-api
+    name: tarivo-api
     runtime: node
     plan: free
     region: frankfurt
@@ -22,7 +22,7 @@ services:
         generateValue: true
       - key: DATABASE_URL # рядок підключення з Neon (разом із ?sslmode=require)
         sync: false
-      - key: CORS_ORIGIN # адреса фронту без слеша наприкінці, напр. https://mystiq.pages.dev
+      - key: CORS_ORIGIN # адреса фронту без слеша наприкінці, напр. https://tarivo.pages.dev
         sync: false
       - key: APP_URL # та сама адреса: сюди ведуть посилання з листів
         sync: false
