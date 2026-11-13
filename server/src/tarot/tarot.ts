@@ -22,7 +22,8 @@ class PickedCardDto {
 
 export class DrawDto {
   @ApiProperty({ enum: SPREAD_IDS, example: 'three' }) @IsIn(SPREAD_IDS) spreadId: string
-  @ApiProperty({ enum: DECKS, example: 'Classic Tarot' }) @IsIn(DECKS) deck: string
+  // колода одна, тож клієнт її не надсилає; значення лишається в базі й приймається, щоб працювали старі клієнти й записи
+  @ApiPropertyOptional({ enum: DECKS, example: 'Classic Tarot', default: 'Classic Tarot' }) @IsOptional() @IsIn(DECKS) deck: string = 'Classic Tarot'
   @ApiProperty({ enum: MODES, example: 'quick' }) @IsOptional() @IsIn(MODES as unknown as string[]) mode: Mode = 'quick'
   @ApiPropertyOptional({ maxLength: 500 }) @IsOptional() @IsString() @MaxLength(500) question?: string
   @ApiPropertyOptional({ type: [PickedCardDto], description: 'Карти, які людина витягнула сама: по одній різній на кожну позицію. Без цього поля карти обирає сервер.' })
