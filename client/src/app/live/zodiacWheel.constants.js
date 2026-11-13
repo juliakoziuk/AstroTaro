@@ -55,6 +55,11 @@ export const WHEEL_COLORS = {
   degree: '#b9a07a',
 }
 
+// Світла тема: кремове тло колеса, бронзові лінії, коричневі планети (палітра сторінки Settings)
+export const WHEEL_COLORS_LIGHT = { cover: '#f4efdf', inner: '#ece4d1', gold: '#8e6b36', goldSoft: 'rgba(142, 107, 54, 0.45)', houseLine: 'rgba(142, 107, 54, 0.3)', planet: '#352e23', degree: '#665c4c' }
+export const wheelColors = (theme) => (theme === 'light' ? WHEEL_COLORS_LIGHT : WHEEL_COLORS)
+export const PARTNER_COLOR = { dark: '#f0a0c0', light: '#b0467a' }
+
 // Лінії аспектів: колір, пунктир і товщина за типом (див. server/src/astrology/report.ts); сполучення лінії не мають.
 export const ASPECT_STYLES = {
   sextile: { color: '#6fb7d9', dash: '4 3' },

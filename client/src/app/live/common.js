@@ -34,6 +34,3 @@ export function logOut() {
   session.set('dreamId', '')
 }
 
-/** Специфікація прив’язки для списку з однаковими слотами: [назва, ...] → ключі `${prefix}${i}.${field}`. */
-export const slots = (prefix, rows, fields) =>
-  rows.flatMap((orig, i) => orig.map((find, j) => ({ find, key: `${prefix}${i}.${fields[j]}` })))

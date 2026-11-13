@@ -2,13 +2,10 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { get, patch } from '../lib/api.js'
 import { setTheme, settingOf } from '../lib/theme.js'
 import { t, useLang } from '../i18n/index.js'
-import { go, navProps } from './router.js'
+import { go } from './router.js'
 import { SettingsPanel } from './live/settings-panel.jsx'
-import NavLinks from './NavLinks.jsx'
-import ThemeToggle from './ThemeToggle.jsx'
+import AppPage from './AppPage.jsx'
 import { AccessIcon, HelpIcon, SettingsIcon, MoonIcon, SunIcon, FeatherIcon, LayersIcon, SparkleIcon } from './icons.jsx'
-import scene from './art/draw-scene.webp'
-import './settings-page.css'
 
 const TABS = [['General', SettingsIcon], ['Notifications', SunIcon], ['Appearance', MoonIcon], ['Language', FeatherIcon], ['Privacy & Security', AccessIcon], ['Data & Storage', LayersIcon], ['Billing', SparkleIcon], ['About', HelpIcon]]
 const ABOUT_TAB = TABS.findIndex(([label]) => label === 'About') // «Допомога» в меню відкриває «About», а не номер, що колись зсунеться
@@ -39,14 +36,7 @@ export default function SettingsPage() {
     } catch (e) { setError(e.message) }
     finally { setSaving(false) }
   }
-  return <div className="v-app settings-page" style={{ '--settings-scene': `url(${scene})` }}>
-    <aside className="settings-sidebar">
-      <a {...navProps('/dashboard')} className="settings-brand"><span aria-hidden="true">☾</span>MYSTIQ</a>
-      <NavLinks activeClass="active" onHelp={() => setTab(ABOUT_TAB)} />
-      <ThemeToggle className="settings-theme-toggle" onChange={chooseTheme} disabled={saving || !data} />
-    </aside>
-    <main className="settings-main">
-      <header className="settings-heading"><a {...navProps('back:/profile')} aria-label={t('Back')}>←</a><div><h1>{t('Settings')}</h1><p>{t('Customize your experience in MYSTIQ')}</p></div></header>
+  return <AppPage title={t('Settings')} subtitle={t('Customize your experience in MYSTIQ')} back="back:/profile" onHelp={() => setTab(ABOUT_TAB)} onTheme={chooseTheme} themeDisabled={saving || !data}>
       {error && <div className="settings-load-error" role="alert"><p>{error}</p><button type="button" onClick={() => reload().then(() => setError('')).catch((e) => setError(e.message))}>{t('Retry')}</button></div>}
       <div className="settings-layout">
         <div className="settings-tabs" role="tablist" aria-label={t('Settings')} aria-orientation="vertical">{TABS.map(([label, Icon], index) => <button type="button" key={label} role="tab" disabled={saving} id={`settings-tab-${index}`} aria-controls="settings-content" aria-selected={tab === index} tabIndex={tab === index ? 0 : -1} onClick={() => setTab(index)} onKeyDown={(event) => {
@@ -56,6 +46,5 @@ export default function SettingsPage() {
         }}><Icon /><span>{t(label)}</span></button>)}</div>
         <SettingsPanel key={tab} ctx={ctx} tab={tab} />
       </div>
-    </main>
-  </div>
+  </AppPage>
 }

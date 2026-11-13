@@ -1,6 +1,5 @@
 // Перевірка повноти перекладів (npm run i18n:check; друк ключів, яких бракує: npm run i18n:check -- --list).
-// Збирає всі англійські рядки інтерфейсу: статичні тексти макета екранів (після прив'язки даних), варіанти вибору,
-// плейсхолдери й підписи зон, усі літерали в викликах t(...), підписи Zone та ключі, які складаються динамічно (див. DYNAMIC).
+// Збирає всі англійські рядки інтерфейсу: назви екранів, усі літерали в викликах t(...) і ключі, які складаються динамічно (див. DYNAMIC).
 // Порівнює зі словниками src/i18n/uk.js; виходить із кодом 1, якщо чогось бракує або словник має зайві ключі.
 import fs from 'node:fs'
 import path from 'node:path'
@@ -25,11 +24,20 @@ const DYNAMIC = [
   'Self-reflection', 'Readings that answer your questions', 'A journal that finds the symbols', 'Your chart and the sky today', 'Notes, moods and your own patterns',
   // підписи відповідей «Збулося?» (ANSWER_TEXT в History.jsx)
   'Partly came true', 'Did not come true',
+  // підписи екранів застосунку, що беруться з масивів і викликаються як t(змінна): меню (nav.js), плитки дашборда, режими й меню екранів Tarot/Astrology, вкладки й теми налаштувань
+  'Analytics', 'Help', 'Get a reading', 'Log a dream', 'Explore your chart', 'Journal', 'Write and reflect', 'Progress', 'Track your growth', 'Tarot readings', 'Dreams logged', 'Journal entries', 'Detailed', 'In depth', 'Your cosmic blueprint', 'Transits', 'Current planetary influences', 'Relationship analysis', 'Daily Forecast', 'Personal astro guidance', 'Astro Calendar', 'Important cosmic dates', 'Sun', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune', 'Pluto', 'General', 'Appearance', 'Privacy & Security', 'Data & Storage', 'About', '24-hour', '12-hour', 'Dark', 'Light', 'Auto',
   // перший аргумент t() розбирається по ", {", а в цьому тексті власні «, {x}», тож літерал у коді не видно
   'Based on all {n} aspects between your charts: {h} harmonious, {x} tense.',
 ]
 // однакові в усіх мовах: окремого перекладу не потребують
 const SAME = new Set(['MYSTIQ', 'DD/MM/YYYY', 'MM/DD/YYYY', 'YYYY-MM-DD', 'LOSTIQ', '$0', '$9.99', '$19.99', 'Pro', 'Premium'])
+
+// екрани імпортують роутер і тему, яким потрібне вікно браузера: для збору назв екранів досить заглушки
+globalThis.window = globalThis
+globalThis.history = { state: null, replaceState() {} }
+globalThis.addEventListener = () => {}
+globalThis.location = { hash: '', search: '' }
+globalThis.localStorage = { getItem: () => null, setItem() {}, removeItem() {} }
 
 const server = await createServer({ root, server: { middlewareMode: true }, appType: 'custom', logLevel: 'silent' })
 const { SCREENS } = await server.ssrLoadModule('/src/app/screens.js')

@@ -1,11 +1,18 @@
 /*
-  Тема застосунку. Темна — основна: усі екрани намальовані саме в ній. Світла — це та сама картинка, розвернута
-  фільтром із теплим тонуванням: нічне небо стає молочним, золото — м'якою бронзою.
-  Розкладка, картки й декор лишаються такими самими в обох темах.
+  Тема застосунку. Темна — основна: усі екрани намальовані саме в ній.
+  Світла має один вигляд — як сторінка «Settings»: теплий беж зі сценою, кремові панелі, бронзові значки, коричневий текст.
+  Усі екрани застосунку — справжня верстка: сторінки на рамці AppPage мають світлі змінні в settings-page.css і page.css,
+  а Draw, History, Daily і Today — світлі стилі нижче. --flip лишився лише для логотипа (картинка з темним тлом).
   Атрибут data-theme ставить src/lib/theme.js.
 */
 :root { color-scheme: dark; }
-:root[data-theme='light'] { color-scheme: light; --flip: invert(1) hue-rotate(180deg) sepia(0.65) saturate(0.65); }
+:root[data-theme='light'] {
+  color-scheme: light;
+  /* палітра сторінки «Settings» (settings-page.css) */
+  --lt-bg: #eee8d9; --lt-panel: #f4efdf; --lt-panel-a: #f4efdfed; --lt-side: #ece4d1eb; --lt-field: #e9e0cd;
+  --lt-line: #b49a71; --lt-ink: #352e23; --lt-text: #4a4133; --lt-muted: #665c4c; --lt-accent: #8e6b36; --lt-accent-ink: #65491c;
+  --flip: invert(1) hue-rotate(180deg) sepia(0.7) saturate(0.75) hue-rotate(-8deg) contrast(0.9) brightness(0.97); /* логотип: темне тло → беж */
+}
 
 /* ---------- перемикач теми ---------- */
 .theme-toggle {
@@ -24,25 +31,160 @@
 .theme-toggle.light svg:nth-of-type(1), .theme-toggle.dark svg:nth-of-type(2) { color: #21160a; } /* значок під повзунком */
 .theme-toggle:focus-visible { outline: 2px solid #f1dda6; outline-offset: 3px; }
 
-/* ---------- світла тема: екрани-плити ---------- */
-:root[data-theme='light'] .v-app .stage { filter: var(--flip); }
-:root[data-theme='light'] .v-app .stage img { filter: var(--flip); } /* фото й картки карт — як в оригіналі */
-:root[data-theme='light'] .v-app .stage .art img { filter: none; } /* а намальована плита лишається розвернутою */
-:root[data-theme='light'] .v-app .stage .pill.gold { filter: var(--flip); } /* золота кнопка лишається золотою */
-:root[data-theme='light'] .v-app .ambient { background: linear-gradient(180deg, #f3f0e7, #e9e5da); }
+/* ---------- світла тема: сторінки у стилі «Draw your cards» (Draw, History, Daily) ---------- */
+:root[data-theme='light'] .v-app .drawpage {
+  --gold: var(--lt-accent); --gold-hi: var(--lt-accent-ink); --ink: var(--lt-ink); --muted: var(--lt-muted);
+  --line: rgba(180, 154, 113, 0.8); --glass: var(--lt-panel-a);
+  background-color: var(--lt-bg);
 
-/* ---------- світла тема: сторінки у стилі «Draw your cards» (Draw, History) ---------- */
-:root[data-theme='light'] .v-app .drawpage { background-color: #f3f0e7; }
-:root[data-theme='light'] .v-app .drawpage::before,
-:root[data-theme='light'] .v-app .drawpage .side,
-:root[data-theme='light'] .v-app .drawpage .draw { filter: var(--flip); }
-:root[data-theme='light'] .v-app .drawpage img,
-:root[data-theme='light'] .v-app .drawpage button.back,
-:root[data-theme='light'] .v-app .drawpage .pile i,
-:root[data-theme='light'] .v-app .drawpage .go,
-:root[data-theme='light'] .v-app .drawpage .tabs button.on { filter: var(--flip); } /* малюнки, рубашки карт і золоті кнопки — як в оригіналі */
+  &::before { background-color: var(--lt-bg); background-blend-mode: soft-light; } /* сцена ледь проступає крізь беж, як у «Settings» */
+  .side { background: var(--lt-side); border-right-color: var(--lt-line); }
+  .logo img { filter: var(--flip) brightness(1.18); mix-blend-mode: multiply; } /* логотип — картинка з темним тлом; multiply зливає її світлий прямокутник з панеллю */
+  .side nav a { color: var(--lt-ink); }
+  .side nav a:hover { background: rgba(142, 107, 54, 0.1); color: var(--lt-ink); }
+  .side nav a.on { color: var(--lt-accent-ink); border-color: #c49a61; background: rgba(210, 167, 107, 0.22); box-shadow: inset 0 0 12px rgba(228, 190, 128, 0.25), 0 0 12px rgba(228, 190, 128, 0.2); }
+  h1 { color: var(--lt-ink); text-shadow: none; }
+  .rule { background: linear-gradient(90deg, rgba(142, 107, 54, 0.6), transparent); }
+  .tabs button { color: var(--lt-ink); border-color: rgba(180, 154, 113, 0.7); }
+  .tabs button:hover { border-color: #c49a61; }
+  .tabs button.on { color: #21160a; border-color: #c49a61; box-shadow: 0 4px 14px rgba(142, 107, 54, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.45); }
+  .pos { background: var(--lt-panel); box-shadow: none; }
+  .blank {
+    outline-color: rgba(142, 107, 54, 0.2);
+    background: radial-gradient(circle at 50% 50%, rgba(210, 167, 107, 0.22), transparent 58%), repeating-conic-gradient(from 0deg at 50% 50%, rgba(142, 107, 54, 0.14) 0 1.1deg, transparent 1.1deg 8deg), var(--lt-panel);
+    box-shadow: inset 0 0 26px 8px rgba(180, 154, 113, 0.28);
+  }
+  .blank b { text-shadow: none; }
+  .next .blank { border-color: #c49a61; box-shadow: inset 0 0 26px 8px rgba(180, 154, 113, 0.28), 0 0 22px rgba(196, 154, 97, 0.45); animation-name: pulse-light; }
+  .face img, .flip img { box-shadow: 0 8px 22px rgba(90, 66, 30, 0.28), 0 0 0 1px rgba(142, 107, 54, 0.65); }
+  .mini { box-shadow: 0 0 0 1px rgba(142, 107, 54, 0.6); }
+  .mini.empty { border-color: rgba(142, 107, 54, 0.4); box-shadow: none; }
+  button.back { border-color: rgba(142, 107, 54, 0.8); box-shadow: 0 2px 6px rgba(90, 66, 30, 0.3); }
+  button.back:hover:not(:disabled) { border-color: #c49a61; box-shadow: 0 6px 14px rgba(142, 107, 54, 0.3); }
+  .pile i { border-color: rgba(142, 107, 54, 0.8); box-shadow: 0 2px 6px rgba(90, 66, 30, 0.35); }
+  .ghost { border-color: rgba(180, 154, 113, 0.8); }
+  .ghost:hover:not(:disabled) { border-color: #c49a61; box-shadow: 0 0 14px rgba(196, 154, 97, 0.3); }
+  .own li { border-color: rgba(180, 154, 113, 0.6); }
+  select {
+    color: var(--lt-ink); border-color: rgba(180, 154, 113, 0.8);
+    background: var(--lt-field) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238e6b36' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") right 12px center / 18px no-repeat;
+  }
+  select:focus { border-color: #c49a61; box-shadow: 0 0 12px rgba(196, 154, 97, 0.35); }
+  .check { color: var(--lt-text); }
+  .check input { background: var(--lt-field); border-color: rgba(180, 154, 113, 0.9); }
+  .check input:checked { background: rgba(210, 167, 107, 0.45); }
+  .check input:checked::after { background: var(--lt-accent); }
+  .field { border-color: rgba(180, 154, 113, 0.8); }
+  .field:focus-within { border-color: #c49a61; box-shadow: 0 0 14px rgba(196, 154, 97, 0.3); }
+  textarea::placeholder { color: #9a8f7c; }
+  .err { color: #a8432f; }
+  .go { box-shadow: 0 6px 18px rgba(142, 107, 54, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.5); }
+
+  /* Card of the day */
+  .daily .today-card, .daily .streak { border-color: rgba(180, 154, 113, 0.6); box-shadow: 0 6px 22px rgba(120, 95, 50, 0.14); }
+  .today-card .reading p { color: var(--lt-text); }
+  .streak .big b { text-shadow: none; }
+  .week i { border-color: rgba(142, 107, 54, 0.45); }
+  .week li.done i { border-color: #c49a61; box-shadow: 0 0 10px rgba(196, 154, 97, 0.45); }
+  .week li.now i { outline-color: #c49a61; }
+  .streak .stats { border-top-color: rgba(180, 154, 113, 0.4); }
+
+  /* History */
+  .entry { border-color: rgba(180, 154, 113, 0.6); }
+  .entry:hover { border-color: #c49a61; box-shadow: 0 0 18px rgba(196, 154, 97, 0.22); }
+  .thumbs img { box-shadow: 0 3px 8px rgba(90, 66, 30, 0.35), 0 0 0 1px rgba(142, 107, 54, 0.6); }
+  .meta .q { color: var(--lt-text); }
+  .verdict.yes, .outcome.yes .mark { color: #2f6b3c; border-color: rgba(60, 130, 80, 0.6); background: rgba(80, 170, 100, 0.14); }
+  .verdict.no, .outcome.no .mark, .acts .danger { color: #9a3b2c; border-color: rgba(190, 80, 60, 0.6); background: rgba(200, 80, 70, 0.1); }
+  .acts .icon { background: rgba(142, 107, 54, 0.08); border-color: rgba(180, 154, 113, 0.8); }
+  .acts .plain, .outcome .pick { border-color: rgba(180, 154, 113, 0.8); }
+  .acts .icon.on, .outcome .pick.on { border-color: #c49a61; }
+  .empty { border-color: rgba(180, 154, 113, 0.6); }
+  .sharebox { border-color: rgba(180, 154, 113, 0.6); background: var(--lt-field); }
+  .sharebox p { color: var(--lt-muted); }
+  .sharebox .copied { color: #2f6b3c; }
+  .sharebox input { color: var(--lt-ink); background: var(--lt-panel); border-color: rgba(180, 154, 113, 0.8); }
+  .outcome { border-top-color: rgba(142, 107, 54, 0.3); }
+  .outcome .pick { background: rgba(142, 107, 54, 0.08); }
+  .track { border-color: rgba(180, 154, 113, 0.6); }
+  .track .counts .yes { border-color: rgba(60, 130, 80, 0.6); color: #2f6b3c; }
+  .track .counts .no { border-color: rgba(190, 80, 60, 0.6); color: #9a3b2c; }
+  .track .rate { color: var(--lt-text); }
+}
+@keyframes pulse-light { 50% { box-shadow: inset 0 0 26px 8px rgba(180, 154, 113, 0.28), 0 0 32px rgba(196, 154, 97, 0.7); } }
 
 /* ---------- світла тема: «Cosmic Today» ---------- */
-:root[data-theme='light'] .v-app .today { filter: var(--flip); }
-:root[data-theme='light'] .v-app .today img { filter: var(--flip); }
-:root[data-theme='light'] .v-app .drawpage .logo img { filter: none; } /* логотип — картинка з темним тлом: розвертається разом із панеллю */
+:root[data-theme='light'] .v-app .today {
+  color: var(--lt-ink);
+  background: radial-gradient(60% 40% at 80% 0%, rgba(210, 167, 107, 0.22), transparent 70%), radial-gradient(50% 40% at 0% 30%, rgba(180, 154, 113, 0.18), transparent 70%), var(--lt-bg);
+
+  h1 { color: var(--lt-ink); }
+  .crumbs a { color: var(--lt-accent-ink); border-color: rgba(180, 154, 113, 0.8); background: var(--lt-panel); }
+  .crumbs a:hover { background: rgba(210, 167, 107, 0.22); color: var(--lt-ink); }
+  .crumbs a:focus-visible { outline-color: #c49a61; }
+  .crumbs a.home { border-color: rgba(180, 154, 113, 0.5); color: var(--lt-muted); }
+  .muted { color: var(--lt-muted); }
+  .tcard { background: var(--lt-panel-a); border-color: rgba(180, 154, 113, 0.7); box-shadow: 0 6px 22px rgba(120, 95, 50, 0.14); }
+  .tcard.active { border-color: #c49a61; box-shadow: 0 0 0 1px rgba(196, 154, 97, 0.6), 0 6px 22px rgba(120, 95, 50, 0.14); }
+  h2 { color: var(--lt-ink); }
+  h3, .pair b, .fc-hit b { color: var(--lt-accent-ink); }
+  .insight, .fc-score span, .fc-bars li, .fc-narrative p, .fc-hit p { color: var(--lt-text); }
+  .pair { border-bottom-color: rgba(180, 154, 113, 0.4); }
+  blockquote { color: var(--lt-ink); }
+  .credit { color: var(--lt-muted); }
+  .credit a, .link { color: var(--lt-accent); }
+  .more { border-color: #c49a61; color: var(--lt-accent-ink); }
+  a.more:hover { background: rgba(210, 167, 107, 0.22); color: var(--lt-ink); }
+  .forecast { --good: #3f7f4d; --hard: #a8432f; --mixed: #8e6b36; }
+  .fc-tabs button { border-color: rgba(180, 154, 113, 0.8); background: var(--lt-panel); color: var(--lt-accent-ink); }
+  .fc-tabs button small { color: var(--lt-muted); }
+  .fc-tabs button.on { background: linear-gradient(180deg, #f0cf94, #d3a768); color: #1a1208; border-color: transparent; }
+  .fc-tabs button.on small { color: #4b3a1f; }
+  .fc-moon { color: var(--lt-accent); }
+  .fc-bars p, .fc-hit small, .fc-day small { color: var(--lt-muted); }
+  .fc-bar, .fc-day-bar { background: rgba(142, 107, 54, 0.14); }
+  .fc-hit { background: var(--lt-field); }
+}
+
+/* ---------- світла тема: вікна (форми, звіти, натальна карта, сумісність, картка розкладу) ---------- */
+:root[data-theme='light'] .v-app .mdl-back { background: rgba(60, 45, 20, 0.45); }
+:root[data-theme='light'] .v-app .mdl {
+  background: var(--lt-panel); border-color: var(--lt-line); color: var(--lt-ink); box-shadow: 0 20px 60px rgba(70, 52, 24, 0.3);
+
+  h2 { color: var(--lt-ink); }
+  label { color: var(--lt-muted); }
+  input, textarea { border-color: rgba(180, 154, 113, 0.9); background: var(--lt-field); color: var(--lt-ink); color-scheme: light; }
+  input:focus, textarea:focus { outline-color: #c49a61; }
+  .err { color: #9a3b2c; }
+  .hint { color: var(--lt-muted); }
+  button { border-color: #c49a61; color: var(--lt-accent-ink); }
+  button.primary { color: #1a1208; border-color: transparent; }
+  .opt { border-color: rgba(180, 154, 113, 0.6); color: var(--lt-ink); }
+  .opt:hover { background: rgba(210, 167, 107, 0.22); }
+  .report-text, .report-section p, .full-text p { color: var(--lt-text); }
+  .report-row { border-top-color: rgba(180, 154, 113, 0.45); }
+  .report-row > button { color: var(--lt-accent-ink); }
+  .report-row > button small { color: var(--lt-muted); }
+  .report-section h3 { color: var(--lt-accent-ink); border-bottom-color: rgba(180, 154, 113, 0.5); }
+  .report-section p.bullet::before { color: var(--lt-accent); }
+  .chart-table { color: var(--lt-text); }
+  .chart-table th { color: var(--lt-muted); }
+  .chart-table td { border-top-color: rgba(180, 154, 113, 0.4); }
+  .chart-table tr.meaning td { color: var(--lt-muted); }
+  .chart-table td.asp { color: var(--lt-accent); }
+  .chart-table td.eff.harmonious { color: #2f6b3c; }
+  .chart-table td.eff.tense { color: #9a3b2c; }
+  .chart-table td.eff.mixed { color: var(--lt-accent); }
+  .syn-score b { color: var(--lt-ink); }
+  .syn-score small, .syn-legend { color: var(--lt-muted); }
+  .syn-score span, .syn-bars li { color: var(--lt-text); }
+  .syn-bars b { color: var(--lt-accent-ink); }
+  .syn-bar { background: rgba(142, 107, 54, 0.16); }
+  .syn-bar div { background: linear-gradient(90deg, #b9864a, #d3a768); }
+  .syn-details > summary, .syn-all summary { color: var(--lt-accent-ink); }
+  .syn-person { border-color: rgba(180, 154, 113, 0.6); }
+  .syn-person legend { color: var(--lt-accent-ink); }
+}
+:root[data-theme='light'] .v-app .cardmdl .where { color: var(--lt-muted); }
+:root[data-theme='light'] .v-app .cardmdl .detail { color: var(--lt-text); }
+:root[data-theme='light'] .v-app .full-link button { color: var(--lt-accent); }

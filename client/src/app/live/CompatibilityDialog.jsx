@@ -3,7 +3,8 @@ import { post } from '../../lib/api.js'
 import { t } from '../../i18n/index.js'
 import { Dialog } from './parts.jsx'
 import { ReportBody } from './reports.jsx'
-import { SYNASTRY_COLORS, SynastryWheel } from './SynastryWheel.jsx'
+import { synastryColors, SynastryWheel } from './SynastryWheel.jsx'
+import { useTheme } from '../../lib/theme.js'
 import { ASPECT_GLYPHS, ASPECT_LABELS, PLANET_GLYPHS } from './zodiacWheel.constants.js'
 
 const MIN_BIRTH_DATE = '1900-01-01'
@@ -82,6 +83,7 @@ function AspectTable({ result }) {
 
 /** Результат: загальний відсоток за всіма аспектами, подвійне колесо, оцінки за сферами, усі аспекти й текстовий звіт. */
 function Result({ result, onChange }) {
+  const SYNASTRY_COLORS = synastryColors(useTheme())
   const { counted } = result
   return (
     <>
