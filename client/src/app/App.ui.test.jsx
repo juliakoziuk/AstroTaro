@@ -21,6 +21,15 @@ describe('route guard', () => {
     expect(window.location.hash).toBe(`#${path}`)
   })
 
+  // регресія: після додавання перевірки онбордингу гість бачив порожню сторінку замість цих двох намальованих екранів
+  test.each([['/register', 'Create Account'], ['/pricing', 'Choose your plan']])('the public painted screen %s is drawn for a guest, not left blank', async (path, text) => {
+    mockApi({ 'GET /plans': [200, []] })
+    window.location.hash = `#${path}`
+    const { container } = render(<App />)
+    await waitFor(() => expect(container.querySelector('.v-app .page')).not.toBeNull())
+    expect(container.querySelector('.v-app').textContent).toContain(text)
+  })
+
   test('a signed-in user opening the sign-in screen is sent to the dashboard', async () => {
     setToken('tok')
     mockApi({ 'GET /settings': [200, { language: 'English', theme: 'Dark' }] })

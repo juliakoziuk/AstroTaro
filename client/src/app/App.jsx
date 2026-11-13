@@ -48,9 +48,11 @@ export default function App() {
   const signedInGuest = GUEST_ONLY.has(screen.id) && !!getToken()
   // Новий акаунт спершу веде на знайомство. Доки сервер не відповів, екрани застосунку не малюємо, щоб дашборд не блимнув перед переходом.
   const onboarded = useOnboarded()
+  // inApp — екрани лише для залогінених: їх (і перехід на знайомство) тримає перевірка. Публічні намальовані екрани (Реєстрація, Тарифи)
+  // теж «екрани застосунку», але гостю їх показуємо завжди, без запиту до сервера.
   const inApp = !locked && !signedInGuest && !PUBLIC.has(screen.path) && screen.id !== 'onboarding'
   const toOnboarding = inApp && onboarded === false
-  const showApp = inApp && onboarded === true
+  const showApp = !locked && !signedInGuest && (!inApp || onboarded === true)
 
   useEffect(() => {
     if (locked) go('/login', { replace: true })
