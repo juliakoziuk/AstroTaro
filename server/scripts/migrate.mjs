@@ -9,20 +9,32 @@ import pg from 'pg'
 const dir = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'migrations')
 const statusOnly = process.argv.includes('--status')
 
+// Підключення: DATABASE_URL (Neon, Render…) або DB_HOST/…; SSL за sslmode в адресі чи DB_SSL=true|no-verify.
+// Та сама логіка, що в src/common/db-config.ts (тут це звичайний JS без збірки, тож вона повторена).
+const url = process.env.DATABASE_URL?.trim() ? new URL(process.env.DATABASE_URL.trim()) : null
+const sslFlag = (process.env.DB_SSL ?? '').trim().toLowerCase()
+const urlMode = (url?.searchParams.get('sslmode') ?? '').toLowerCase()
+const noVerify = sslFlag === 'no-verify' || urlMode === 'no-verify'
+const useSsl = noVerify || ['1', 'true', 'yes', 'on'].includes(sslFlag) || (urlMode !== '' && urlMode !== 'disable')
+const databaseName = url ? decodeURIComponent(url.pathname.replace(/^\//, '')) : process.env.DB_NAME
+
 const connection = (database) => ({
-  host: process.env.DB_HOST ?? 'localhost',
-  port: Number(process.env.DB_PORT ?? 5432),
-  user: process.env.DB_USER,
-  password: process.env.DB_PASS,
+  host: url ? url.hostname : (process.env.DB_HOST ?? 'localhost'),
+  port: url ? Number(url.port || 5432) : Number(process.env.DB_PORT ?? 5432),
+  user: url ? decodeURIComponent(url.username) : process.env.DB_USER,
+  password: url ? decodeURIComponent(url.password) : process.env.DB_PASS,
   database,
+  ...(useSsl ? { ssl: { rejectUnauthorized: !noVerify } } : {}),
 })
 
 // --create: спершу створити саму базу, якщо її ще немає (для тестової бази й чистого встановлення)
-if (process.argv.includes('--create')) {
+if (process.argv.includes('--create') && url) {
+  console.log('  --create is skipped with DATABASE_URL: the managed database already exists')
+} else if (process.argv.includes('--create')) {
   const admin = new pg.Client(connection('postgres'))
   await admin.connect()
   try {
-    const name = process.env.DB_NAME
+    const name = databaseName
     const exists = await admin.query('SELECT 1 FROM pg_database WHERE datname = $1', [name])
     if (!exists.rowCount) {
       await admin.query(`CREATE DATABASE "${name.replaceAll('"', '""')}"`)
@@ -33,7 +45,7 @@ if (process.argv.includes('--create')) {
   }
 }
 
-const client = new pg.Client(connection(process.env.DB_NAME))
+const client = new pg.Client(connection(databaseName))
 await client.connect()
 try {
   // один виконавець за раз: два одночасні запуски (наприклад, дві репліки) не застосують файл двічі

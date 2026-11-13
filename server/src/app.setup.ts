@@ -4,6 +4,7 @@ import helmet from 'helmet'
 import { NextFunction, Request, Response } from 'express'
 import { currentLocale, parseLocale, runWithLocale } from './i18n/locale'
 import { validationMessage } from './i18n/messages'
+import { parseTrustProxy } from './common/proxy'
 
 /** Помилки class-validator мовою запиту: ключ обмеження → фраза, число (довжина тощо) беремо з англійського тексту. */
 function localizedErrors(errors: ValidationError[], locale = currentLocale()): string[] {
@@ -16,6 +17,9 @@ function localizedErrors(errors: ValidationError[], locale = currentLocale()): s
 /** Усе, що відрізняє працюючий сервер від голого AppModule: префікс, заголовки, мова, валідація, CORS, Swagger. Спільне для main.ts і наскрізних тестів. */
 export function configureApp(app: INestApplication) {
   app.setGlobalPrefix('api')
+  // За проксі хостингу (Render тощо) справжня адреса клієнта лежить у X-Forwarded-For: без TRUST_PROXY ліміти входу бачили б одну адресу на всіх.
+  const proxy = parseTrustProxy(process.env.TRUST_PROXY)
+  if (proxy !== undefined) app.getHttpAdapter().getInstance().set('trust proxy', proxy)
   // Заголовки безпеки (nosniff, HSTS, без X-Powered-By тощо). CSP вимкнена: API віддає JSON, а її типові правила ламають Swagger UI.
   // Клієнт живе на іншому origin, тож ресурси API мають бути доступними з нього.
   app.use(helmet({ contentSecurityPolicy: false, crossOriginResourcePolicy: { policy: 'cross-origin' } }))

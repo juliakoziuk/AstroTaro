@@ -1,0 +1,40 @@
+# Render Blueprint: бекенд (NestJS). Фронт іде на Cloudflare Pages, база — на Neon; покрокова інструкція в DEPLOY.md.
+# Значення з «sync: false» Render спитає під час створення; JWT_SECRET він згенерує сам.
+services:
+  - type: web
+    name: mystiq-api
+    runtime: node
+    plan: free
+    region: frankfurt
+    rootDir: server
+    # swagger очікує TypeScript 5–6, у проєкті 7, тож --legacy-peer-deps; --include=dev потрібен для tsc
+    buildCommand: npm ci --legacy-peer-deps --include=dev && npm run build
+    # безкоштовний тариф не має окремого кроку перед запуском, тож міграції виконуються тут (запуск безпечний, повторні не діють)
+    startCommand: npm run migrate:deploy && npm start
+    healthCheckPath: /api/plans
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: TRUST_PROXY # один проксі Render перед сервером: потрібно для лімітів входу за адресою
+        value: "1"
+      - key: JWT_SECRET
+        generateValue: true
+      - key: DATABASE_URL # рядок підключення з Neon (разом із ?sslmode=require)
+        sync: false
+      - key: CORS_ORIGIN # адреса фронту без слеша наприкінці, напр. https://mystiq.pages.dev
+        sync: false
+      - key: APP_URL # та сама адреса: сюди ведуть посилання з листів
+        sync: false
+      - key: LLM_BASE_URL # необов'язково: модель для тлумачень (напр. Groq); без неї працюють шаблонні тексти
+        sync: false
+      - key: LLM_MODEL
+        sync: false
+      - key: LLM_API_KEY
+        sync: false
+      - key: NASA_API_KEY
+        sync: false
+      - key: SMTP_URL # необов'язково: без нього листи скидання пароля лише друкуються в журналі сервера
+        sync: false
+      - key: MAIL_FROM
+        sync: false

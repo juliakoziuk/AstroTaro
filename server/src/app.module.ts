@@ -7,6 +7,7 @@ import { AuthModule } from './auth/auth.module'
 import { BillingModule } from './billing/billing'
 import { MailModule } from './mail/mail'
 import { flagOn } from './common/flags'
+import { dbOptions } from './common/db-config'
 import { CosmosModule } from './cosmos/cosmos'
 import { DashboardModule } from './dashboard/dashboard.module'
 import { PlansModule } from './plans/plans'
@@ -29,11 +30,8 @@ import { User } from './users/user.model'
       inject: [ConfigService],
       useFactory: (cfg: ConfigService) => ({
         dialect: 'postgres',
-        host: cfg.get('DB_HOST', 'localhost'),
-        port: Number(cfg.get('DB_PORT', 5432)),
-        username: cfg.get('DB_USER'),
-        password: cfg.get('DB_PASS'),
-        database: cfg.get('DB_NAME'),
+        // DATABASE_URL (керовані бази) або DB_HOST/…; SSL — за sslmode в адресі чи DB_SSL (див. common/db-config.ts)
+        ...dbOptions((key) => cfg.get<string>(key)),
         models: [User, Dream, JournalEntry, Spread, Report, UsageEvent, DailyCard],
         // Схема в продакшені змінюється лише міграціями (npm run migrate). Автосинхронізація з моделей, що додає
         // колонки й змінює таблиці, вмикається явно для локальної розробки: DB_SYNC=true у .env.
